@@ -1,0 +1,65 @@
+\hypertarget{class_chill_1_1_processor_output}{}\section{Chill\+:\+:Processor\+Output Class Reference}
+\label{class_chill_1_1_processor_output}\index{Chill\+::\+Processor\+Output@{Chill\+::\+Processor\+Output}}
+
+
+{\ttfamily \#include $<$I\+Os.\+h$>$}
+
+Inheritance diagram for Chill\+:\+:Processor\+Output\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.191781cm]{class_chill_1_1_processor_output}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{class_chill_1_1_processor_output_ae9d397902ac6fcd1fa09fff1cc9231c0}{draw}} ()
+\item 
+\mbox{\Hypertarget{class_chill_1_1_processor_output_abd2987def60f35a31eda5093f773a595}\label{class_chill_1_1_processor_output_abd2987def60f35a31eda5093f773a595}} 
+virtual Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ {\bfseries clone} ()=0
+\item 
+\mbox{\Hypertarget{class_chill_1_1_processor_output_ad20a1c3db1b58a6e6b00df9c3ff44d47}\label{class_chill_1_1_processor_output_ad20a1c3db1b58a6e6b00df9c3ff44d47}} 
+virtual void {\bfseries save} (std\+::ofstream \&\+\_\+stream)
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_chill_1_1_processor_output_a41a3be6bf91145f934cdd905cc0e44c0}\label{class_chill_1_1_processor_output_a41a3be6bf91145f934cdd905cc0e44c0}} 
+static Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ {\bfseries create} (std\+::string \+\_\+name, I\+O\+Type\+::\+I\+O\+Type \+\_\+type)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::vector$<$ Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$ $>$ \mbox{\hyperlink{class_chill_1_1_processor_output_a538e5f1c81f00df42d8bbd6500e51dae}{m\+\_\+links}}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Output\+Processor class. Represents a node\textquotesingle{}s output socket. 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_chill_1_1_processor_output_ae9d397902ac6fcd1fa09fff1cc9231c0}\label{class_chill_1_1_processor_output_ae9d397902ac6fcd1fa09fff1cc9231c0}} 
+\index{Chill\+::\+Processor\+Output@{Chill\+::\+Processor\+Output}!draw@{draw}}
+\index{draw@{draw}!Chill\+::\+Processor\+Output@{Chill\+::\+Processor\+Output}}
+\subsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily bool Chill\+::\+Processor\+Output\+::draw (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Draw the component return true if the element is rendered, else false 
+
+Implements \mbox{\hyperlink{class_u_i_a5025b88e26f21852c0cd2e4b42675c50}{UI}}.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{class_chill_1_1_processor_output_a538e5f1c81f00df42d8bbd6500e51dae}\label{class_chill_1_1_processor_output_a538e5f1c81f00df42d8bbd6500e51dae}} 
+\index{Chill\+::\+Processor\+Output@{Chill\+::\+Processor\+Output}!m\+\_\+links@{m\+\_\+links}}
+\index{m\+\_\+links@{m\+\_\+links}!Chill\+::\+Processor\+Output@{Chill\+::\+Processor\+Output}}
+\subsubsection{\texorpdfstring{m\+\_\+links}{m\_links}}
+{\footnotesize\ttfamily std\+::vector$<$Auto\+Ptr$<$\mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}}$>$ $>$ Chill\+::\+Processor\+Output\+::m\+\_\+links}
+
+List of all linked inputs. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+E\+:/\+Chill/chill/chill\+Engine/\mbox{\hyperlink{_i_os_8h}{I\+Os.\+h}}\item 
+E\+:/\+Chill/chill/chill\+Engine/I\+Os.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,123 @@
+\hypertarget{class_u_i}{}\section{UI Class Reference}
+\label{class_u_i}\index{UI@{UI}}
+Inheritance diagram for UI\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=5.369127cm]{class_u_i}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual bool \mbox{\hyperlink{class_u_i_a5025b88e26f21852c0cd2e4b42675c50}{draw}} ()=0
+\item 
+void \mbox{\hyperlink{class_u_i_a934f9deb6d5b34dfe7e510fcecab9331}{resize}} (Im\+Vec2 \+\_\+size)
+\item 
+void \mbox{\hyperlink{class_u_i_a3613f4288872eb4498a74929f7923144}{set\+Position}} (Im\+Vec2 \+\_\+position)
+\item 
+void \mbox{\hyperlink{class_u_i_a45f75304b2c3fbea67c846709a5fc3d6}{translate}} (Im\+Vec2 \+\_\+delta)
+\item 
+void \mbox{\hyperlink{class_u_i_a9f94b46f9c35e31475bfbf1b3d3509d4}{set\+Scale}} (const float \+\_\+scale)
+\item 
+\mbox{\Hypertarget{class_u_i_a5ee541a0fdace105e3a1b4ac75d09ec0}\label{class_u_i_a5ee541a0fdace105e3a1b4ac75d09ec0}} 
+const Im\+Vec2 {\bfseries get\+Position} ()
+\item 
+\mbox{\Hypertarget{class_u_i_af2544c74b9a04087864de2a7c7915f82}\label{class_u_i_af2544c74b9a04087864de2a7c7915f82}} 
+const float {\bfseries get\+Scale} ()
+\item 
+\mbox{\Hypertarget{class_u_i_afd4f0491687ee2c20c15c83f1faf8001}\label{class_u_i_afd4f0491687ee2c20c15c83f1faf8001}} 
+const uint32\+\_\+t {\bfseries get\+Unique\+ID} ()
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_u_i_a168bfc22672b23e25e18c0efcbcbe21a}\label{class_u_i_a168bfc22672b23e25e18c0efcbcbe21a}} 
+bool {\bfseries m\+\_\+visible} = true
+\item 
+Im\+Vec2 \mbox{\hyperlink{class_u_i_a15b42e4e8dfa93817e613ea089d0dfec}{m\+\_\+size}} = Im\+Vec2(0.\+0f, 0.\+0f)
+\item 
+Im\+Vec2 \mbox{\hyperlink{class_u_i_ad2489ec467f98fb8efa04e1724ff8bc8}{m\+\_\+position}} = Im\+Vec2(0.\+0f, 0.\+0f)
+\item 
+float \mbox{\hyperlink{class_u_i_a9a7264d8fcbead94498e2723204f0b63}{m\+\_\+scale}} = 1.\+0f
+\item 
+\mbox{\Hypertarget{class_u_i_acaab3c70fde81efa27ef2d7aa41a8f63}\label{class_u_i_acaab3c70fde81efa27ef2d7aa41a8f63}} 
+\mbox{\hyperlink{struct_style}{Style}} {\bfseries style}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_u_i_a5025b88e26f21852c0cd2e4b42675c50}\label{class_u_i_a5025b88e26f21852c0cd2e4b42675c50}} 
+\index{UI@{UI}!draw@{draw}}
+\index{draw@{draw}!UI@{UI}}
+\subsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily virtual bool U\+I\+::draw (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+Draw the component return true if the element is rendered, else false 
+
+Implemented in \mbox{\hyperlink{class_chill_1_1_multiplexer_aac8cf52a617091ffedaee970b5550270}{Chill\+::\+Multiplexer}}, \mbox{\hyperlink{class_chill_1_1_group_processor_a6c3eadfcb171c48a2d76bebefd153fcb}{Chill\+::\+Group\+Processor}}, \mbox{\hyperlink{class_chill_1_1_processor_a2eb86d9750e1c0d5ac7f6da166aca8fd}{Chill\+::\+Processor}}, \mbox{\hyperlink{class_chill_1_1_processor_input_a0dfb7b669e95248d3a5974b7800aeb66}{Chill\+::\+Processor\+Input}}, \mbox{\hyperlink{class_chill_1_1_node_editor_a7b67d5473c93d3258a2dc565e76da024}{Chill\+::\+Node\+Editor}}, and \mbox{\hyperlink{class_chill_1_1_processor_output_ae9d397902ac6fcd1fa09fff1cc9231c0}{Chill\+::\+Processor\+Output}}.
+
+\mbox{\Hypertarget{class_u_i_a934f9deb6d5b34dfe7e510fcecab9331}\label{class_u_i_a934f9deb6d5b34dfe7e510fcecab9331}} 
+\index{UI@{UI}!resize@{resize}}
+\index{resize@{resize}!UI@{UI}}
+\subsubsection{\texorpdfstring{resize()}{resize()}}
+{\footnotesize\ttfamily void U\+I\+::resize (\begin{DoxyParamCaption}\item[{Im\+Vec2}]{\+\_\+size }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Resize a component (scale independant) 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+size} & The new component size \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_u_i_a3613f4288872eb4498a74929f7923144}\label{class_u_i_a3613f4288872eb4498a74929f7923144}} 
+\index{UI@{UI}!set\+Position@{set\+Position}}
+\index{set\+Position@{set\+Position}!UI@{UI}}
+\subsubsection{\texorpdfstring{set\+Position()}{setPosition()}}
+{\footnotesize\ttfamily void U\+I\+::set\+Position (\begin{DoxyParamCaption}\item[{Im\+Vec2}]{\+\_\+position }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Move a component 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+position} & The new position \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_u_i_a9f94b46f9c35e31475bfbf1b3d3509d4}\label{class_u_i_a9f94b46f9c35e31475bfbf1b3d3509d4}} 
+\index{UI@{UI}!set\+Scale@{set\+Scale}}
+\index{set\+Scale@{set\+Scale}!UI@{UI}}
+\subsubsection{\texorpdfstring{set\+Scale()}{setScale()}}
+{\footnotesize\ttfamily void U\+I\+::set\+Scale (\begin{DoxyParamCaption}\item[{const float}]{\+\_\+scale }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Set the scale of a component param \+\_\+scale The new scale \mbox{\Hypertarget{class_u_i_a45f75304b2c3fbea67c846709a5fc3d6}\label{class_u_i_a45f75304b2c3fbea67c846709a5fc3d6}} 
+\index{UI@{UI}!translate@{translate}}
+\index{translate@{translate}!UI@{UI}}
+\subsubsection{\texorpdfstring{translate()}{translate()}}
+{\footnotesize\ttfamily void U\+I\+::translate (\begin{DoxyParamCaption}\item[{Im\+Vec2}]{\+\_\+delta }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Translate a component 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+delta} & The delta \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{class_u_i_ad2489ec467f98fb8efa04e1724ff8bc8}\label{class_u_i_ad2489ec467f98fb8efa04e1724ff8bc8}} 
+\index{UI@{UI}!m\+\_\+position@{m\+\_\+position}}
+\index{m\+\_\+position@{m\+\_\+position}!UI@{UI}}
+\subsubsection{\texorpdfstring{m\+\_\+position}{m\_position}}
+{\footnotesize\ttfamily Im\+Vec2 U\+I\+::m\+\_\+position = Im\+Vec2(0.\+0f, 0.\+0f)}
+
+Component\textquotesingle{}s position \mbox{\Hypertarget{class_u_i_a9a7264d8fcbead94498e2723204f0b63}\label{class_u_i_a9a7264d8fcbead94498e2723204f0b63}} 
+\index{UI@{UI}!m\+\_\+scale@{m\+\_\+scale}}
+\index{m\+\_\+scale@{m\+\_\+scale}!UI@{UI}}
+\subsubsection{\texorpdfstring{m\+\_\+scale}{m\_scale}}
+{\footnotesize\ttfamily float U\+I\+::m\+\_\+scale = 1.\+0f}
+
+Graphical scale \mbox{\Hypertarget{class_u_i_a15b42e4e8dfa93817e613ea089d0dfec}\label{class_u_i_a15b42e4e8dfa93817e613ea089d0dfec}} 
+\index{UI@{UI}!m\+\_\+size@{m\+\_\+size}}
+\index{m\+\_\+size@{m\+\_\+size}!UI@{UI}}
+\subsubsection{\texorpdfstring{m\+\_\+size}{m\_size}}
+{\footnotesize\ttfamily Im\+Vec2 U\+I\+::m\+\_\+size = Im\+Vec2(0.\+0f, 0.\+0f)}
+
+Component\textquotesingle{}s size 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+E\+:/\+Chill/chill/chill\+Engine/U\+I.\+h\end{DoxyCompactItemize}

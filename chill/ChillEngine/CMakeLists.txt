@@ -1,0 +1,45 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+PROJECT(ChillEngine)
+
+ADD_LIBRARY( ChillEngine STATIC
+	Processor.h
+	ProcessingGraph.h
+	LuaProcessor.h
+	
+	ProcessingGraph.cpp
+	Processor.cpp
+	GroupProcessors.cpp
+	LuaProcessor.cpp
+
+	Style.h
+	UI.h
+	UI.cpp
+	NodeEditor.h
+	NodeEditor.cpp
+
+	IOTypes.h
+	IOs.h
+	IOs.cpp
+  
+	GraphSaver.h
+	GraphSaver.cpp
+  
+	FileDialog.h
+	FileDialog.cpp
+
+	Resources.h
+  )
+
+TARGET_LINK_LIBRARIES(ChillEngine
+	lua
+	luabind
+	LibSL
+	LibSL_gl
+)
+
+SET_PROPERTY(TARGET ChillEngine APPEND PROPERTY
+   INTERFACE_INCLUDE_DIRECTORIES
+ 			${CMAKE_CURRENT_SOURCE_DIR}
+)
+SET_TARGET_PROPERTIES(ChillEngine PROPERTIES DEBUG_POSTFIX "-d")
+set_target_properties(ChillEngine PROPERTIES ENABLE_EXPORTS ON)

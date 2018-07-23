@@ -1,0 +1,418 @@
+\hypertarget{class_chill_1_1_processor}{}\section{Chill\+:\+:Processor Class Reference}
+\label{class_chill_1_1_processor}\index{Chill\+::\+Processor@{Chill\+::\+Processor}}
+
+
+{\ttfamily \#include $<$Processor.\+h$>$}
+
+Inheritance diagram for Chill\+:\+:Processor\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.818792cm]{class_chill_1_1_processor}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_chill_1_1_processor_ae4f5d1338dcae8154ea8339cb2524fd1}{Processor}} ()
+\item 
+\mbox{\hyperlink{class_chill_1_1_processor_ac8ef42b4ab4e0c32265743691d4bb272}{Processor}} (const std\+::string \&\+\_\+name)
+\item 
+\mbox{\hyperlink{class_chill_1_1_processor_aed80279651d92dd2d3077120ba2c8491}{Processor}} (\mbox{\hyperlink{class_chill_1_1_processing_graph}{Processing\+Graph}} $\ast$\+\_\+owner)
+\item 
+\mbox{\hyperlink{class_chill_1_1_processor_a36d7f0ccee9cfa13fbe58cee33619521}{Processor}} (const \mbox{\hyperlink{class_chill_1_1_processor}{Processor}} \&\+\_\+copy)
+\item 
+const std\+::string \mbox{\hyperlink{class_chill_1_1_processor_a8d35027206ef53bd40d2554f2f4b9046}{name}} ()
+\item 
+void \mbox{\hyperlink{class_chill_1_1_processor_a1daa8b6fe879d65d96ca507a64a2adf0}{set\+Name}} (std\+::string \+\_\+name)
+\item 
+Im\+U32 \mbox{\hyperlink{class_chill_1_1_processor_a4ee8538c5b95c44cd04224efd86f94bf}{get\+Color}} ()
+\item 
+void \mbox{\hyperlink{class_chill_1_1_processor_ae0835b5fa85f9038911a72b2c293b7b3}{set\+Color}} (const Im\+U32 \&\+\_\+color)
+\item 
+void \mbox{\hyperlink{class_chill_1_1_processor_a295fa343c9c834d8c29f057aa0754d30}{set\+Owner}} (\mbox{\hyperlink{class_chill_1_1_processing_graph}{Processing\+Graph}} $\ast$\+\_\+owner)
+\item 
+\mbox{\hyperlink{class_chill_1_1_processing_graph}{Processing\+Graph}} $\ast$ \mbox{\hyperlink{class_chill_1_1_processor_a3024af1d7f7785b03485a79eece5be3b}{owner}} ()
+\item 
+const std\+::vector$<$ Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$ $>$ \mbox{\hyperlink{class_chill_1_1_processor_ae31251f77eaca1c86fb326cac6833695}{inputs}} ()
+\item 
+std\+::vector$<$ Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ $>$ \mbox{\hyperlink{class_chill_1_1_processor_a5ed85c9d070167d489eb51022863887a}{outputs}} ()
+\item 
+Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$ \mbox{\hyperlink{class_chill_1_1_processor_af7e4fd8473b311ac572825193331d1e6}{input}} (std\+::string \+\_\+name)
+\item 
+Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ \mbox{\hyperlink{class_chill_1_1_processor_a26494f059d01af50bd66462e8c14fdb9}{output}} (std\+::string \+\_\+name)
+\item 
+Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$ \mbox{\hyperlink{class_chill_1_1_processor_a771c81e8f921566a6ee719845c2f1e23}{add\+Input}} (Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$ \+\_\+input)
+\item 
+{\footnotesize template$<$typename ... Args$>$ }\\Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$ \mbox{\hyperlink{class_chill_1_1_processor_aa7180f4172236f0dabe725a5eabe9900}{add\+Input}} (std\+::string \+\_\+name, I\+O\+Type\+::\+I\+O\+Type \+\_\+type, Args \&\&... \+\_\+args)
+\item 
+Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ \mbox{\hyperlink{class_chill_1_1_processor_a07fdef0cf1b7c20d39739ec287ea2f87}{add\+Output}} (Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ \+\_\+output)
+\item 
+Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ \mbox{\hyperlink{class_chill_1_1_processor_a2bb867802937d84cb94941ebbbf43ff8}{add\+Output}} (std\+::string \+\_\+name, I\+O\+Type\+::\+I\+O\+Type \+\_\+type=I\+O\+Type\+::\+U\+N\+D\+EF)
+\item 
+void \mbox{\hyperlink{class_chill_1_1_processor_afff216d6d38739af754c4d6e62702214}{remove\+Input}} (Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$ \&\+\_\+input)
+\item 
+void \mbox{\hyperlink{class_chill_1_1_processor_adf8c383a1b90606599e42c85f12ea7cd}{remove\+Output}} (Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ \&\+\_\+output)
+\item 
+virtual bool \mbox{\hyperlink{class_chill_1_1_processor_a2eb86d9750e1c0d5ac7f6da166aca8fd}{draw}} ()
+\item 
+virtual Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor}{Processor}} $>$ \mbox{\hyperlink{class_chill_1_1_processor_ad3cc90a592d8755afb546e9b701489e4}{Processor\+::clone}} ()
+\item 
+virtual void \mbox{\hyperlink{class_chill_1_1_processor_a476a6eddddef2f44827e4d9de530d706}{save}} (std\+::ofstream \&\+\_\+stream)
+\item 
+virtual bool \mbox{\hyperlink{class_chill_1_1_processor_a209a0c41fc704874da8c2c10371d1b79}{is\+Emitting}} ()
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_chill_1_1_processor_a948bfa8f4cfd3112f3da8b2ffa36bb7a}\label{class_chill_1_1_processor_a948bfa8f4cfd3112f3da8b2ffa36bb7a}} 
+char {\bfseries m\+\_\+title} \mbox{[}32\mbox{]} = \char`\"{}\textbackslash{}0\char`\"{}
+\item 
+\mbox{\Hypertarget{class_chill_1_1_processor_abcba3bd72b99bbaeed8c715e0772fbda}\label{class_chill_1_1_processor_abcba3bd72b99bbaeed8c715e0772fbda}} 
+bool {\bfseries m\+\_\+selected} = false
+\item 
+\mbox{\Hypertarget{class_chill_1_1_processor_ac82c72fce70c6b897c7fb61ec6108fc7}\label{class_chill_1_1_processor_ac82c72fce70c6b897c7fb61ec6108fc7}} 
+bool {\bfseries m\+\_\+edit} = false
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string \mbox{\hyperlink{class_chill_1_1_processor_aa6a9be29fed9833aef0c75259653bd20}{m\+\_\+name}}
+\item 
+Im\+U32 \mbox{\hyperlink{class_chill_1_1_processor_ae473cb6e402c7454ed4225c70da8de6c}{m\+\_\+color}}
+\item 
+\mbox{\hyperlink{class_chill_1_1_processing_graph}{Processing\+Graph}} $\ast$ \mbox{\hyperlink{class_chill_1_1_processor_a2b83d506f9923cb479d553f90acd2a02}{m\+\_\+owner}}
+\item 
+bool \mbox{\hyperlink{class_chill_1_1_processor_afbe48b147ae854cca4b93dfb3e5f0e8a}{m\+\_\+emit}} = false
+\item 
+std\+::vector$<$ Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$ $>$ \mbox{\hyperlink{class_chill_1_1_processor_a9843bceefbc8f8236f0e7a05427378c1}{m\+\_\+inputs}}
+\item 
+std\+::vector$<$ Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ $>$ \mbox{\hyperlink{class_chill_1_1_processor_a0d0fdbd5faed69b8293b7cd615d96f99}{m\+\_\+outputs}}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\mbox{\hyperlink{class_chill_1_1_processor}{Processor}} class. Is a node within the graph. Contains inputs and outputs. 
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_chill_1_1_processor_ae4f5d1338dcae8154ea8339cb2524fd1}\label{class_chill_1_1_processor_ae4f5d1338dcae8154ea8339cb2524fd1}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!Processor@{Processor}}
+\index{Processor@{Processor}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{Processor()}{Processor()}\hspace{0.1cm}{\footnotesize\ttfamily [1/4]}}
+{\footnotesize\ttfamily Chill\+::\+Processor\+::\+Processor (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Instanciate a new \mbox{\hyperlink{class_chill_1_1_processor}{Processor}}. \mbox{\Hypertarget{class_chill_1_1_processor_ac8ef42b4ab4e0c32265743691d4bb272}\label{class_chill_1_1_processor_ac8ef42b4ab4e0c32265743691d4bb272}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!Processor@{Processor}}
+\index{Processor@{Processor}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{Processor()}{Processor()}\hspace{0.1cm}{\footnotesize\ttfamily [2/4]}}
+{\footnotesize\ttfamily Chill\+::\+Processor\+::\+Processor (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Instanciate a new \mbox{\hyperlink{class_chill_1_1_processor}{Processor}}. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+name} & The name of the processor \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_chill_1_1_processor_aed80279651d92dd2d3077120ba2c8491}\label{class_chill_1_1_processor_aed80279651d92dd2d3077120ba2c8491}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!Processor@{Processor}}
+\index{Processor@{Processor}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{Processor()}{Processor()}\hspace{0.1cm}{\footnotesize\ttfamily [3/4]}}
+{\footnotesize\ttfamily Chill\+::\+Processor\+::\+Processor (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_chill_1_1_processing_graph}{Processing\+Graph}} $\ast$}]{\+\_\+owner }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Instanciate a new \mbox{\hyperlink{class_chill_1_1_processor}{Processor}} and set is owner. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+owner} & Parent graph that contains the processor. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_chill_1_1_processor_a36d7f0ccee9cfa13fbe58cee33619521}\label{class_chill_1_1_processor_a36d7f0ccee9cfa13fbe58cee33619521}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!Processor@{Processor}}
+\index{Processor@{Processor}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{Processor()}{Processor()}\hspace{0.1cm}{\footnotesize\ttfamily [4/4]}}
+{\footnotesize\ttfamily Chill\+::\+Processor\+::\+Processor (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{class_chill_1_1_processor}{Processor}} \&}]{\+\_\+copy }\end{DoxyParamCaption})}
+
+Copy constructor. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+copy} & The processor which gonna be copied. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_chill_1_1_processor_a771c81e8f921566a6ee719845c2f1e23}\label{class_chill_1_1_processor_a771c81e8f921566a6ee719845c2f1e23}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!add\+Input@{add\+Input}}
+\index{add\+Input@{add\+Input}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{add\+Input()}{addInput()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$ Chill\+::\+Processor\+::add\+Input (\begin{DoxyParamCaption}\item[{Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$}]{\+\_\+input }\end{DoxyParamCaption})}
+
+Add a new input to the processor. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+input} & The input. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A pointer to the new input. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_chill_1_1_processor_aa7180f4172236f0dabe725a5eabe9900}\label{class_chill_1_1_processor_aa7180f4172236f0dabe725a5eabe9900}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!add\+Input@{add\+Input}}
+\index{add\+Input@{add\+Input}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{add\+Input()}{addInput()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$typename ... Args$>$ \\
+Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$ Chill\+::\+Processor\+::add\+Input (\begin{DoxyParamCaption}\item[{std\+::string}]{\+\_\+name,  }\item[{I\+O\+Type\+::\+I\+O\+Type}]{\+\_\+type,  }\item[{Args \&\&...}]{\+\_\+args }\end{DoxyParamCaption})}
+
+Add a new input to the processor. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+name} & The input name. \\
+\hline
+{\em \+\_\+type} & The input type. \\
+\hline
+{\em \+\_\+args} & All additionnal arguments \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A pointer to the new input. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_chill_1_1_processor_a07fdef0cf1b7c20d39739ec287ea2f87}\label{class_chill_1_1_processor_a07fdef0cf1b7c20d39739ec287ea2f87}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!add\+Output@{add\+Output}}
+\index{add\+Output@{add\+Output}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{add\+Output()}{addOutput()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ Chill\+::\+Processor\+::add\+Output (\begin{DoxyParamCaption}\item[{Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$}]{\+\_\+output }\end{DoxyParamCaption})}
+
+Add a new output to the processor. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+output} & The output. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A pointer to the new output. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_chill_1_1_processor_a2bb867802937d84cb94941ebbbf43ff8}\label{class_chill_1_1_processor_a2bb867802937d84cb94941ebbbf43ff8}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!add\+Output@{add\+Output}}
+\index{add\+Output@{add\+Output}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{add\+Output()}{addOutput()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ Chill\+::\+Processor\+::add\+Output (\begin{DoxyParamCaption}\item[{std\+::string}]{\+\_\+name,  }\item[{I\+O\+Type\+::\+I\+O\+Type}]{\+\_\+type = {\ttfamily IOType\+:\+:UNDEF} }\end{DoxyParamCaption})}
+
+Add a new output to the processor. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+name} & The output name. \\
+\hline
+{\em \+\_\+type} & The output type. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+A pointer to the new output. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_chill_1_1_processor_a2eb86d9750e1c0d5ac7f6da166aca8fd}\label{class_chill_1_1_processor_a2eb86d9750e1c0d5ac7f6da166aca8fd}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!draw@{draw}}
+\index{draw@{draw}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily bool Chill\+::\+Processor\+::draw (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Draw the processor 
+
+Implements \mbox{\hyperlink{class_u_i_a5025b88e26f21852c0cd2e4b42675c50}{UI}}.
+
+
+
+Reimplemented in \mbox{\hyperlink{class_chill_1_1_multiplexer_aac8cf52a617091ffedaee970b5550270}{Chill\+::\+Multiplexer}}, and \mbox{\hyperlink{class_chill_1_1_group_processor_a6c3eadfcb171c48a2d76bebefd153fcb}{Chill\+::\+Group\+Processor}}.
+
+\mbox{\Hypertarget{class_chill_1_1_processor_a4ee8538c5b95c44cd04224efd86f94bf}\label{class_chill_1_1_processor_a4ee8538c5b95c44cd04224efd86f94bf}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!get\+Color@{get\+Color}}
+\index{get\+Color@{get\+Color}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{get\+Color()}{getColor()}}
+{\footnotesize\ttfamily Im\+U32 Chill\+::\+Processor\+::get\+Color (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Get the color of this processor. \begin{DoxyReturn}{Returns}
+The color of the processor. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_chill_1_1_processor_af7e4fd8473b311ac572825193331d1e6}\label{class_chill_1_1_processor_af7e4fd8473b311ac572825193331d1e6}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!input@{input}}
+\index{input@{input}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{input()}{input()}}
+{\footnotesize\ttfamily Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$ Chill\+::\+Processor\+::input (\begin{DoxyParamCaption}\item[{std\+::string}]{\+\_\+name }\end{DoxyParamCaption})}
+
+Get an input by name. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+name} & The input name. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The input pointer if exists else a null pointer. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_chill_1_1_processor_ae31251f77eaca1c86fb326cac6833695}\label{class_chill_1_1_processor_ae31251f77eaca1c86fb326cac6833695}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!inputs@{inputs}}
+\index{inputs@{inputs}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{inputs()}{inputs()}}
+{\footnotesize\ttfamily const std\+::vector$<$Auto\+Ptr$<$\mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}}$>$ $>$ Chill\+::\+Processor\+::inputs (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Get the list of inputs. \begin{DoxyReturn}{Returns}
+The list of inputs. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_chill_1_1_processor_a209a0c41fc704874da8c2c10371d1b79}\label{class_chill_1_1_processor_a209a0c41fc704874da8c2c10371d1b79}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!is\+Emitting@{is\+Emitting}}
+\index{is\+Emitting@{is\+Emitting}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{is\+Emitting()}{isEmitting()}}
+{\footnotesize\ttfamily bool Chill\+::\+Processor\+::is\+Emitting (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+\begin{DoxyReturn}{Returns}
+true if affects any output (shape or slicing parameter) 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_chill_1_1_processor_a8d35027206ef53bd40d2554f2f4b9046}\label{class_chill_1_1_processor_a8d35027206ef53bd40d2554f2f4b9046}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!name@{name}}
+\index{name@{name}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{name()}{name()}}
+{\footnotesize\ttfamily const std\+::string Chill\+::\+Processor\+::name (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Get the name of this processor. \begin{DoxyReturn}{Returns}
+The name of the processor. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_chill_1_1_processor_a26494f059d01af50bd66462e8c14fdb9}\label{class_chill_1_1_processor_a26494f059d01af50bd66462e8c14fdb9}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!output@{output}}
+\index{output@{output}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{output()}{output()}}
+{\footnotesize\ttfamily Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ Chill\+::\+Processor\+::output (\begin{DoxyParamCaption}\item[{std\+::string}]{\+\_\+name }\end{DoxyParamCaption})}
+
+Get an output by name. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+name} & The output name. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The output pointer if exists else a null pointer. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_chill_1_1_processor_a5ed85c9d070167d489eb51022863887a}\label{class_chill_1_1_processor_a5ed85c9d070167d489eb51022863887a}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!outputs@{outputs}}
+\index{outputs@{outputs}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{outputs()}{outputs()}}
+{\footnotesize\ttfamily std\+::vector$<$Auto\+Ptr$<$\mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}}$>$ $>$ Chill\+::\+Processor\+::outputs (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Get the list of outputs. \begin{DoxyReturn}{Returns}
+The list of outputs. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_chill_1_1_processor_a3024af1d7f7785b03485a79eece5be3b}\label{class_chill_1_1_processor_a3024af1d7f7785b03485a79eece5be3b}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!owner@{owner}}
+\index{owner@{owner}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{owner()}{owner()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_chill_1_1_processing_graph}{Processing\+Graph}}$\ast$ Chill\+::\+Processor\+::owner (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Get the owner of this processor. \begin{DoxyReturn}{Returns}
+The parent graph. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{class_chill_1_1_processor_ad3cc90a592d8755afb546e9b701489e4}\label{class_chill_1_1_processor_ad3cc90a592d8755afb546e9b701489e4}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!Processor\+::clone@{Processor\+::clone}}
+\index{Processor\+::clone@{Processor\+::clone}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{Processor\+::clone()}{Processor::clone()}}
+{\footnotesize\ttfamily virtual Auto\+Ptr$<$\mbox{\hyperlink{class_chill_1_1_processor}{Processor}}$>$ Chill\+::\+Processor\+::\+Processor\+::clone (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+Make a copy of the processor (deep copy) \mbox{\Hypertarget{class_chill_1_1_processor_afff216d6d38739af754c4d6e62702214}\label{class_chill_1_1_processor_afff216d6d38739af754c4d6e62702214}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!remove\+Input@{remove\+Input}}
+\index{remove\+Input@{remove\+Input}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{remove\+Input()}{removeInput()}}
+{\footnotesize\ttfamily void Chill\+::\+Processor\+::remove\+Input (\begin{DoxyParamCaption}\item[{Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}} $>$ \&}]{\+\_\+input }\end{DoxyParamCaption})}
+
+Remove an input. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+input} & The pointer that refers to the input \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_chill_1_1_processor_adf8c383a1b90606599e42c85f12ea7cd}\label{class_chill_1_1_processor_adf8c383a1b90606599e42c85f12ea7cd}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!remove\+Output@{remove\+Output}}
+\index{remove\+Output@{remove\+Output}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{remove\+Output()}{removeOutput()}}
+{\footnotesize\ttfamily void Chill\+::\+Processor\+::remove\+Output (\begin{DoxyParamCaption}\item[{Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}} $>$ \&}]{\+\_\+output }\end{DoxyParamCaption})}
+
+Remove an output. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+output} & The pointer that refers to the output \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_chill_1_1_processor_a476a6eddddef2f44827e4d9de530d706}\label{class_chill_1_1_processor_a476a6eddddef2f44827e4d9de530d706}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!save@{save}}
+\index{save@{save}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{save()}{save()}}
+{\footnotesize\ttfamily void Chill\+::\+Processor\+::save (\begin{DoxyParamCaption}\item[{std\+::ofstream \&}]{\+\_\+stream }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Generate the lua code and add it to the stream 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+stream} & The output stream \\
+\hline
+\end{DoxyParams}
+
+
+Reimplemented in \mbox{\hyperlink{class_chill_1_1_processing_graph_a15ebc74e61a5bbdba8715c8d93b2815d}{Chill\+::\+Processing\+Graph}}.
+
+\mbox{\Hypertarget{class_chill_1_1_processor_ae0835b5fa85f9038911a72b2c293b7b3}\label{class_chill_1_1_processor_ae0835b5fa85f9038911a72b2c293b7b3}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!set\+Color@{set\+Color}}
+\index{set\+Color@{set\+Color}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{set\+Color()}{setColor()}}
+{\footnotesize\ttfamily void Chill\+::\+Processor\+::set\+Color (\begin{DoxyParamCaption}\item[{const Im\+U32 \&}]{\+\_\+color }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Set the color of this processor. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+color} & The color of the processor. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_chill_1_1_processor_a1daa8b6fe879d65d96ca507a64a2adf0}\label{class_chill_1_1_processor_a1daa8b6fe879d65d96ca507a64a2adf0}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!set\+Name@{set\+Name}}
+\index{set\+Name@{set\+Name}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{set\+Name()}{setName()}}
+{\footnotesize\ttfamily void Chill\+::\+Processor\+::set\+Name (\begin{DoxyParamCaption}\item[{std\+::string}]{\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Set the name of this processor. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+name} & The name of the processor. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_chill_1_1_processor_a295fa343c9c834d8c29f057aa0754d30}\label{class_chill_1_1_processor_a295fa343c9c834d8c29f057aa0754d30}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!set\+Owner@{set\+Owner}}
+\index{set\+Owner@{set\+Owner}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{set\+Owner()}{setOwner()}}
+{\footnotesize\ttfamily void Chill\+::\+Processor\+::set\+Owner (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_chill_1_1_processing_graph}{Processing\+Graph}} $\ast$}]{\+\_\+owner }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Set a new owner. 
+\begin{DoxyParams}{Parameters}
+{\em \+\_\+owner} & The graph that contains this processor. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{class_chill_1_1_processor_ae473cb6e402c7454ed4225c70da8de6c}\label{class_chill_1_1_processor_ae473cb6e402c7454ed4225c70da8de6c}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!m\+\_\+color@{m\+\_\+color}}
+\index{m\+\_\+color@{m\+\_\+color}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{m\+\_\+color}{m\_color}}
+{\footnotesize\ttfamily Im\+U32 Chill\+::\+Processor\+::m\+\_\+color\hspace{0.3cm}{\ttfamily [protected]}}
+
+Display color. \mbox{\Hypertarget{class_chill_1_1_processor_afbe48b147ae854cca4b93dfb3e5f0e8a}\label{class_chill_1_1_processor_afbe48b147ae854cca4b93dfb3e5f0e8a}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!m\+\_\+emit@{m\+\_\+emit}}
+\index{m\+\_\+emit@{m\+\_\+emit}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{m\+\_\+emit}{m\_emit}}
+{\footnotesize\ttfamily bool Chill\+::\+Processor\+::m\+\_\+emit = false\hspace{0.3cm}{\ttfamily [protected]}}
+
+Emit a shape or a slicing parameter \mbox{\Hypertarget{class_chill_1_1_processor_a9843bceefbc8f8236f0e7a05427378c1}\label{class_chill_1_1_processor_a9843bceefbc8f8236f0e7a05427378c1}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!m\+\_\+inputs@{m\+\_\+inputs}}
+\index{m\+\_\+inputs@{m\+\_\+inputs}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{m\+\_\+inputs}{m\_inputs}}
+{\footnotesize\ttfamily std\+::vector$<$Auto\+Ptr$<$\mbox{\hyperlink{class_chill_1_1_processor_input}{Processor\+Input}}$>$ $>$ Chill\+::\+Processor\+::m\+\_\+inputs\hspace{0.3cm}{\ttfamily [protected]}}
+
+List of all inputs. \mbox{\Hypertarget{class_chill_1_1_processor_aa6a9be29fed9833aef0c75259653bd20}\label{class_chill_1_1_processor_aa6a9be29fed9833aef0c75259653bd20}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!m\+\_\+name@{m\+\_\+name}}
+\index{m\+\_\+name@{m\+\_\+name}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{m\+\_\+name}{m\_name}}
+{\footnotesize\ttfamily std\+::string Chill\+::\+Processor\+::m\+\_\+name\hspace{0.3cm}{\ttfamily [protected]}}
+
+Display name. \mbox{\Hypertarget{class_chill_1_1_processor_a0d0fdbd5faed69b8293b7cd615d96f99}\label{class_chill_1_1_processor_a0d0fdbd5faed69b8293b7cd615d96f99}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!m\+\_\+outputs@{m\+\_\+outputs}}
+\index{m\+\_\+outputs@{m\+\_\+outputs}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{m\+\_\+outputs}{m\_outputs}}
+{\footnotesize\ttfamily std\+::vector$<$Auto\+Ptr$<$\mbox{\hyperlink{class_chill_1_1_processor_output}{Processor\+Output}}$>$ $>$ Chill\+::\+Processor\+::m\+\_\+outputs\hspace{0.3cm}{\ttfamily [protected]}}
+
+List of all outputs. \mbox{\Hypertarget{class_chill_1_1_processor_a2b83d506f9923cb479d553f90acd2a02}\label{class_chill_1_1_processor_a2b83d506f9923cb479d553f90acd2a02}} 
+\index{Chill\+::\+Processor@{Chill\+::\+Processor}!m\+\_\+owner@{m\+\_\+owner}}
+\index{m\+\_\+owner@{m\+\_\+owner}!Chill\+::\+Processor@{Chill\+::\+Processor}}
+\subsubsection{\texorpdfstring{m\+\_\+owner}{m\_owner}}
+{\footnotesize\ttfamily \mbox{\hyperlink{class_chill_1_1_processing_graph}{Processing\+Graph}}$\ast$ Chill\+::\+Processor\+::m\+\_\+owner\hspace{0.3cm}{\ttfamily [protected]}}
+
+Parent graph, raw pointer is needed. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+E\+:/\+Chill/chill/chill\+Engine/\mbox{\hyperlink{_processor_8h}{Processor.\+h}}\item 
+E\+:/\+Chill/chill/chill\+Engine/Processor.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,11 @@
+#version 120
+
+varying vec3      v_Pos;
+
+void main()
+{
+  gl_Position    = gl_ProjectionMatrix * gl_ModelViewMatrix * gl_Vertex;
+  gl_TexCoord[0] = gl_MultiTexCoord0;
+  gl_TexCoord[1] = vec4(gl_Normal.xyz,0);
+  v_Pos          = gl_Vertex.xyz;
+}

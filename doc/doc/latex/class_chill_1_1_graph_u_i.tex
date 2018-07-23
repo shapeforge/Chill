@@ -1,0 +1,67 @@
+\hypertarget{class_chill_1_1_graph_u_i}{}\section{Chill\+:\+:Graph\+UI Class Reference}
+\label{class_chill_1_1_graph_u_i}\index{Chill\+::\+Graph\+UI@{Chill\+::\+Graph\+UI}}
+Inheritance diagram for Chill\+:\+:Graph\+UI\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_chill_1_1_graph_u_i}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_chill_1_1_graph_u_i_a781b4cb94cd335f2a16c7ed2a8ee1bdc}\label{class_chill_1_1_graph_u_i_a781b4cb94cd335f2a16c7ed2a8ee1bdc}} 
+void {\bfseries set\+Graph} (Processing\+Graph\+\_\+\+Ptr graph\+\_\+)
+\item 
+\mbox{\Hypertarget{class_chill_1_1_graph_u_i_ae7b96d16ed39fe3dc846f08c8120284e}\label{class_chill_1_1_graph_u_i_ae7b96d16ed39fe3dc846f08c8120284e}} 
+Processing\+Graph\+\_\+\+Ptr {\bfseries get\+Graph} ()
+\item 
+bool \mbox{\hyperlink{class_chill_1_1_graph_u_i_a0baf2bbeaab0062cee7f3b7d2136bced}{draw}} ()
+\item 
+\mbox{\Hypertarget{class_chill_1_1_graph_u_i_af32cacb69a048520dd5c961798f8f790}\label{class_chill_1_1_graph_u_i_af32cacb69a048520dd5c961798f8f790}} 
+void {\bfseries add\+Processor} (Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_u_i}{Processor\+UI}} $>$ proc\+UI)
+\item 
+\mbox{\Hypertarget{class_chill_1_1_graph_u_i_a5b5b9a8b41d7a654bd4e7ad1f6dc332f}\label{class_chill_1_1_graph_u_i_a5b5b9a8b41d7a654bd4e7ad1f6dc332f}} 
+{\footnotesize template$<$typename T\+\_\+\+Processor $>$ }\\Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_u_i}{Processor\+UI}} $>$ {\bfseries add\+Processor} ()
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Im\+Vec2 \mbox{\hyperlink{class_chill_1_1_graph_u_i_a923428629a957d077fedc0ccd83b4cb1}{m\+\_\+offset}}
+\item 
+\mbox{\Hypertarget{class_chill_1_1_graph_u_i_a515b613dade1ae1eb12a7b4ea976c100}\label{class_chill_1_1_graph_u_i_a515b613dade1ae1eb12a7b4ea976c100}} 
+bool {\bfseries m\+\_\+show\+\_\+grid} = true
+\item 
+\mbox{\Hypertarget{class_chill_1_1_graph_u_i_a68fad7908c8e93e55925a0fb6a3ac097}\label{class_chill_1_1_graph_u_i_a68fad7908c8e93e55925a0fb6a3ac097}} 
+Processing\+Graph\+\_\+\+Ptr {\bfseries m\+\_\+data}
+\item 
+\mbox{\Hypertarget{class_chill_1_1_graph_u_i_a97597328754e82ccc1324fbf897dcc8d}\label{class_chill_1_1_graph_u_i_a97597328754e82ccc1324fbf897dcc8d}} 
+std\+::vector$<$ Auto\+Ptr$<$ \mbox{\hyperlink{class_chill_1_1_processor_u_i}{Processor\+UI}} $>$ $>$ {\bfseries m\+\_\+processors}
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_chill_1_1_graph_u_i_a0baf2bbeaab0062cee7f3b7d2136bced}\label{class_chill_1_1_graph_u_i_a0baf2bbeaab0062cee7f3b7d2136bced}} 
+\index{Chill\+::\+Graph\+UI@{Chill\+::\+Graph\+UI}!draw@{draw}}
+\index{draw@{draw}!Chill\+::\+Graph\+UI@{Chill\+::\+Graph\+UI}}
+\subsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily bool Chill\+::\+Graph\+U\+I\+::draw (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Draw the component return true if the element is rendered, else false 
+
+Implements \mbox{\hyperlink{class_u_i_a5025b88e26f21852c0cd2e4b42675c50}{UI}}.
+
+
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{class_chill_1_1_graph_u_i_a923428629a957d077fedc0ccd83b4cb1}\label{class_chill_1_1_graph_u_i_a923428629a957d077fedc0ccd83b4cb1}} 
+\index{Chill\+::\+Graph\+UI@{Chill\+::\+Graph\+UI}!m\+\_\+offset@{m\+\_\+offset}}
+\index{m\+\_\+offset@{m\+\_\+offset}!Chill\+::\+Graph\+UI@{Chill\+::\+Graph\+UI}}
+\subsubsection{\texorpdfstring{m\+\_\+offset}{m\_offset}}
+{\footnotesize\ttfamily Im\+Vec2 Chill\+::\+Graph\+U\+I\+::m\+\_\+offset}
+
+Visual offset, to move within the graph. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+E\+:/\+Chill/chill/chill\+View/Graph\+U\+I.\+h\item 
+E\+:/\+Chill/chill/chill\+View/Graph\+U\+I.\+cpp\end{DoxyCompactItemize}
