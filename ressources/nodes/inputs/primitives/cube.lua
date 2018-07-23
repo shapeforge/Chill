@@ -1,14 +1,9 @@
-width  = input('width',  SCALAR)
-height = input('height', SCALAR)
-depth  = input('depth',  SCALAR)
-
-centered = tweak('centered', BOOL)
-
+centered = input('centered', 'BOOLEAN', false)
+size     = input('size'    , 'VEC3'   , {10.0, 10.0, 10.0}, 0.0, 100.0)
 
 if centered then
-  shape = ccube(width, height, depth)
+  shape = ccube(1, 1, 1)
 else
-  shape = cube(width, height, depth)
+  shape = cube(1, 1, 1)
 end
-
-output('cube', SHAPE, shape)
+output('cube', 'SHAPE', scale(size) * shape)
