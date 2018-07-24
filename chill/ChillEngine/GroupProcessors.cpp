@@ -11,37 +11,40 @@ namespace Chill
   void GroupProcessor::iceSL(std::ofstream& _stream) {
     //write the current Id of the node
 
-    std::string link = "--[[ " + name() + " ]]--\n";
-    link += "setfenv(1, _G0)  --go back to global initialization\n";
-    link += "__currentNodeId = ";
-    link += std::to_string((int64_t)this);
-    link += "\n";
-    for (auto input : inputs()) {
+    std::string code = "--[[ " + name() + " ]]--\n";
+    code += "setfenv(1, _G0)  --go back to global initialization\n";
+    code += "__currentNodeId = " + std::to_string((int64_t)this) + "\n";
+    
+    if (isDirty() || isEmiter()) {
+      code += "setDirty(__currentNodeId)\n";
+    }
+    
+    for (auto input : owner()->inputs()) {
       // as tweak
       if (input->m_link.isNull()) {
-        link += "__input[\"" + std::string(input->name()) + "\"] = " + input->getLuaValue() + "\n";
+        code += "__input['" + std::string(input->name()) + "'] = " + input->getLuaValue() + "\n";
       }
       // as input
       else {
         std::string s2 = std::to_string((int64_t)input->m_link->owner());
-        link += "__input[\"" + std::string(input->name()) + "\"] = " + input->m_link->name() + s2 + "\n";
+        code += "__input['" + std::string(input->name()) + "'] = " + input->m_link->name() + s2 + "\n";
       }
     }
 
     //TODO: CLEAN THIS !!!!
-    link += "\
+    code += "\
 _Gcurrent = {} -- clear _Gcurrent\n\
 setmetatable(_Gcurrent, { __index = _G0 }) --copy index from _G0\n\
 setfenv(1, _Gcurrent)    --set it\n";
 
-    for (auto input : inputs()) {
-      link += "output('" + std::string(input->name()) + "', UNDEF, " + input->name() + ")\n" ;
+    for (auto input : outputs()) {
+      code += "output('" + std::string(input->name()) + "', UNDEF, input('" + input->name() + "'))\n" ;
     }
 
    
 
 
-    _stream << link << std::endl;
+    _stream << code << std::endl;
   }
 
   bool GroupProcessor::draw() {
