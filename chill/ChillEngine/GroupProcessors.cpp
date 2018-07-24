@@ -35,7 +35,7 @@ setmetatable(_Gcurrent, { __index = _G0 }) --copy index from _G0\n\
 setfenv(1, _Gcurrent)    --set it\n";
 
     for (auto input : inputs()) {
-      link += "output(" ;
+      link += "output('" + std::string(input->name()) + "', UNDEF, " + input->name() + ")\n" ;
     }
 
    

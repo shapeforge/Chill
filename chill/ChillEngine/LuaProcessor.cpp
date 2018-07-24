@@ -97,7 +97,7 @@ setDirty(__currentNodeId)\n";
     code += m_program;
     code += "\nend";
 
-    _stream << code << "\nend\n" << std::endl;
+    _stream << code << std::endl;
   }
 
 
