@@ -19,6 +19,7 @@ namespace Chill {
   }
 
   Processor::~Processor() {
+    std::cout << "~" << name() << std::endl;
     for (AutoPtr<ProcessorInput> input : m_inputs) {
       m_owner->disconnect(input);
     }
@@ -57,7 +58,7 @@ namespace Chill {
     std::string name = base;
     int nb = 1;
     while (!input(name).isNull()) {
-      name = base + "(" + std::to_string(nb++) + ")";
+      name = base + "_" + std::to_string(nb++);
     }
     input_->setName(name);
 
@@ -78,7 +79,7 @@ namespace Chill {
     std::string name = base;
     int nb = 1;
     while (!output(name).isNull()) {
-      name = base + "(" + std::to_string(nb++) + ")";
+      name = base + "_" + std::to_string(nb++);
     }
     output_->setName(name);
 
@@ -365,6 +366,7 @@ void Chill::Multiplexer::iceSL(std::ofstream& _stream) {
   lua += "__currentNodeId = ";
   lua += std::to_string((int64_t)this);
   lua += "\n";
+
   for (auto input : inputs()) {
     // tweak
     if (input->m_link.isNull()) {
@@ -384,6 +386,19 @@ setmetatable(_Gcurrent, { __index = _G0 }) --copy index from _G0\n\
 setfenv(1, _Gcurrent)    --set it\n\
 ");
 
+  lua += "if (isDirty({__currentNodeId";
+
+  for (auto input : inputs()) {
+    if (!input->m_link.isNull()) {
+      std::string s2 = std::to_string((int64_t)input->m_link->owner());
+      lua += ", " + s2;
+    }
+  }
+
+  lua += "})) then\n\
+setDirty(__currentNodeId)\n";
   lua += "output('o','UNDEF', input('i', 'UNDEF'))";
+  lua += "\nend";
+
   _stream << lua << std::endl;
 }

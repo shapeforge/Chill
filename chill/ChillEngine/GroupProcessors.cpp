@@ -15,19 +15,37 @@ namespace Chill
     code += "setfenv(1, _G0)  --go back to global initialization\n";
     code += "__currentNodeId = " + std::to_string((int64_t)this) + "\n";
     
-    if (isDirty() || isEmiter()) {
+    if (owner()->isDirty() || isDirty() || isEmiter()) {
       code += "setDirty(__currentNodeId)\n";
     }
     
-    for (auto input : owner()->inputs()) {
-      // as tweak
-      if (input->m_link.isNull()) {
-        code += "__input['" + std::string(input->name()) + "'] = " + input->getLuaValue() + "\n";
+    // GroupInput
+    if (!outputs().empty()) {
+      for (auto input : owner()->inputs()) {
+        // as tweak
+        if (input->m_link.isNull()) {
+          code += "__input['" + std::string(input->name()) + "'] = " + input->getLuaValue() + "\n";
+        }
+        // as input
+        else {
+          std::string s2 = std::to_string((int64_t)input->m_link->owner());
+          code += "__input['" + std::string(input->name()) + "'] = " + input->m_link->name() + s2 + "\n";
+        }
       }
-      // as input
-      else {
-        std::string s2 = std::to_string((int64_t)input->m_link->owner());
-        code += "__input['" + std::string(input->name()) + "'] = " + input->m_link->name() + s2 + "\n";
+    }
+
+    // GroupOutput
+    if (!inputs().empty()) {
+      for (auto input : inputs()) {
+        // as tweak
+        if (input->m_link.isNull()) {
+          code += "__input['" + std::string(input->name()) + "'] = " + input->getLuaValue() + "\n";
+        }
+        // as input
+        else {
+          std::string s2 = std::to_string((int64_t)input->m_link->owner());
+          code += "__input['" + std::string(input->name()) + "'] = " + input->m_link->name() + s2 + "\n";
+        }
       }
     }
 
@@ -37,12 +55,24 @@ _Gcurrent = {} -- clear _Gcurrent\n\
 setmetatable(_Gcurrent, { __index = _G0 }) --copy index from _G0\n\
 setfenv(1, _Gcurrent)    --set it\n";
 
-    for (auto input : outputs()) {
-      code += "output('" + std::string(input->name()) + "', UNDEF, input('" + input->name() + "'))\n" ;
+    // GroupInput
+    if (!outputs().empty()) {
+      for (auto output : outputs()) {
+        code += "output('" + std::string(output->name()) + "', 'UNDEF', input('" + output->name() + "'))\n";
+      }
     }
 
-   
-
+    // GroupOutput
+    if (!inputs().empty()) {
+      for (auto output : owner()->outputs()) {
+        code += std::string(output->name()) + " = input('" + output->name() + "')\n";
+        // set the parent as current node
+        code += "setNodeId(" + std::to_string((int64_t)owner()) + ")\n";
+        code += "output('" + std::string(output->name()) + "', 'UNDEF', " + output->name() + ")\n";
+        // reset current node
+        code += "setNodeId(" + std::to_string((int64_t)this) + ")\n";
+      }
+    }
 
     _stream << code << std::endl;
   }

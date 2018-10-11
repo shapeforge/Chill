@@ -173,6 +173,15 @@ namespace Chill
     void save(std::ofstream& _stream);
 
     void iceSL(std::ofstream& _stream);
+
+    bool isDirty() {
+      for (AutoPtr<Processor> processor : m_processors) {
+        if (processor->isDirty()) {
+          return true;
+        }
+      }
+      return false;
+    }
     
     ImVec2 getBarycenter(std::vector<AutoPtr<Processor>> _processors) {
       size_t nb_proc = _processors.size();

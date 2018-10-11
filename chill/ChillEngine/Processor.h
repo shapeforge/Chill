@@ -47,7 +47,7 @@ namespace Chill
     /** Display color. */
     ImU32                                 m_color;
     /** Parent graph, raw pointer is needed. */
-    ProcessingGraph *                     m_owner;
+    ProcessingGraph *                     m_owner = NULL;
     /** Emit a shape or a slicing parameter */
     bool                                  m_emit = false;
     /** List of all inputs. */
@@ -55,7 +55,7 @@ namespace Chill
     /** List of all outputs. */
     std::vector<AutoPtr<ProcessorOutput>> m_outputs;
     /** Next nodes have to update themselves. */
-    bool                                  m_dirty = true;
+    bool                                  m_dirty = false;
     
 
   public:
@@ -263,7 +263,7 @@ namespace Chill
       m_dirty = _dirty;
     }
 
-    bool isDirty() {
+    virtual bool isDirty() {
       return m_dirty;
     }
   };

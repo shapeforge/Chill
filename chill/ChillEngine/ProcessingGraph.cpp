@@ -103,7 +103,7 @@ namespace Chill {
 
     // remove the processor
     m_processors.erase(remove(m_processors.begin(), m_processors.end(), _processor), m_processors.end());
-    _processor.~AutoPtr();
+    //_processor.~AutoPtr();
   }
 
   bool ProcessingGraph::connect(const AutoPtr<Processor>& from, const std::string output_name, const AutoPtr<Processor>& to, const std::string input_name)
@@ -237,7 +237,7 @@ namespace Chill {
           std::string name = base;
           int nb = 1;
           while (!innerGraph->output(name).isNull()) {
-            name = base + "(" + std::to_string(nb++) + ")";
+            name = base + "_" + std::to_string(nb++);
           }
 
           AutoPtr<ProcessorOutput> innerOutput = innerGraph->addOutput(name, output->type());
@@ -269,6 +269,7 @@ namespace Chill {
     // Move processors
     for (AutoPtr<Processor> processor : collapsed->m_processors) {
       AutoPtr<GroupProcessor> proc(processor);
+      // If the processor is not a GroupProcessor
       if (proc.isNull()) {
         addProcessor(processor);
       }
@@ -386,7 +387,6 @@ namespace Chill {
   void ProcessingGraph::iceSL(std::ofstream& _stream) {
     std::set<Processor*> done;
     std::unordered_set<Processor*> toDo;
-    //write the current Id of the node
 
     for (AutoPtr<Processor> processor : m_processors) {
       bool not_connected = true;
@@ -401,10 +401,26 @@ namespace Chill {
       }
     }
 
-    std::string s = std::string("setfenv(1, _G0)  --go back to global initialization\n");
-    s += std::string("__curentNodeId = ");
-    s += std::to_string((int64_t)this);
-    s += "\n";
+    _stream << "--[[ " + std::string(name()) + " ]]--" << std::endl <<
+               "setfenv(1, _G0)  --go back to global initialization" << std::endl <<
+               "__currentNodeId = " << std::to_string((int64_t)this) << std::endl;
+
+    if ( (owner() != NULL && owner()->isDirty()) || isDirty() || isEmiter()) {
+      _stream << "setDirty(__currentNodeId)" << std::endl;
+    }
+
+    _stream << "if (isDirty({__currentNodeId";
+
+    for (auto input : inputs()) {
+      if (!input->m_link.isNull()) {
+        std::string s2 = std::to_string((int64_t)input->m_link->owner());
+        _stream << ", " + s2;
+      }
+    }
+
+    _stream << "})) then" << std::endl
+            << "setDirty(__currentNodeId)" << std::endl
+            << "end" << std::endl;
 
     while (!toDo.empty()) {
       Processor* processor = *toDo.begin();
@@ -434,6 +450,6 @@ namespace Chill {
     toDo.clear();
     done.clear();
 
-    _stream << s << std::endl;
+    _stream << "--[[ ! " + std::string(name()) + " ]]--\n" << std::endl;
   }
 }

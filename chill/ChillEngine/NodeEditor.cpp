@@ -131,30 +131,46 @@ __input = {}         --table of all input values\n\
 \n\
 setmetatable(_G0, { __index = _G })\n\
 \n\
+function setNodeId(id)\n\
+  setfenv(1, _G0)\n\
+  __currentNodeId = id\n\
+  setfenv(1, _Gcurrent)\n\
+end\n\
+\n\
 function input(name, type, ...)\n\
-return __input[name]\n\
+  return __input[name]\n\
 end\n\
 \n\
 function output(name, type, val)\n\
-setfenv(1, _G0)\n\
-if (isDirty({ __currentNodeId })) then\n\
-_G[name..__currentNodeId] = val\n\
-end\n\
-setfenv(1, _Gcurrent)\n\
+  setfenv(1, _G0)\n\
+  if (isDirty({ __currentNodeId })) then\n\
+    _G[name..__currentNodeId] = val\n\
+  end\n\
+  setfenv(1, _Gcurrent)\n\
 end\n\
 \n\
 function setDirty(node)\n\
-__dirty[node] = true\n\
+  __dirty[node] = true\n\
 end\n\
 \n\
 function isDirty(nodes)\n\
-if #nodes == 0 then\n\
-return false\n\
-else\n\
-local node = table.remove(nodes, 1)\n\
-if node == NIL then node = nil end\n\
-return __dirty[node] or isDirty(nodes)\n\
+  if first_exec then\n\
+    return true\n\
+  end\n\
+\n\
+  if #nodes == 0 then\n\
+    return false\n\
+  else\n\
+    local node = table.remove(nodes, 1)\n\
+    if node == NIL then node = nil end\n\
+    return __dirty[node] or isDirty(nodes)\n\
+  end\n\
 end\n\
+\n\
+if first_exec == nil then\n\
+  first_exec = true\n\
+else\n\
+  first_exec = false\n\
 end\n\
 \n\
 ------------------------------------------------------\n\
@@ -531,8 +547,10 @@ namespace Chill
       drawGrid();
     }
 
+
+    ProcessingGraph* currentGraph = m_graphs.top();
     // Draw the nodes
-    for (AutoPtr<Processor> processor : m_graphs.top()->processors()) {
+    for (AutoPtr<Processor> processor : currentGraph->processors()) {
       ImVec2 position = offset + processor->m_position * m_scale;
       ImGui::SetCursorPos(position);
       processor->setScale(m_scale);
@@ -542,7 +560,7 @@ namespace Chill
     // Draw the pipes
     float pipe_width = 2.0f * m_scale;
     int pipe_res = int(25.0f / std::abs(std::log(m_scale / 2.0f)));
-    for (AutoPtr<Processor> processor : m_graphs.top()->processors()) {
+    for (AutoPtr<Processor> processor : currentGraph->processors()) {
       for (AutoPtr<ProcessorOutput> output : processor->outputs()) {
         for (AutoPtr<ProcessorInput> input : output->m_links) {
           ImVec2 A = input->getPosition() + win_pos;
