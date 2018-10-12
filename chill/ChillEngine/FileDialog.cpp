@@ -165,6 +165,7 @@ std::string saveFileDialog(const char* proposedFileNameFullPath, const char* fil
   of.Flags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
   if (GetSaveFileNameA(&of)) {
     string fname = string(of.lpstrFile);
+    SetCurrentDirectoryA(extractPath(fname).c_str());
     return fname;
   }
   return "";

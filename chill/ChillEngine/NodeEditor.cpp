@@ -238,6 +238,7 @@ namespace Chill
           if (!fullpath.empty()) {
             std::ofstream file;
             file.open(fullpath);
+            setMainGraph(new ProcessingGraph());
             getMainGraph()->save(file);
             file.close();
           }
