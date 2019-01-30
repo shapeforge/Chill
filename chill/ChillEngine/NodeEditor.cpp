@@ -5,6 +5,8 @@
 #include "GraphSaver.h"
 #include "FileDialog.h"
 #include "Resources.h"
+#include "VisualComment.h"
+
 
 #include <iostream>
 #include <fstream>
@@ -308,8 +310,8 @@ namespace Chill
   }
 
 
-  std::vector<AutoPtr<Processor>> hovered_processors;
-  std::vector<AutoPtr<Processor>> selected_processors;
+  std::vector<AutoPtr<SelectableUI>>     hovered;
+  std::vector<AutoPtr<SelectableUI>>     selected;
   AutoPtr<ProcessingGraph> buffer;
 
   bool dirty;
@@ -359,8 +361,8 @@ namespace Chill
     }
 
     if (ImGui::IsWindowHovered()) {
-      hovered_processors.clear();
-      selected_processors.clear();
+      hovered.clear();
+      selected.clear();
       
       text_editing = false;
 
@@ -372,11 +374,11 @@ namespace Chill
         ImVec2 max_pos = min_pos + size + socket_size * 2;
 
         if (ImGui::IsMouseHoveringRect(min_pos, max_pos)) {
-          hovered_processors.push_back(processor);
+          hovered.push_back(AutoPtr<SelectableUI>(processor));
         }
 
         if (processor->m_selected) {
-          selected_processors.push_back(processor);
+          selected.push_back(AutoPtr<SelectableUI>(processor));
         }
 
         if (processor->m_edit) {
@@ -384,12 +386,44 @@ namespace Chill
         }
       }
 
+      for (AutoPtr<VisualComment> comment : m_graphs.top()->comments()) {
+        ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * m_scale;
+
+        ImVec2 size = comment->m_title_size * comment->m_scale;
+        ImVec2 min_pos = offset + win_pos + comment->m_position * m_scale - socket_size;
+        ImVec2 max_pos = min_pos + size + socket_size * 2;
+
+        if (ImGui::IsMouseHoveringRect(min_pos, max_pos)) {
+          hovered.push_back(AutoPtr<SelectableUI>(comment));
+        }
+
+        if (comment->m_selected) {
+          selected.push_back(AutoPtr<SelectableUI>(comment));
+        }
+
+        if (comment->m_edit) {
+          text_editing = true;
+        }
+      }
+
+
+      /*if (selected_processors.empty()) {
+        for (AutoPtr<VisualComment> comment : m_graphs.top()->comments()) {
+          ImVec2 size = comment->m_size * comment->m_scale;
+          ImVec2 min_pos = offset + win_pos + comment->m_position * m_scale;
+          ImVec2 max_pos = min_pos + size;
+          if (ImGui::IsMouseHoveringRect(min_pos, max_pos)) {
+            hovered_comments.push_back(comment);
+          }
+        }
+      }*/
+
       // LEFT CLICK
       if (linking) {
         m_selecting = false;
         m_dragging = false;
 
-        if (io.MouseDown[0] && hovered_processors.empty() || io.MouseDown[1]) {
+        if (io.MouseDown[0] && hovered.empty() || io.MouseDown[1]) {
           linking = false;
           m_selected_input = AutoPtr<ProcessorInput>(NULL);
           m_selected_output = AutoPtr<ProcessorOutput>(NULL);
@@ -397,7 +431,7 @@ namespace Chill
       }
       else {
         if (io.MouseDoubleClicked[0]) {
-          for (AutoPtr<Processor> hovproc : hovered_processors) {
+          for (AutoPtr<SelectableUI> hovproc : hovered) {
             if (ProcessingGraph* v = dynamic_cast<ProcessingGraph*>(hovproc.raw())) {
               if (!v->m_edit) {
                 m_graphs.push(v);
@@ -409,9 +443,9 @@ namespace Chill
         }
 
         if (io.MouseDown[0] && io.MouseDownOwned[0]) {
-          if (!hovered_processors.empty() && !m_selecting) {
-            for (AutoPtr<Processor> selproc : selected_processors) {
-              for (AutoPtr<Processor> hovproc : hovered_processors) {
+          if (!hovered.empty() && !m_selecting) {
+            for (AutoPtr<SelectableUI> selproc : selected) {
+              for (AutoPtr<SelectableUI> hovproc : hovered) {
                 if (hovproc == selproc) {
                   m_dragging = true;
                 }
@@ -419,7 +453,7 @@ namespace Chill
             }
           }
 
-          if (hovered_processors.empty() && !m_dragging || m_selecting) {
+          if (hovered.empty() && !m_dragging || m_selecting) {
             selectProcessors();
           }
         }
@@ -429,53 +463,59 @@ namespace Chill
         }
 
         if (io.MouseClicked[0]) {
-          // if nothing hovered, clear
-          if (!io.KeysDown[LIBSL_KEY_SHIFT] && hovered_processors.empty()) {
-            for (AutoPtr<Processor> selproc : selected_processors) {
-              selproc->m_selected = false;
-            }
-            selected_processors.clear();
+          // if no processor hovered, clear
+          if (!io.KeysDown[LIBSL_KEY_SHIFT] && hovered.empty()) {
+              for (AutoPtr<SelectableUI> selproc : selected) {
+                selproc->m_selected = false;
+              }
+              selected.clear();
           }
           else {
-            for (AutoPtr<Processor> hovproc : hovered_processors) {
+
+
+            for (AutoPtr<SelectableUI> hovproc : hovered) {
               if (io.KeysDown[LIBSL_KEY_SHIFT]) {
                 if (hovproc->m_selected) {
                   hovproc->m_selected = false;
-                  selected_processors.erase(std::find(selected_processors.begin(), selected_processors.end(), hovproc));
+                  selected.erase(std::find(selected.begin(), selected.end(), hovproc));
                 }
                 else {
                   hovproc->m_selected = true;
-                  selected_processors.push_back(hovproc);
+                  selected.push_back(hovproc);
                 }
               }
               else {
                 bool sel_and_hov = false;
-                for (AutoPtr<Processor> selproc : selected_processors) {
+                for (AutoPtr<SelectableUI> selproc : selected) {
                   if (selproc == hovproc) {
                     sel_and_hov = true;
                     break;
                   }
                 }
                 if (!sel_and_hov) {
-                  for (AutoPtr<Processor> selproc : selected_processors) {
+                  for (AutoPtr<SelectableUI> selproc : selected) {
                     selproc->m_selected = false;
                   }
-                  selected_processors.clear();
+                  selected.clear();
 
                   hovproc->m_selected = true;
-                  selected_processors.push_back(hovproc);
+                  selected.push_back(hovproc);
                 }
               }
             }
+
+
+            
           }
         }
+
       } // ! LEFT CLICK
 
 
 
       { // RIGHT CLICK
         if (io.MouseClicked[1]) {
-          if (selected_processors.empty()) {
+          if (selected.empty() ){
             m_graph_menu = true;
           }
           else {
@@ -488,9 +528,16 @@ namespace Chill
 
       // Move selected processors
       if (m_dragging) { 
-        for (AutoPtr<Processor> selected : selected_processors) {
-          selected->translate(io.MouseDelta / m_scale);
+        if (!io.KeysDown[LIBSL_KEY_CTRL]) {
+          for (AutoPtr<SelectableUI> selected : selected) {
+            selected->translate(io.MouseDelta / m_scale);
+          }
         }
+        else {
+          for (AutoPtr<SelectableUI> selected : selected) {
+            selected->m_size += io.MouseDelta / m_scale;
+          }
+        }      
       }
 
       // Move the whole canvas
@@ -505,9 +552,9 @@ namespace Chill
       if (!text_editing)
       {
         if (io.KeysDown['g'] && io.KeysDownDuration['g'] == 0) {
-          if (!selected_processors.empty()) {
-            getCurrentGraph()->collapseSubset(selected_processors);
-            selected_processors.clear();
+          if (!selected.empty()) {
+            getCurrentGraph()->collapseSubset(selected);
+            selected.clear();
           }
         }
 
@@ -520,8 +567,8 @@ namespace Chill
       }
 
       if(io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c'] && io.KeysDownDuration['c'] == 0) {
-        if (!selected_processors.empty()) {
-          buffer = getCurrentGraph()->copySubset(selected_processors);
+        if (!selected.empty()) {
+          buffer = getCurrentGraph()->copySubset(selected);
         }
       }
       if (!buffer.isNull()) {
@@ -531,8 +578,8 @@ namespace Chill
         }
       }
       if (io.KeysDown[LIBSL_KEY_DELETE]) {
-        for (AutoPtr<Processor> proc : selected_processors) {
-          getCurrentGraph()->removeProcessor(proc);
+        for (AutoPtr<SelectableUI> proc : selected) {
+          getCurrentGraph()->removeSelectable(proc);
         }
       }
 
@@ -547,9 +594,17 @@ namespace Chill
     {
       drawGrid();
     }
-
-
     ProcessingGraph* currentGraph = m_graphs.top();
+
+
+    for (AutoPtr<VisualComment> comment : currentGraph->comments()) {
+      ImVec2 position = offset + comment->m_position * m_scale;
+      ImGui::SetCursorPos(position);
+      comment->setScale(m_scale);
+      comment->draw();
+    }
+
+    
     // Draw the nodes
     for (AutoPtr<Processor> processor : currentGraph->processors()) {
       ImVec2 position = offset + processor->m_position * m_scale;
@@ -683,10 +738,10 @@ namespace Chill
       );
 
       if (!io.KeysDown[LIBSL_KEY_SHIFT]) {
-        for (AutoPtr<Processor> selproc : selected_processors) {
+        for (AutoPtr<SelectableUI> selproc : selected) {
           selproc->m_selected = false;
         }
-        selected_processors.clear();
+        selected.clear();
       }
 
       for (AutoPtr<Processor> procui : n_e->getCurrentGraph()->processors()) {
@@ -696,7 +751,17 @@ namespace Chill
         if (pos_min.x < A.x || B.x < pos_max.x) continue;
         if (pos_min.y < A.y || B.y < pos_max.y) continue;
         procui->m_selected = true;
-        selected_processors.push_back(procui);
+        selected.push_back(AutoPtr<SelectableUI>(procui));
+      }
+
+      for (AutoPtr<VisualComment> comui : n_e->getCurrentGraph()->comments()) {
+        ImVec2 pos_min = comui->getPosition();
+        ImVec2 pos_max = pos_min + comui->m_size;
+
+        if (pos_min.x < A.x || B.x < pos_max.x) continue;
+        if (pos_min.y < A.y || B.y < pos_max.y) continue;
+        comui->m_selected = true;
+        selected.push_back(AutoPtr<SelectableUI>(comui));
       }
     }
   }
@@ -889,11 +954,16 @@ namespace Chill
         AutoPtr<Multiplexer> proc = n_e->getCurrentGraph()->addProcessor<Multiplexer>();
         proc->setPosition(s2g);
       }
-      if (ImGui::MenuItem("Nothing")) {
-        AutoPtr<Processor> proc = n_e->getCurrentGraph()->addProcessor<Processor>();
-        proc->addInput(ProcessorInput::create("color", IOType::VEC4, 0, 0, 255, true));
-        proc->setPosition(s2g);
+      
+      if (ImGui::MenuItem("Comment")) {
+        n_e->getCurrentGraph()->addComment(AutoPtr<VisualComment> (new VisualComment()));
       }
+
+      if (ImGui::MenuItem("Nothing")) {
+        
+      }
+      
+
       ImGui::EndPopup();
     }
 
@@ -901,18 +971,18 @@ namespace Chill
     {
       m_node_menu = false;
       if (ImGui::MenuItem("Copy", "CTRL+C")) {
-        if (!selected_processors.empty()) {
-          buffer = n_e->getCurrentGraph()->copySubset(selected_processors);
+        if (!selected.empty()) {
+          buffer = n_e->getCurrentGraph()->copySubset(selected);
         }
       }
       if (ImGui::MenuItem("Group")) {
-        if (!selected_processors.empty()) {
-          n_e->getCurrentGraph()->collapseSubset(selected_processors);
+        if (!selected.empty()) {
+          n_e->getCurrentGraph()->collapseSubset(selected);
         }
       }
       if (ImGui::MenuItem("Ungroup")) {
-        if (!selected_processors.empty()) {
-          for (AutoPtr<Processor> proc : selected_processors) {
+        if (!selected.empty()) {
+          for (AutoPtr<SelectableUI> proc : selected) {
             if (typeid(*proc.raw()) == typeid(ProcessingGraph)) {
               n_e->getCurrentGraph()->expandGraph(AutoPtr<ProcessingGraph>(proc), proc->getPosition());
             }
@@ -921,19 +991,22 @@ namespace Chill
       }
 
       if (ImGui::MenuItem("Delete")) {
-        for (AutoPtr<Processor> proc : selected_processors) {
-          n_e->getCurrentGraph()->removeProcessor(proc);
+        for (AutoPtr<SelectableUI> proc : selected) {
+          n_e->getCurrentGraph()->removeSelectable(proc);
         }
       }
       if (ImGui::MenuItem("Unlink")) {
-        for (AutoPtr<Processor> proc : selected_processors) {
-          for (AutoPtr<ProcessorInput> input : proc->inputs())
-          {
-            n_e->getCurrentGraph()->disconnect(input);
-          }
-          for (AutoPtr<ProcessorOutput> output : proc->outputs()) {
-            for (AutoPtr<ProcessorInput> input : output->m_links) {
+        for (AutoPtr<SelectableUI> select : selected) {
+          AutoPtr<Processor> proc = AutoPtr<Processor>(select);
+          if (!proc.isNull()) {
+            for (AutoPtr<ProcessorInput> input : proc->inputs())
+            {
               n_e->getCurrentGraph()->disconnect(input);
+            }
+            for (AutoPtr<ProcessorOutput> output : proc->outputs()) {
+              for (AutoPtr<ProcessorInput> input : output->m_links) {
+                n_e->getCurrentGraph()->disconnect(input);
+              }
             }
           }
         }

@@ -17,6 +17,9 @@ ADD_LIBRARY( ChillEngine STATIC
 	NodeEditor.h
 	NodeEditor.cpp
 
+	VisualComment.h
+	VisualComment.cpp
+
 	IOTypes.h
 	IOs.h
 	IOs.cpp

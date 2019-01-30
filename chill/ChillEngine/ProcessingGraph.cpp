@@ -29,7 +29,7 @@ namespace Chill {
     // clone nodes
     std::vector<std::pair<AutoPtr<Processor>, AutoPtr<Processor>>> proc_old_new;
     for (AutoPtr<Processor> processor : copy.m_processors) {
-      AutoPtr<Processor> new_proc = processor->clone();
+      AutoPtr<Processor> new_proc = AutoPtr<Processor>(processor->clone());
       new_proc->setPosition(processor->getPosition());
       proc_old_new.push_back(std::make_pair(processor, new_proc));
       addProcessor(new_proc);
@@ -106,6 +106,21 @@ namespace Chill {
     //_processor.~AutoPtr();
   }
 
+  void ProcessingGraph::removeComment(AutoPtr<VisualComment>& _comment) {
+    m_comments.erase(remove(m_comments.begin(), m_comments.end(), _comment), m_comments.end());
+  }
+
+  void ProcessingGraph::removeSelectable(AutoPtr<SelectableUI>& _select) {
+    AutoPtr<Processor> proc = AutoPtr<Processor>(_select);
+    if (!proc.isNull()) {
+      removeProcessor(proc);
+    }
+    AutoPtr<VisualComment> com = AutoPtr<VisualComment>(_select);
+    if (!com.isNull()) {
+      removeComment(com);
+    }
+  }
+
   bool ProcessingGraph::connect(const AutoPtr<Processor>& from, const std::string output_name, const AutoPtr<Processor>& to, const std::string input_name)
   {
     // check if the processors exists
@@ -170,7 +185,7 @@ namespace Chill {
   }
 
 
-  AutoPtr<ProcessingGraph> ProcessingGraph::collapseSubset(const std::vector<AutoPtr<Processor>>& subset)
+  AutoPtr<ProcessingGraph> ProcessingGraph::collapseSubset(const std::vector<AutoPtr<SelectableUI>>& subset)
   {
     AutoPtr<ProcessingGraph> innerGraph   = addProcessor<ProcessingGraph>();
     AutoPtr<GroupProcessor>  groupInputs  = innerGraph->addProcessor<GroupProcessor>();
@@ -182,13 +197,17 @@ namespace Chill {
     groupOutputs->setOutputMode(true);
 
     // move the processors
-    for (AutoPtr<Processor> processor : subset) {
-      innerGraph->addProcessor(processor);
-      removeProcessor(processor);
+    for (AutoPtr<SelectableUI> select : subset) {
+      innerGraph->add(select);
+      removeSelectable(select);
     }
 
     // edit border pipes
-    for (AutoPtr<Processor> processor : subset) {
+    for (AutoPtr<SelectableUI> select : subset) {
+      AutoPtr<Processor> processor = AutoPtr<Processor>(select);
+      if (processor.isNull()) {
+        continue;
+      }
       for (AutoPtr<ProcessorInput> input : processor->inputs()) {
         AutoPtr<ProcessorOutput> output = input->m_link;
         // not linked
@@ -297,21 +316,29 @@ namespace Chill {
     removeProcessor(AutoPtr<Processor>(collapsed));
   }
 
-  AutoPtr<ProcessingGraph> ProcessingGraph::copySubset(const std::vector<AutoPtr<Processor>>& subset)
+  AutoPtr<ProcessingGraph> ProcessingGraph::copySubset(const std::vector<AutoPtr<SelectableUI>>& subset)
   {
     AutoPtr<ProcessingGraph> graph = AutoPtr<ProcessingGraph>(new ProcessingGraph());
     
     std::vector<std::pair<AutoPtr<Processor>, AutoPtr<Processor>>> assoc;
     
     // copy the node
-    for (AutoPtr<Processor> processor : subset) {
-      AutoPtr<Processor> new_proc = processor->clone();
-      new_proc->setPosition(processor->getPosition());
-      assoc.push_back(std::make_pair(processor, new_proc));
-      graph->addProcessor(new_proc);
+    for (AutoPtr<SelectableUI> select : subset) {
+      AutoPtr<SelectableUI> new_select = AutoPtr<SelectableUI>(select->clone());
+      new_select->setPosition(select->getPosition());
+      AutoPtr<Processor> processor = AutoPtr<Processor>(select);
+      AutoPtr<Processor> new_processor = AutoPtr<Processor>(new_select);
+      if (processor.isNull()) {
+        assoc.push_back(std::make_pair(processor, new_processor));
+      }
+      graph->add(new_select);
     }
     // recreate the pipes
-    for (AutoPtr<Processor> processor : subset) {
+    for (AutoPtr<SelectableUI> select : subset) {
+      AutoPtr<Processor> processor = AutoPtr<Processor>(select);
+      if (processor.isNull()) {
+        continue;
+      }
       for (AutoPtr<ProcessorInput> input : processor->inputs()) {
         if (input.isNull()) continue;
         if (input->m_link.isNull()) continue;
