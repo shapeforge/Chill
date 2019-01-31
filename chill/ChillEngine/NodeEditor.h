@@ -32,6 +32,8 @@ namespace Chill
     }
 
   private:
+    std::string m_nodeFolder = "";
+
     std::stack<Chill::ProcessingGraph*> m_graphs;
 
     AutoPtr<ProcessorInput>  m_selected_input;
@@ -62,6 +64,10 @@ namespace Chill
     static void mainMousePressed(uint _x, uint _y, uint _button, uint _flags);
 
   public:
+    static std::string NodeFolder() {
+      return s_instance->m_nodeFolder;
+    }
+
     void exportIceSL(std::string& filename_);
 
     bool draw();

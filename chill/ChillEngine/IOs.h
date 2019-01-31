@@ -123,14 +123,17 @@ namespace Chill {
       case IOType::INTEGER:
         input = AutoPtr<ProcessorInput>(new IntInput(_args...));
         break;
+      case IOType::PATH:
+        input = AutoPtr<ProcessorInput>(new PathInput(_args...));
+        break;
       case IOType::SCALAR:
         input = AutoPtr<ProcessorInput>(new ScalarInput(_args...));
         break;
-      case IOType::STRING:
-        input = AutoPtr<ProcessorInput>(new StringInput(_args...));
-        break;
       case IOType::SHAPE:
         input = AutoPtr<ProcessorInput>(new ShapeInput(_args...));
+        break;
+      case IOType::STRING:
+        input = AutoPtr<ProcessorInput>(new StringInput(_args...));
         break;
       case IOType::VEC3:
         input = AutoPtr<ProcessorInput>(new Vec3Input(_args...));
@@ -374,6 +377,91 @@ namespace Chill {
       return output;
     }
   };
+
+
+  // IO_PATH
+  class PathInput : public ProcessorInput
+  {
+  public:
+    std::string m_value;
+    bool m_alt;
+
+    PathInput() {
+      setType(IOType::STRING);
+      setColor(color_string);
+    };
+
+    // For compatibility (shouldn't be called)
+    template <typename ...>
+    PathInput(...) : PathInput()
+    {
+      sl_assert(false);
+    };
+
+    template <typename ...>
+    PathInput(std::string _value = false, bool _alt = false, ...) : PathInput() {
+      m_value = _value;
+      m_alt = _alt;
+    };
+
+    template <typename ...>
+    PathInput(std::vector<std::string>& _params) : PathInput()
+    {
+      size_t s = _params.size();
+
+      m_value = s >= 1 ? _params[0] : "";
+      m_alt = s >= 2 ? _params[1] == "true" : false;
+
+      std::regex quote("(^[\'\"]|[\'\"]$)");
+      std::string unquoted;
+
+      regex_replace(std::back_inserter(unquoted), m_value.begin(), m_value.end(), quote, "$2");
+
+      m_value = unquoted;
+    };
+
+    bool drawTweak();
+
+    AutoPtr<ProcessorInput> clone() {
+      AutoPtr<ProcessorInput> input = AutoPtr<ProcessorInput>(new PathInput(m_value));
+      input->setName(name());
+      input->setColor(color());
+      return input;
+    }
+
+    void save(std::ofstream& _stream) {
+      _stream << "i_" << int64_t(this) << " = Input({" <<
+        "name = '" << name() << "', " <<
+        "type = '" << IOType::ToString(type()) << "', " <<
+        "value = '" << m_value << "'" <<
+        (m_alt ? ", alt = true" : "") <<
+        "})" << std::endl;
+    }
+
+    std::string getLuaValue() {
+      std::regex escaped_chars("([\\[\\]\\{\\}\\\"\\\'])");
+      std::string escaped;
+      regex_replace(std::back_inserter(escaped), m_value.begin(), m_value.end(), escaped_chars, "\\$1");
+      return "'" + escaped + "'";
+    }
+  };
+
+  class PathOutput : public ProcessorOutput
+  {
+  public:
+    PathOutput() {
+      setType(IOType::STRING);
+      setColor(color_string);
+    };
+
+    AutoPtr<ProcessorOutput> clone() {
+      AutoPtr<ProcessorOutput> output = AutoPtr<ProcessorOutput>(new PathOutput());
+      output->setName(name());
+      output->setColor(color());
+      return output;
+    }
+  };
+
 
   // IO_SCALAR
   class ScalarInput : public ProcessorInput

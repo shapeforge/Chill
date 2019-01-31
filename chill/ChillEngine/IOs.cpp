@@ -1,6 +1,8 @@
 #include "IOs.h"
 #include "NodeEditor.h"
 
+#include "FileDialog.h"
+
 namespace Chill {
   ProcessorOutput::~ProcessorOutput() {
     for (AutoPtr<ProcessorInput> input : m_links)
@@ -76,11 +78,17 @@ namespace Chill {
     case IOType::INTEGER:
       output = AutoPtr<ProcessorOutput>(new IntOutput());
       break;
+    case IOType::PATH:
+      output = AutoPtr<ProcessorOutput>(new PathOutput());
+      break;
     case IOType::SCALAR:
       output = AutoPtr<ProcessorOutput>(new ScalarOutput());
       break;
     case IOType::SHAPE:
       output = AutoPtr<ProcessorOutput>(new ShapeOutput());
+      break;
+    case IOType::STRING:
+      output = AutoPtr<ProcessorOutput>(new StringOutput());
       break;
     case IOType::VEC3:
       output = AutoPtr<ProcessorOutput>(new Vec3Output());
@@ -254,6 +262,45 @@ bool Chill::IntInput::drawTweak()
   return m_value != before;
 }
 
+
+bool Chill::PathInput::drawTweak()
+{
+  ImGui::SameLine();
+  ImGui::Text(name());
+
+  std::string name_str = std::string(name());
+  std::string label = "##" + name_str;
+  std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".3f";
+
+  char string[512];
+  strcpy(string, m_value.c_str());
+
+  std::string before = m_value;
+  bool value_changed = false;
+
+  if (m_link.isNull()) {
+    if (m_alt) {
+      value_changed = ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), string, 512);
+    } else {
+      value_changed = ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), string, 512);
+    }
+    if (value_changed) {
+      m_value = string;
+    }
+    if (ImGui::Button("...##")) {
+      std::string fullpath = openFileDialog(OFD_FILTER_GRAPHS);
+      if (!fullpath.empty()) {
+        std::replace(fullpath.begin(), fullpath.end(), '\\', '/');
+        m_value = fullpath.c_str();
+      }
+    }
+  } else {
+    ImGui::Text(name());
+  }
+  return value_changed || m_value != before;
+}
+
+
 bool Chill::ScalarInput::drawTweak()
 {
   ImGui::SameLine();
@@ -283,11 +330,43 @@ bool Chill::ScalarInput::drawTweak()
   return value_changed || m_value != before;
 }
 
+
 bool Chill::ShapeInput::drawTweak()
 {
   ImGui::SameLine();
   ImGui::Text(name());
   return false;
+}
+
+
+bool Chill::StringInput::drawTweak()
+{
+  ImGui::SameLine();
+  ImGui::Text(name());
+
+  std::string name_str = std::string(name());
+  std::string label = "##" + name_str;
+  std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".3f";
+
+  char string[512];
+  strcpy(string, m_value.c_str());
+
+  std::string before = m_value;
+  bool value_changed = false;
+
+  if (m_link.isNull()) {
+    if (m_alt) {
+      value_changed = ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), string, 512);
+    } else {
+      value_changed = ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), string, 512);
+    }
+    if (value_changed) {
+      m_value = string;
+    }
+  } else {
+    ImGui::Text(name());
+  }
+  return value_changed || m_value != before;
 }
 
 
@@ -363,36 +442,4 @@ bool Chill::Vec3Input::drawTweak()
   }
 
   return value_changed;
-}
-
-bool Chill::StringInput::drawTweak()
-{
-  ImGui::SameLine();
-  ImGui::Text(name());
-
-  std::string name_str = std::string(name());
-  std::string label = "##" + name_str;
-  std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".3f";
-
-  char string[512];
-  strcpy(string, m_value.c_str());
-  
-  std::string before = m_value;
-  bool value_changed = false;
-
-  if (m_link.isNull()) {
-    if (m_alt) {
-      value_changed = ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), string, 512);
-    }
-    else {
-      value_changed = ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), string, 512);
-    }
-    if (value_changed) {
-      m_value = string;
-    }
-  }
-  else {
-    ImGui::Text(name());
-  }
-  return value_changed || m_value != before;
 }

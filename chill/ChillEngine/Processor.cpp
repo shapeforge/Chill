@@ -202,6 +202,7 @@ bool Chill::Processor::draw() {
     ImGui::PopStyleColor();
   }
   else {
+    strcpy(m_title, name().c_str());
     if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), m_title, 32)) {
       setName(m_title);
     }

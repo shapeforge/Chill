@@ -19,8 +19,6 @@ LIBSL_WIN32_FIX
 const int default_width  = 800;
 const int default_height = 600;
 
-std::string nodeFolder = "";
-
 Chill::NodeEditor *Chill::NodeEditor::s_instance = nullptr;
 
 //-------------------------------------------------------
@@ -190,9 +188,12 @@ bool Chill::NodeEditor::draw()
 {
   drawMenuBar();
 
+  ImGui::SetNextWindowPos(ImVec2(0, 20));
+  ImGui::SetNextWindowSize(ImVec2(200, m_size.y));
+  drawLeftMenu();
+
   ImGui::SetNextWindowPos(ImVec2(200, 20));
   ImGui::SetNextWindowSize(m_size);
-
   drawGraph();
 
   return true;
@@ -275,7 +276,7 @@ namespace Chill
         if (!fullpath.empty()) {
           const size_t last_slash_idx = fullpath.rfind(Resources::separator());
           if (std::string::npos != last_slash_idx) {
-            nodeFolder = fullpath.substr(0, last_slash_idx) + Resources::separator() + "nodes";
+            m_nodeFolder = fullpath.substr(0, last_slash_idx) + Resources::separator() + "nodes";
           }
         }
 
@@ -303,8 +304,45 @@ namespace Chill
   }
 
   //-------------------------------------------------------
+
+  bool edit = false;
+  char title[32];
   void NodeEditor::drawLeftMenu()
   {
+
+    ImGui::Begin("GraphInfo", &m_visible,
+      ImGuiWindowFlags_NoTitleBar |
+      ImGuiWindowFlags_NoCollapse |
+
+      ImGuiWindowFlags_NoMove |
+      ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoScrollbar |
+      ImGuiWindowFlags_NoScrollWithMouse |
+
+      ImGuiWindowFlags_NoBringToFrontOnFocus
+    );
+
+    if (!edit) {
+      ImGui::PushStyleColor(ImGuiCol_Button       , ImVec4(0, 0, 0, 0));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive , ImVec4(0, 0, 0, 0));
+      ImGui::PushStyleColor(ImGuiCol_Border       , ImVec4(200, 200, 200, 255));
+      ImGui::PushStyleColor(ImGuiCol_Text         , ImVec4(200, 200, 200, 255));
+      if (ImGui::Button((m_graphs.top()->name() + "##" + std::to_string(getUniqueID())).c_str(), ImVec2(200,20)))
+        edit = true;
+      ImGui::PopStyleColor();
+      ImGui::PopStyleColor();
+      ImGui::PopStyleColor();
+      ImGui::PopStyleColor();
+    } else {
+      strcpy(title, m_graphs.top()->name().c_str());
+      if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), title, 32)) {
+        m_graphs.top()->setName(title);
+      } else if (!ImGui::IsMouseHoveringWindow()) {
+        edit = false;
+      }
+    }
+    ImGui::End();
   }
 
 
@@ -786,7 +824,7 @@ namespace Chill
 
   void listLuaFileInDir(std::vector<std::string>& files)
   {
-    listFiles(nodeFolder.c_str(), files);
+    listFiles(NodeEditor::NodeFolder().c_str(), files);
   }
 
   void listLuaFileInDir(std::vector<std::string>& files, std::string directory)
@@ -835,7 +873,7 @@ namespace Chill
   //-------------------------------------------------------
   std::string relativePath(std::string& path)
   {
-    int nfsize = (int)nodeFolder.size();
+    int nfsize = (int)NodeEditor::NodeFolder().size();
     if (path[nfsize + 1] == Resources::separator()) nfsize++;
     std::string name = path.substr(nfsize);
     return name;
@@ -843,9 +881,9 @@ namespace Chill
 
   void addNodeMenu(ImVec2 pos) {
     NodeEditor* n_e = NodeEditor::Instance();
-    std::string node = recursiveFileSelecter(nodeFolder);
+    std::string node = recursiveFileSelecter(NodeEditor::NodeFolder());
     if (!node.empty()) {
-      AutoPtr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>("nodes" + relativePath(node));
+      AutoPtr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>(relativePath(node));
       proc->setPosition(pos);
     }
   }

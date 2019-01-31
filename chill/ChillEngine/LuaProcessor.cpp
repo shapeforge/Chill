@@ -3,6 +3,8 @@
 #include <LibSL/LibSL.h>
 #include <regex>
 
+#include "NodeEditor.h"
+
 #define REGEX_WSPACES std::string("\\s*")
 #define REGEX_COMMENT std::string("(--\\[\\[[\\s\\S]*?\\]\\]--|--[^\\n]*)")
 #define REGEX_STRING  std::string("[\\\"\\\']([\\S\\s]*?)[\\\"\\\']")
@@ -24,7 +26,7 @@ namespace Chill
   LuaProcessor::LuaProcessor(const std::string &_path) {
     std::regex e("\\\\");
     m_nodepath = regex_replace(_path, e, "/$2");
-    m_program  = loadFileIntoString(m_nodepath.c_str());
+    m_program  = loadFileIntoString((NodeEditor::NodeFolder() + m_nodepath).c_str());
 
     setName(extractFileName(m_nodepath));
     Parse();

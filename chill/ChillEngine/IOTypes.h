@@ -37,7 +37,7 @@ static void SplitEnumArgs(const char* _szArgs, std::string _Array[], int _nMax)
         } \
     }
 
-DECLARE_ENUM(IOType, UNDEF, BOOLEAN, INTEGER, SCALAR, STRING, SHAPE, FIELD, VEC3, VEC4)
+DECLARE_ENUM(IOType, UNDEF, BOOLEAN, INTEGER, PATH, SCALAR, STRING, SHAPE, FIELD, VEC3, VEC4)
 
 namespace IOType {
   static bool isCompatible(IOType _typeOutput, IOType _typeInput) {
@@ -48,6 +48,8 @@ namespace IOType {
     if (_typeOutput == IOType::VEC4 && (_typeInput == IOType::VEC3 || _typeInput == IOType::SCALAR))
       return true;
     if (_typeOutput == IOType::VEC3 && _typeInput == IOType::SCALAR)
+      return true;
+    if (_typeOutput == IOType::STRING && _typeInput == IOType::PATH)
       return true;
     return false;
   }
