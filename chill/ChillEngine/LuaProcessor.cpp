@@ -26,7 +26,7 @@ namespace Chill
     m_nodepath = regex_replace(_path, e, "/$2");
     m_program  = loadFileIntoString(m_nodepath.c_str());
 
-    setName(extractFileName(m_nodepath));
+    setName(removeExtensionFromFileName(extractFileName(m_nodepath)));
     Parse();
   }
 

@@ -202,6 +202,7 @@ namespace Chill {
     }
   };
 
+
   // IO_BOOL
   class BoolInput : public ProcessorInput
   {

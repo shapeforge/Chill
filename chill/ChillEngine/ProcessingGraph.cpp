@@ -293,6 +293,10 @@ namespace Chill {
         addProcessor(processor);
       }
     }
+
+    for (AutoPtr<VisualComment> comment : collapsed->m_comments) {
+        addComment(comment);
+    }
     
     // Update pipes
     for (GroupInput gi : collapsed->m_group_inputs) {

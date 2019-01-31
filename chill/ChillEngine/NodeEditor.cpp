@@ -535,7 +535,9 @@ namespace Chill
         }
         else {
           for (AutoPtr<SelectableUI> selected : selected) {
-            selected->m_size += io.MouseDelta / m_scale;
+            AutoPtr<VisualComment> com(selected);
+            if(!com.isNull())
+              selected->m_size += io.MouseDelta / m_scale;
           }
         }      
       }
@@ -563,6 +565,15 @@ namespace Chill
             m_graphs.pop();
             m_offset = getCurrentGraph()->getBarycenter() * -1.0f;
           }
+        }
+        if (io.KeysDown['c'] && io.KeysDownDuration['c'] == 0) {
+          // mouse to screen
+          ImVec2 m2s = io.MousePos - (win_pos + win_size) / 2.0f;
+          // screen to grid
+          ImVec2 s2g = m2s / this->getScale() - m_offset;
+          AutoPtr<VisualComment> com(new VisualComment());
+          com->setPosition(s2g);
+          this->getCurrentGraph()->addComment(com);
         }
       }
 
@@ -888,7 +899,7 @@ namespace Chill
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1., 1., 1.0, 1));
     ForIndex(i, files.size()) {
-      if (ImGui::MenuItem(files[i].c_str())) {
+      if (ImGui::MenuItem(removeExtensionFromFileName(files[i]).c_str())) {
         nameDir = Resources::toPath(current_dir, files[i]);
       }
     }
@@ -956,7 +967,9 @@ namespace Chill
       }
       
       if (ImGui::MenuItem("Comment")) {
-        n_e->getCurrentGraph()->addComment(AutoPtr<VisualComment> (new VisualComment()));
+        AutoPtr<VisualComment> com(new VisualComment());
+        com->setPosition(s2g);
+        n_e->getCurrentGraph()->addComment(com);
       }
 
       if (ImGui::MenuItem("Nothing")) {
