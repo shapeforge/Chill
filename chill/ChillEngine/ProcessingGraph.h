@@ -5,6 +5,7 @@
 namespace Chill
 {
   class Processor;
+  class VisualComment;
 };
 
 namespace Chill
@@ -18,6 +19,8 @@ namespace Chill
 #include <LibSL.h>
 
 #include "Processor.h"
+
+#include "VisualComment.h"
 
 
 
@@ -41,6 +44,8 @@ namespace Chill
     std::vector<GroupInput>         m_group_inputs;
     /** List of all exit points */
     std::vector<GroupOutput>        m_group_outputs;
+    /** List of all the comments */
+    std::vector<AutoPtr<VisualComment>> m_comments;
 
   private:
     ProcessingGraph(ProcessingGraph &_copy);
@@ -85,11 +90,39 @@ namespace Chill
       m_processors.push_back(_processor);
     }
 
+
+    /**
+     *  Add an existing comment to the graph.
+     *  @param _visualComment The AutoPtr related to the comment.
+     **/
+    void addComment(AutoPtr<VisualComment>& _visualComment) {
+      sl_assert(&_visualComment);
+      sl_assert(_visualComment->owner() != this);
+
+      _visualComment->setOwner(this);
+      m_comments.push_back(_visualComment);
+    }
+
+    void add(AutoPtr<SelectableUI>& _select) {
+      AutoPtr<Processor> proc = AutoPtr<Processor>(_select);
+      if (!proc.isNull()) {
+        addProcessor(proc);
+      }
+      AutoPtr<VisualComment> com = AutoPtr<VisualComment>(_select);
+      if (!com.isNull()) {
+        addComment(com);
+      }
+    }
+
     /**
      *  Remove an existing processor from the graph.
      *  @param _processor The AutoPtr related to the processor.
      **/
     void removeProcessor(AutoPtr<Processor>& _processor);
+
+    void removeComment(AutoPtr<VisualComment>& _comment);
+
+    void removeSelectable(AutoPtr<SelectableUI>& _select);
 
     /**
      *  Add a new connection to the graph if, and only if, there is no cycle created.
@@ -125,7 +158,7 @@ namespace Chill
      *  @param _subset The list of processors to duplicate.
      *  @return A new graph which contains all those processors.
      **/
-    AutoPtr<ProcessingGraph> copySubset(const std::vector<AutoPtr<Processor>>& _subset);
+    AutoPtr<ProcessingGraph> copySubset(const std::vector<AutoPtr<SelectableUI>>& _subset);
 
     /**
      *  Move all the processors inside a new graph.
@@ -133,7 +166,7 @@ namespace Chill
      *  @param _subset The list of processors to collapse.
      *  @return A new graph which contains all those processors.
      **/
-    AutoPtr<ProcessingGraph> collapseSubset(const std::vector<AutoPtr<Processor>>& _subset);
+    AutoPtr<ProcessingGraph> collapseSubset(const std::vector<AutoPtr<SelectableUI>>& _subset);
 
     /**
      *  Expand a duplicated or collapsed graph.
@@ -162,12 +195,21 @@ namespace Chill
     {
       return m_processors;
     }
+
+    /**
+     *  Get the list of comments in the graph.
+     *  @return The list of comments within the graph.
+     */
+    const std::vector<AutoPtr<VisualComment>> comments()
+    {
+      return m_comments;
+    }
     
   public: 
     //bool draw();
 
-    AutoPtr<Processor> clone() {
-      return AutoPtr<Processor>(new ProcessingGraph(*this));
+    AutoPtr<SelectableUI> clone() {
+      return AutoPtr<SelectableUI>(new ProcessingGraph(*this));
     }
 
     void save(std::ofstream& _stream);
@@ -183,12 +225,12 @@ namespace Chill
       return false;
     }
     
-    ImVec2 getBarycenter(std::vector<AutoPtr<Processor>> _processors) {
+    ImVec2 getBarycenter(std::vector<AutoPtr<SelectableUI>> _processors) {
       size_t nb_proc = _processors.size();
       ImVec2 position(0, 0);
 
       // Add all processors to the new graph
-      for (AutoPtr<Processor> processor : _processors) {
+      for (AutoPtr<SelectableUI> processor : _processors) {
         position += processor->getPosition();
       }
       position /= (float)nb_proc;
@@ -197,15 +239,18 @@ namespace Chill
     }
 
     ImVec2 getBarycenter() {
-      return getBarycenter(m_processors);
+      std::vector<AutoPtr<SelectableUI>> list;
+      list.insert(list.end(), m_processors.begin(), m_processors.end());
+      list.insert(list.end(), m_comments.begin(), m_comments.end());
+      return getBarycenter(list);
     }
 
-    AABox getBoundingBox(std::vector<AutoPtr<Processor>> _processors) {
+    AABox getBoundingBox(std::vector<AutoPtr<SelectableUI>> _processors) {
       size_t nb_proc = _processors.size();
       AABox bbox;
 
       // Add all processors to the new graph
-      for (AutoPtr<Processor> processor : _processors) {
+      for (AutoPtr<SelectableUI> processor : _processors) {
         bbox.m_Mins[0] = std::min(bbox.m_Mins[0], processor->getPosition().x);
         bbox.m_Mins[1] = std::min(bbox.m_Mins[1], processor->getPosition().y);
         bbox.m_Maxs[0] = std::max(bbox.m_Maxs[0], processor->getPosition().x);

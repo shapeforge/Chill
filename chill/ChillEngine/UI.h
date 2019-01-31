@@ -1,5 +1,5 @@
 #pragma once
-
+class SelectableUI;
 #include <LibSL\LibSL.h>
 #include <LibSL\LibSL_gl.h>
 
@@ -77,4 +77,47 @@ public:
   inline const int64_t getUniqueID() {
     return int64_t(this);
   }
+};
+
+class SelectableUI : public UI
+{
+public:
+  bool m_selected;
+  bool m_edit;
+
+  /** Display color. */
+  ImU32                                 m_color;
+
+  SelectableUI() {
+    m_selected = false;
+    m_edit = false;
+  }
+
+  SelectableUI(SelectableUI &_copy) {
+    m_selected = false;
+    m_edit = false;
+  }
+
+  /**
+   *  Get the color of this processor.
+   *  @return The color of the processor.
+   **/
+  inline const ImU32 color() {
+    return m_color;
+  }
+
+  /**
+   *  Set the color of this processor.
+   *  @param _color The color of the processor.
+   **/
+  void setColor(const ImU32& _color) {
+    m_color = _color;
+  }
+
+  bool draw() { return true; };
+
+  AutoPtr<SelectableUI> clone() {
+    return  AutoPtr<SelectableUI>(this);
+  };
+
 };

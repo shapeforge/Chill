@@ -34,18 +34,14 @@ namespace Chill
    *  Processor class.
    *  Is a node within the graph. Contains inputs and outputs.
    **/
-  class Processor : public UI
+  class Processor : public SelectableUI
   {
   public:
     char m_title[32] = "\0";
-    bool m_selected  = false;
-    bool m_edit      = false;
 
   private:
     /** Display name. */
     std::string                           m_name;
-    /** Display color. */
-    ImU32                                 m_color;
     /** Parent graph, raw pointer is needed. */
     ProcessingGraph *                     m_owner = NULL;
     /** Emit a shape or a slicing parameter */
@@ -56,7 +52,6 @@ namespace Chill
     std::vector<AutoPtr<ProcessorOutput>> m_outputs;
     /** Next nodes have to update themselves. */
     bool                                  m_dirty = false;
-    
 
   public:
     /**
@@ -111,22 +106,6 @@ namespace Chill
      **/
     void setName(std::string _name) {
       m_name = _name;
-    }
-
-    /**
-     *  Get the color of this processor.
-     *  @return The color of the processor.
-     **/
-    inline const ImU32 color() {
-      return m_color;
-    }
-
-    /**
-     *  Set the color of this processor.
-     *  @param _color The color of the processor.
-     **/
-    void setColor(const ImU32& _color) {
-      m_color = _color;
     }
 
     /**
@@ -237,8 +216,8 @@ namespace Chill
     /**
      *  Make a copy of the processor (deep copy)
      **/
-    virtual AutoPtr<Processor> Processor::clone() {
-      return AutoPtr<Processor>(new Processor(*this));
+    virtual AutoPtr<SelectableUI> Processor::clone() {
+      return AutoPtr<SelectableUI>(new Processor(*this));
     };
 
     /**
@@ -280,8 +259,8 @@ namespace Chill
   public:
     GroupProcessor();
 
-    virtual AutoPtr<Processor> clone() override {
-      return AutoPtr<Processor>(new GroupProcessor(*this));
+    virtual AutoPtr<SelectableUI> clone() override {
+      return AutoPtr<SelectableUI>(new GroupProcessor(*this));
     }
 
     virtual bool draw();
@@ -303,8 +282,8 @@ namespace Chill
   public:
     Multiplexer();
 
-    virtual AutoPtr<Processor> clone() override {
-      return AutoPtr<Processor>(new Multiplexer(*this));
+    virtual AutoPtr<SelectableUI> clone() override {
+      return AutoPtr<SelectableUI>(new Multiplexer(*this));
     }
 
     bool draw();
@@ -312,3 +291,5 @@ namespace Chill
     virtual void iceSL(std::ofstream& _stream);
   };
 };
+
+

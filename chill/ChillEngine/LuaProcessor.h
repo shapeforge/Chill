@@ -16,8 +16,8 @@ namespace Chill
   public:
     LuaProcessor(const std::string &_path);
 
-    virtual AutoPtr<Processor> clone() override {
-      return AutoPtr<Processor>(new LuaProcessor(*this));
+    virtual AutoPtr<SelectableUI> clone() override {
+      return AutoPtr<SelectableUI>(new LuaProcessor(*this));
     }
 
     virtual void save(std::ofstream& _stream);
