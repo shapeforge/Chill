@@ -1,8 +1,10 @@
 #include "VisualComment.h"
 
 Chill::VisualComment::VisualComment(VisualComment &copy) {
+  m_name    = copy.m_name;
+  m_color   = copy.m_color;
+  m_owner   = copy.m_owner;
   m_comment = copy.m_comment;
-  m_owner = copy.m_owner;
 }
 
 

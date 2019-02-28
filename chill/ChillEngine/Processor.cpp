@@ -5,7 +5,7 @@
 namespace Chill {
 
   Processor::Processor(Processor &copy) {
-    m_name = copy.m_name;
+    m_name  = copy.m_name;
     m_color = copy.m_color;
     m_owner = copy.m_owner;
 
@@ -202,9 +202,10 @@ bool Chill::Processor::draw() {
     ImGui::PopStyleColor();
   }
   else {
-    strcpy(m_title, name().c_str());
-    if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), m_title, 32)) {
-      setName(m_title);
+    char title[32];
+    strcpy(title, name().c_str());
+    if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), title, 32)) {
+      setName(title);
     }
     else if (!m_selected) {
       m_edit = false;

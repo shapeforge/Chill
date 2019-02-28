@@ -36,14 +36,7 @@ namespace Chill
    **/
   class Processor : public SelectableUI
   {
-  public:
-    char m_title[32] = "\0";
-
   private:
-    /** Display name. */
-    std::string                           m_name;
-    /** Parent graph, raw pointer is needed. */
-    ProcessingGraph *                     m_owner = NULL;
     /** Emit a shape or a slicing parameter */
     bool                                  m_emit = false;
     /** List of all inputs. */
@@ -57,9 +50,9 @@ namespace Chill
     /**
      *  Instanciate a new Processor.
      **/
-    Processor() :
-      m_name("Processor")
+    Processor()
     {
+      m_name = "Processor";
       m_color = style.processor_default_color;
     }
 
@@ -67,9 +60,9 @@ namespace Chill
      *  Instanciate a new Processor.
      *  @param _name The name of the processor
      **/
-    Processor(const std::string& _name) :
-      m_name(_name)
+    Processor(const std::string& _name)
     {
+      m_name = _name;
       m_color = style.processor_default_color;
     }
 
@@ -77,10 +70,10 @@ namespace Chill
      *  Instanciate a new Processor and set is owner.
      *  @param _owner Parent graph that contains the processor.
      **/
-    Processor(ProcessingGraph * _owner) :
-      m_name("Processor"),
-      m_owner(_owner)
+    Processor(ProcessingGraph * _owner)  
     {
+      m_name  = "Processor";
+      m_owner = _owner;
       m_color = style.processor_default_color;
     }
 
@@ -91,38 +84,6 @@ namespace Chill
     Processor(Processor &_copy);
 
     virtual ~Processor();
-
-    /**
-     *  Get the name of this processor.
-     *  @return The name of the processor.
-     **/
-    inline const std::string name() {
-      return m_name;
-    }
-
-    /**
-     *  Set the name of this processor.
-     *  @param _name The name of the processor.
-     **/
-    void setName(std::string _name) {
-      m_name = _name;
-    }
-
-    /**
-     *  Set a new owner.
-     *  @param _owner The graph that contains this processor.
-     */
-    void setOwner(ProcessingGraph * _owner) {
-      m_owner = _owner;
-    }
-
-    /**
-     *  Get the owner of this processor.
-     *  @return The parent graph.
-     */
-    ProcessingGraph * owner() {
-      return m_owner;
-    }
 
     /**
      *  Get the list of inputs.

@@ -88,7 +88,6 @@ namespace Chill
           break;
 
         case IOType::VEC4:
-          float float_4value[4];
           float_min = table["min"] ? object_cast<float>(table["min"]) : Vec4Input::min();
           float_max = table["max"] ? object_cast<float>(table["max"]) : Vec4Input::max();
           break;

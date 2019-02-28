@@ -29,25 +29,15 @@ namespace Chill
     m_edit = false;
     m_title_size = ImVec2(200, 50);
     };
-    void setOwner(Chill::ProcessingGraph* proc) {
-      this->m_owner = proc;
-    }
-
-    Chill::ProcessingGraph* owner() {
-      return this->m_owner;
-    }
-
-
 
     bool draw();
-    virtual AutoPtr<SelectableUI>clone() {
+    virtual AutoPtr<SelectableUI> VisualComment::clone() {
       return AutoPtr<SelectableUI>(new VisualComment(*this));
     };
 
     ImVec2 m_title_size;
 
   private:
-    Chill::ProcessingGraph* m_owner;
     std::string m_comment = "";
     char m_charComment[255] = "\0";
   };

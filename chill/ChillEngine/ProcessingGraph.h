@@ -225,17 +225,12 @@ namespace Chill
       return false;
     }
     
-    ImVec2 getBarycenter(std::vector<AutoPtr<SelectableUI>> _processors) {
-      size_t nb_proc = _processors.size();
+    ImVec2 getBarycenter(std::vector<AutoPtr<SelectableUI>> _elements) {
       ImVec2 position(0, 0);
-
-      // Add all processors to the new graph
-      for (AutoPtr<SelectableUI> processor : _processors) {
+      for (AutoPtr<SelectableUI> processor : _elements) {
         position += processor->getPosition();
       }
-      position /= (float)nb_proc;
-
-      return position;
+      return position / (float)_elements.size();
     }
 
     ImVec2 getBarycenter() {
@@ -245,18 +240,14 @@ namespace Chill
       return getBarycenter(list);
     }
 
-    AABox getBoundingBox(std::vector<AutoPtr<SelectableUI>> _processors) {
-      size_t nb_proc = _processors.size();
+    AABox getBoundingBox(std::vector<AutoPtr<SelectableUI>> _elements) {
       AABox bbox;
-
-      // Add all processors to the new graph
-      for (AutoPtr<SelectableUI> processor : _processors) {
-        bbox.m_Mins[0] = std::min(bbox.m_Mins[0], processor->getPosition().x);
-        bbox.m_Mins[1] = std::min(bbox.m_Mins[1], processor->getPosition().y);
-        bbox.m_Maxs[0] = std::max(bbox.m_Maxs[0], processor->getPosition().x);
-        bbox.m_Maxs[1] = std::max(bbox.m_Maxs[1], processor->getPosition().y);
+      for (AutoPtr<SelectableUI> element : _elements) {
+        bbox.m_Mins[0] = std::min(bbox.m_Mins[0], element->getPosition().x);
+        bbox.m_Mins[1] = std::min(bbox.m_Mins[1], element->getPosition().y);
+        bbox.m_Maxs[0] = std::max(bbox.m_Maxs[0], element->getPosition().x);
+        bbox.m_Maxs[1] = std::max(bbox.m_Maxs[1], element->getPosition().y);
       }
-
       return bbox;
     }
   };

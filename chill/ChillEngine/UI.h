@@ -1,5 +1,14 @@
 #pragma once
+
 class SelectableUI;
+
+// ProcessingGraph.h
+namespace Chill
+{
+  class ProcessingGraph;
+}
+
+
 #include <LibSL\LibSL.h>
 #include <LibSL\LibSL_gl.h>
 
@@ -84,9 +93,17 @@ class SelectableUI : public UI
 public:
   bool m_selected;
   bool m_edit;
+  
+  /** Display name. */
+  std::string m_name;
 
   /** Display color. */
-  ImU32                                 m_color;
+  ImU32 m_color;
+
+  /** Parent graph, raw pointer is needed. */
+  Chill::ProcessingGraph * m_owner = NULL;
+
+
 
   SelectableUI() {
     m_selected = false;
@@ -98,17 +115,34 @@ public:
     m_edit = false;
   }
 
+
   /**
-   *  Get the color of this processor.
-   *  @return The color of the processor.
+   *  Get the name of this ui element.
+   *  @return The name of the  ui element.
+   **/
+  inline const std::string name() {
+    return m_name;
+  }
+
+  /**
+   *  Set the name of this ui element.
+   *  @param _name The color of the ui element.
+   **/
+  void setName(const std::string& _name) {
+    m_name = _name;
+  }
+
+  /**
+   *  Get the color of this ui element.
+   *  @return The color of the ui element.
    **/
   inline const ImU32 color() {
     return m_color;
   }
 
   /**
-   *  Set the color of this processor.
-   *  @param _color The color of the processor.
+   *  Set the color of ui element.
+   *  @param _color The color of the ui element.
    **/
   void setColor(const ImU32& _color) {
     m_color = _color;
@@ -116,8 +150,22 @@ public:
 
   bool draw() { return true; };
 
-  AutoPtr<SelectableUI> clone() {
-    return  AutoPtr<SelectableUI>(this);
-  };
+  virtual AutoPtr<SelectableUI> clone() = 0;
+
+  /**
+  *  Set a new owner.
+  *  @param _owner The graph that contains this processor.
+  */
+  void setOwner(Chill::ProcessingGraph * _owner) {
+    m_owner = _owner;
+  }
+
+  /**
+  *  Get the owner of this processor.
+  *  @return The parent graph.
+  */
+  Chill::ProcessingGraph * owner() {
+    return m_owner;
+  }
 
 };

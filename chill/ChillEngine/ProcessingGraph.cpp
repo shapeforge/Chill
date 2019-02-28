@@ -90,7 +90,7 @@ namespace Chill {
 
   void ProcessingGraph::removeProcessor(AutoPtr<Processor>& _processor) {
     // disconnect
-    /*for (AutoPtr<ProcessorInput> input : _processor->inputs()) {
+    for (AutoPtr<ProcessorInput> input : _processor->inputs()) {
       if (!input.isNull()) {
         disconnect(input);
       }
@@ -99,7 +99,7 @@ namespace Chill {
       if (!output.isNull()) {
         disconnect(output);
       }
-    }*/
+    }
 
     // remove the processor
     m_processors.erase(remove(m_processors.begin(), m_processors.end(), _processor), m_processors.end());
@@ -328,11 +328,13 @@ namespace Chill {
     
     // copy the node
     for (AutoPtr<SelectableUI> select : subset) {
-      AutoPtr<SelectableUI> new_select = AutoPtr<SelectableUI>(select->clone());
+      AutoPtr<SelectableUI> new_select = select->clone();
+      new_select->setOwner(nullptr);
       new_select->setPosition(select->getPosition());
+
       AutoPtr<Processor> processor = AutoPtr<Processor>(select);
       AutoPtr<Processor> new_processor = AutoPtr<Processor>(new_select);
-      if (processor.isNull()) {
+      if (!processor.isNull() && !new_processor.isNull()) {
         assoc.push_back(std::make_pair(processor, new_processor));
       }
       graph->add(new_select);

@@ -69,12 +69,12 @@ namespace Chill
     for (auto input : inputs()) {
       // tweak
       if (input->m_link.isNull()) {
-        code += "__input[\"" + std::string(input->name()) + "\"] = " + input->getLuaValue() + "\n";
+        code += "__input[\"" + std::string(input->name()) + "\"] = {" + input->getLuaValue() + ", 0}\n";
       }
       // input
       else {
         std::string s2 = std::to_string((int64_t)input->m_link->owner());
-        code += "__input[\"" + std::string(input->name()) + "\"] = " + input->m_link->name() + s2 + "\n";
+        code += "__input[\"" + std::string(input->name()) + "\"] = {" + input->m_link->name() + s2 + "," + s2 + "}\n";
       }
     }
 

@@ -138,9 +138,12 @@ function setNodeId(id)\n\
 end\n\
 \n\
 function input(name, type, ...)\n\
-  return __input[name]\n\
+  return __input[name][1]\n\
 end\n\
 \n\
+function getNodeId(name)\n\
+  return __input[name][2]\n\
+end\n\
 function output(name, type, val)\n\
   setfenv(1, _G0)\n\
   if (isDirty({ __currentNodeId })) then\n\
@@ -307,10 +310,15 @@ namespace Chill
 
   //-------------------------------------------------------
 
-  bool edit = false;
-  char title[32];
+  std::vector<AutoPtr<SelectableUI>>     hovered;
+  std::vector<AutoPtr<SelectableUI>>     selected;
+  AutoPtr<ProcessingGraph> buffer;
+
+
   void NodeEditor::drawLeftMenu()
   {
+    char title[32];
+    char name[32];
 
     ImGui::Begin("GraphInfo", &m_visible,
       ImGuiWindowFlags_NoTitleBar |
@@ -323,34 +331,36 @@ namespace Chill
 
       ImGuiWindowFlags_NoBringToFrontOnFocus
     );
+    
+    ImGui::Text("Graph name:");
+    ImGui::SameLine();
+    strcpy(title, m_graphs.top()->name().c_str());
+    if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), title, 16)) {
+      m_graphs.top()->setName(title);
+    }
+    
 
-    if (!edit) {
-      ImGui::PushStyleColor(ImGuiCol_Button       , ImVec4(0, 0, 0, 0));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive , ImVec4(0, 0, 0, 0));
-      ImGui::PushStyleColor(ImGuiCol_Border       , ImVec4(200, 200, 200, 255));
-      ImGui::PushStyleColor(ImGuiCol_Text         , ImVec4(200, 200, 200, 255));
-      if (ImGui::Button((m_graphs.top()->name() + "##" + std::to_string(getUniqueID())).c_str(), ImVec2(200,20)))
-        edit = true;
-      ImGui::PopStyleColor();
-      ImGui::PopStyleColor();
-      ImGui::PopStyleColor();
-      ImGui::PopStyleColor();
-    } else {
-      strcpy(title, m_graphs.top()->name().c_str());
-      if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), title, 32)) {
-        m_graphs.top()->setName(title);
-      } else if (!ImGui::IsMouseHoveringWindow()) {
-        edit = false;
+    ImGui::NewLine();
+    if (selected.size() == 1) {
+      ImGui::Text("Name:");
+      strcpy(name, selected[0]->name().c_str());
+      if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), name, 16)) {
+        m_graphs.top()->setName(name);
+      }
+
+      ImGuiColorEditFlags flags = ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_AlphaBar;
+      ImVec4 col = ImGui::ColorConvertU32ToFloat4(selected[0]->color());
+      float color[4] = { col.x, col.y , col.z , col.w };
+      if (ImGui::ColorPicker4("Color", color, flags)) {
+        selected[0]->setColor(ImGui::ColorConvertFloat4ToU32(ImVec4(color[0], color[1], color[2], color[3])));
       }
     }
+
     ImGui::End();
   }
 
 
-  std::vector<AutoPtr<SelectableUI>>     hovered;
-  std::vector<AutoPtr<SelectableUI>>     selected;
-  AutoPtr<ProcessingGraph> buffer;
+
 
   bool dirty;
   bool text_editing;
