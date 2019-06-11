@@ -262,6 +262,39 @@ bool Chill::IntInput::drawTweak()
   return m_value != before;
 }
 
+bool Chill::ListInput::drawTweak()
+{
+  ImGui::SameLine();
+  std::string name_str = std::string(name());
+  std::string label = "##" + name_str;
+  std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".0f";
+
+  int before = m_value;
+  bool value_changed = false;
+
+  if (m_link.isNull()) {
+
+
+    ImGui::Combo(name(), &m_value,
+      [](void* data, int idx, const char** out_text) {
+        *out_text = ((const std::vector<std::string>*)data)->at(idx).c_str();
+        return true;
+      }, reinterpret_cast<void*> (&m_values),
+      m_values.size());
+  } else {
+    ImGui::Text(name());
+  }
+
+  if (value_changed) {
+    m_value = std::min(m_max, std::max(m_min, m_value));
+  }
+
+  if (m_value != before)
+    std::cout << m_value << "vs" << before << std::endl;
+
+  return m_value != before;
+}
+
 
 bool Chill::PathInput::drawTweak()
 {
