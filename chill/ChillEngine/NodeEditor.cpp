@@ -83,6 +83,13 @@ void Chill::NodeEditor::launch()
     // create window
     SimpleUI::init(default_width, default_height, "Chill, the node-based editor");
 
+#ifdef WIN32
+	HWND hwnd = SimpleUI::getHWND();
+	//SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 1000, 1000, SWP_SHOWWINDOW);
+	//SetWindowPlacement(hwnd, );
+	std::cerr << Console::yellow << hwnd << Console::gray << std::endl;
+#endif
+
     // attach functions
     SimpleUI::onRender = nodeEditor->mainRender;
     SimpleUI::onKeyPressed = nodeEditor->mainKeyPressed;
