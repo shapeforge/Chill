@@ -24,6 +24,9 @@ namespace Chill
 
   public:
     static void NodeEditor::launch();
+    static void Chill::NodeEditor::launchIcesl();
+	// Get current desktop size without taskbar
+	static void NodeEditor::getDesktopScreenRes(int& width, int& height);
 
     static NodeEditor *Instance() {
       if (!s_instance)

@@ -1,4 +1,4 @@
-#include "NodeEditor.h"
+﻿#include "NodeEditor.h"
 #include "Processor.h"
 #include "LuaProcessor.h"
 #include "IOs.h"
@@ -76,18 +76,50 @@ void Chill::NodeEditor::mainMousePressed(uint x, uint y, uint button, uint flags
 }
 
 //-------------------------------------------------------
+void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height) {
+#ifdef WIN32
+	RECT desktop;
+	const HWND hDesktop = GetDesktopWindow();
+	//GetWindowRect(hDesktop, &desktop);
+  SystemParametersInfoA(SPI_GETWORKAREA, 0, &desktop, 0);
+	width = desktop.right;
+	height = desktop.bottom;
+#endif
+
+#ifdef __linux__
+  width = 1920;
+  height = 1080;
+#endif
+}
+
+//-------------------------------------------------------
 void Chill::NodeEditor::launch()
 {
+  // get screnn / desktop dimmensions
+  int screen_witdh = 0;
+  int screen_height = 0;
+
+  Chill::NodeEditor::getDesktopScreenRes(screen_witdh, screen_height);
+
+  int app_width = 2 * (screen_witdh / 3);
+  int app_heigth = screen_height;
+
   Chill::NodeEditor *nodeEditor = Chill::NodeEditor::Instance();
   try {
     // create window
-    SimpleUI::init(default_width, default_height, "Chill, the node-based editor");
+    //SimpleUI::init(default_width, default_height, "Chill, the node-based editor");
+    SimpleUI::init(app_width, app_heigth, "Chill, the node-based editor");
 
+    // place and dock window to the left
 #ifdef WIN32
-	HWND hwnd = SimpleUI::getHWND();
-	//SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 1000, 1000, SWP_SHOWWINDOW);
-	//SetWindowPlacement(hwnd, );
-	std::cerr << Console::yellow << hwnd << Console::gray << std::endl;
+	  HWND hwnd = SimpleUI::getHWND();
+	  //SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, app_width, app_heigth, SWP_SHOWWINDOW);
+	
+	  std::cerr << Console::yellow << hwnd << Console::gray << std::endl;
+	  //MoveWindow(hwnd, 0, 0, app_width, app_heigth, true);
+
+	  std::cerr << Console::blue << screen_witdh << " * " << screen_height << Console::gray << std::endl;
+	  std::cerr << Console::red << SimpleUI::screenWidth() << " * " << SimpleUI::screenHeight() << Console::gray << std::endl;
 #endif
 
     // attach functions
@@ -102,7 +134,11 @@ void Chill::NodeEditor::launch()
     // imgui
     SimpleUI::bindImGui();
     SimpleUI::initImGui();
-    SimpleUI::onReshape(default_width, default_height);
+    //SimpleUI::onReshape(default_width, default_height);
+    SimpleUI::onReshape(app_width, app_heigth);
+
+    // launching Icesl
+    Chill::NodeEditor::launchIcesl();
 
     // main loop
     SimpleUI::loop();
@@ -118,9 +154,48 @@ void Chill::NodeEditor::launch()
   }
 }
 
+//-------------------------------------------------------
+void Chill::NodeEditor::launchIcesl() {
+#ifdef WIN32
+  // CreateProcess init
+  const char* icesl_path = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe";
+  
+  PROCESS_INFORMATION ProcessInfo;
+  STARTUPINFO StartupInfo;
+  ZeroMemory(&StartupInfo, sizeof(StartupInfo));
+  StartupInfo.cb = sizeof StartupInfo;
 
+  // create the process
+  auto icesl_process = CreateProcess(icesl_path, //application name / path
+          NULL, // command line for the application
+          NULL, // SECURITY_ATTRIBUTES for the process
+          NULL, // SECURITY_ATTRIBUTES for the thread
+          FALSE, // inherit handles ?
+          0, // process creation flags
+          NULL, // environment
+          NULL, // current directory
+          &StartupInfo, // startup info
+          &ProcessInfo); // process info
 
+  if(icesl_process)
+  {
+    // watch the process
+    WaitForSingleObject(ProcessInfo.hProcess, 1000);
+  }
+  else
+  {
+    // process creation failed
+    std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
+    std::cerr << Console::yellow << GetLastError() << Console::gray << std::endl;
+  }
 
+  // closing the process and releasing the handles
+  CloseHandle(ProcessInfo.hThread);
+  CloseHandle(ProcessInfo.hProcess);
+#endif
+}
+
+//-------------------------------------------------------
 void Chill::NodeEditor::exportIceSL(std::string& filename) {
   if (!filename.empty()) {
     std::ofstream file;
