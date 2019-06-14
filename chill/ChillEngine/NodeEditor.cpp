@@ -154,6 +154,7 @@ void Chill::NodeEditor::launch()
   }
 }
 
+# if 0
 //-------------------------------------------------------
 void Chill::NodeEditor::launchIcesl() {
 #ifdef WIN32
@@ -194,6 +195,21 @@ void Chill::NodeEditor::launchIcesl() {
   CloseHandle(ProcessInfo.hProcess);
 #endif
 }
+#endif
+
+#if 1
+//-------------------------------------------------------
+void Chill::NodeEditor::launchIcesl() {
+#ifdef WIN32
+  // CreateProcess init
+  const char* icesl_path = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe";
+
+  const char* icesl_params = NULL;
+
+  ShellExecute(NULL, "open", icesl_path, icesl_params,NULL, SW_SHOWNORMAL);
+#endif
+}
+#endif
 
 //-------------------------------------------------------
 void Chill::NodeEditor::exportIceSL(std::string& filename) {
