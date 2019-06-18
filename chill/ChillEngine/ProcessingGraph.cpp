@@ -191,6 +191,7 @@ namespace Chill {
     AutoPtr<GroupProcessor>  groupInputs  = innerGraph->addProcessor<GroupProcessor>();
     AutoPtr<GroupProcessor>  groupOutputs = innerGraph->addProcessor<GroupProcessor>();
 
+    innerGraph->setName("group");
     groupInputs->setName("Group Input");
     groupInputs->setInputMode(true);
     groupOutputs->setName("Group Output");
@@ -339,6 +340,7 @@ namespace Chill {
       }
       graph->add(new_select);
     }
+
     // recreate the pipes
     for (AutoPtr<SelectableUI> select : subset) {
       AutoPtr<Processor> processor = AutoPtr<Processor>(select);

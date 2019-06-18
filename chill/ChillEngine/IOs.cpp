@@ -12,13 +12,16 @@ namespace Chill {
   };
   
   bool ProcessorOutput::draw() {
-    float radius = (style.socket_radius + style.socket_border_width) * owner()->m_scale;
-    float full_radius = (style.socket_radius + style.socket_border_width) * owner()->m_scale;
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    float w_scale = window->FontWindowScale;
+
+    float radius = (style.socket_radius + style.socket_border_width) * w_scale;
+    float full_radius = (style.socket_radius + style.socket_border_width) * w_scale;
 
     ImVec2 pos = ImGui::GetCursorPos();
     ImVec2 text_size = ImGui::CalcTextSize(name());
 
-    ImGui::SetCursorPosX(pos.x - text_size.x - style.ItemSpacing.x * m_scale - full_radius);
+    ImGui::SetCursorPosX(pos.x - text_size.x - style.ItemSpacing.x * w_scale - full_radius);
     ImGui::SetCursorPosY(pos.y - text_size.y/2 + full_radius);
 
     ImGui::Text(name());
@@ -38,7 +41,7 @@ namespace Chill {
     ImGui::PushID(id);
 
     ImGui::PushStyleColor(ImGuiCol_Border, 0x00000000);
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, style.socket_border_width * owner()->m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, style.socket_border_width * w_scale);
     if (ImGui::Button("", ImVec2(radius, radius) * 2)) {
       NodeEditor::Instance()->setSelectedOutput(owner()->output(name()));
     }
@@ -97,6 +100,7 @@ namespace Chill {
       output = AutoPtr<ProcessorOutput>(new Vec4Output());
       break;
     case IOType::UNDEF:
+      // Do nothing
     default:
       output = AutoPtr<ProcessorOutput>(new UndefOutput());
       break;
@@ -114,10 +118,13 @@ namespace Chill {
   };
 
   bool ProcessorInput::draw() {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    float w_scale = window->FontWindowScale;
+
     bool updt = false;
 
-    float radius = (style.socket_radius + style.socket_border_width) * owner()->m_scale;
-    float full_radius = (style.socket_radius + style.socket_border_width) * owner()->m_scale;
+    float radius = (style.socket_radius + style.socket_border_width) * w_scale;
+    float full_radius = (style.socket_radius + style.socket_border_width) * w_scale;
 
     ImVec2 pos = ImGui::GetCursorPos();
     ImVec2 text_size = ImGui::CalcTextSize(name());
@@ -188,7 +195,7 @@ namespace Chill {
     ImGui::PopStyleColor();
     ImGui::PopStyleColor();
 
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, style.socket_border_width * owner()->m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, style.socket_border_width * w_scale);
     updt |= drawTweak();
     ImGui::PopStyleVar();
     return updt;
@@ -256,9 +263,6 @@ bool Chill::IntInput::drawTweak()
     m_value = std::min(m_max, std::max(m_min, m_value));
   }
 
-  if (m_value != before)
-  std::cout << m_value << "vs" << before << std::endl;
-
   return m_value != before;
 }
 
@@ -274,7 +278,6 @@ bool Chill::ListInput::drawTweak()
 
   if (m_link.isNull()) {
 
-
     ImGui::Combo(name(), &m_value,
       [](void* data, int idx, const char** out_text) {
         *out_text = ((const std::vector<std::string>*)data)->at(idx).c_str();
@@ -288,9 +291,6 @@ bool Chill::ListInput::drawTweak()
   if (value_changed) {
     m_value = std::min(m_max, std::max(m_min, m_value));
   }
-
-  if (m_value != before)
-    std::cout << m_value << "vs" << before << std::endl;
 
   return m_value != before;
 }
@@ -405,6 +405,9 @@ bool Chill::StringInput::drawTweak()
 
 bool Chill::Vec4Input::drawTweak()
 {
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
+  float w_scale = window->FontWindowScale;
+
   ImGui::SameLine();
   ImGui::Text(name());
   ImVec2 current = ImGui::GetCursorPos();
@@ -415,7 +418,7 @@ bool Chill::Vec4Input::drawTweak()
   bool value_changed = false;
 
   if (m_link.isNull()) {
-    float padding = (style.socket_radius + style.socket_border_width + style.ItemSpacing.x) * owner()->m_scale;
+    float padding = (style.socket_radius + style.socket_border_width + style.ItemSpacing.x) * w_scale;
     ImGui::SetCursorPosX(current.x + padding);
 
     float item_width = ImGui::CalcItemWidth();
@@ -447,6 +450,9 @@ bool Chill::Vec4Input::drawTweak()
 
 bool Chill::Vec3Input::drawTweak()
 {
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
+  float w_scale = window->FontWindowScale;
+
   ImGui::SameLine();
   ImGui::Text(name());
   ImVec2 current = ImGui::GetCursorPos();
@@ -456,7 +462,7 @@ bool Chill::Vec3Input::drawTweak()
   bool value_changed = false;
 
   if (m_link.isNull()) {
-    float padding = (style.socket_radius + style.socket_border_width + style.ItemSpacing.x) * owner()->m_scale;
+    float padding = (style.socket_radius + style.socket_border_width + style.ItemSpacing.x) * w_scale;
     ImGui::SetCursorPosX(current.x + padding);
 
     std::string label = "##" + std::string(name());

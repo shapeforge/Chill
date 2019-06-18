@@ -31,7 +31,7 @@ Chill::NodeEditor::NodeEditor(){
 //-------------------------------------------------------
 void Chill::NodeEditor::mainRender()
 {
-  glClearColor(0.f, 0.f, 0.f, 0.0f);
+  glClearColor(0.F, 0.F, 0.F, 0.F);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   Instance()->draw();
@@ -46,7 +46,7 @@ void Chill::NodeEditor::mainOnResize(uint width, uint height) {
 
 //-------------------------------------------------------
 void Chill::NodeEditor::mainKeyPressed(uchar k)
-{
+{ 
 }
 
 //-------------------------------------------------------
@@ -54,6 +54,9 @@ void Chill::NodeEditor::mainScanCodePressed(uint sc)
 {
   if (sc == LIBSL_KEY_SHIFT) {
     ImGui::GetIO().KeyShift = true;
+  }
+  if (sc == LIBSL_KEY_CTRL) {
+    ImGui::GetIO().KeyCtrl = true;
   }
 }
 
@@ -63,34 +66,32 @@ void Chill::NodeEditor::mainScanCodeUnpressed(uint sc)
   if (sc == LIBSL_KEY_SHIFT) {
     ImGui::GetIO().KeyShift = false;
   }
+  if (sc == LIBSL_KEY_CTRL) {
+    ImGui::GetIO().KeyCtrl = false;
+  }
 }
 
 //-------------------------------------------------------
-void Chill::NodeEditor::mainMouseMoved(uint x, uint y)
-{
-}
+void Chill::NodeEditor::mainMouseMoved(uint x, uint y) {}
 
 //-------------------------------------------------------
-void Chill::NodeEditor::mainMousePressed(uint x, uint y, uint button, uint flags)
-{
-}
+void Chill::NodeEditor::mainMousePressed(uint x, uint y, uint button, uint flags) {}
 
 //-------------------------------------------------------
 void Chill::NodeEditor::launch()
 {
-  Chill::NodeEditor *nodeEditor = Chill::NodeEditor::Instance();
   try {
     // create window
     SimpleUI::init(default_width, default_height, "Chill, the node-based editor");
 
     // attach functions
-    SimpleUI::onRender = nodeEditor->mainRender;
-    SimpleUI::onKeyPressed = nodeEditor->mainKeyPressed;
-    SimpleUI::onScanCodePressed = nodeEditor->mainScanCodePressed;
-    SimpleUI::onScanCodeUnpressed = nodeEditor->mainScanCodeUnpressed;
-    SimpleUI::onMouseButtonPressed = nodeEditor->mainMousePressed;
-    SimpleUI::onMouseMotion = nodeEditor->mainMouseMoved;
-    SimpleUI::onReshape = nodeEditor->mainOnResize;
+    SimpleUI::onRender             = NodeEditor::mainRender;
+    SimpleUI::onKeyPressed         = NodeEditor::mainKeyPressed;
+    SimpleUI::onScanCodePressed    = NodeEditor::mainScanCodePressed;
+    SimpleUI::onScanCodeUnpressed  = NodeEditor::mainScanCodeUnpressed;
+    SimpleUI::onMouseButtonPressed = NodeEditor::mainMousePressed;
+    SimpleUI::onMouseMotion        = NodeEditor::mainMouseMoved;
+    SimpleUI::onReshape            = NodeEditor::mainOnResize;
 
     // imgui
     SimpleUI::bindImGui();
@@ -121,63 +122,62 @@ void Chill::NodeEditor::exportIceSL(std::string& filename) {
 
     // TODO: CLEAN THIS !!!
 
-    file << "\
-enable_variable_cache = true\n\
-\n\
-local _G0 = {}       --swap environnement(swap variables between scripts)\n\
-local _Gcurrent = {} --environment local to the script : _Gc includes _G0\n\
-local __dirty = {}   --table of all dirty nodes\n\
-__input = {}         --table of all input values\n\
-\n\
-setmetatable(_G0, { __index = _G })\n\
-\n\
-function setNodeId(id)\n\
-  setfenv(1, _G0)\n\
-  __currentNodeId = id\n\
-  setfenv(1, _Gcurrent)\n\
-end\n\
-\n\
-function input(name, type, ...)\n\
-  return __input[name][1]\n\
-end\n\
-\n\
-function getNodeId(name)\n\
-  return __input[name][2]\n\
-end\n\
-function output(name, type, val)\n\
-  setfenv(1, _G0)\n\
-  if (isDirty({ __currentNodeId })) then\n\
-    _G[name..__currentNodeId] = val\n\
-  end\n\
-  setfenv(1, _Gcurrent)\n\
-end\n\
-\n\
-function setDirty(node)\n\
-  __dirty[node] = true\n\
-end\n\
-\n\
-function isDirty(nodes)\n\
-  if first_exec then\n\
-    return true\n\
-  end\n\
-\n\
-  if #nodes == 0 then\n\
-    return false\n\
-  else\n\
-    local node = table.remove(nodes, 1)\n\
-    if node == NIL then node = nil end\n\
-    return __dirty[node] or isDirty(nodes)\n\
-  end\n\
-end\n\
-\n\
-if first_exec == nil then\n\
-  first_exec = true\n\
-else\n\
-  first_exec = false\n\
-end\n\
-\n\
-------------------------------------------------------\n\
-";
+    file <<
+      "enable_variable_cache = false" << std::endl <<
+      std::endl <<
+      "local _G0 = {}       --swap environnement(swap variables between scripts)" << std::endl <<
+      "local _Gcurrent = {} --environment local to the script : _Gc includes _G0" << std::endl <<
+      "local __dirty = {}   --table of all dirty nodes" << std::endl <<
+      "__input = {}         --table of all input values" << std::endl <<
+      "" << std::endl <<
+      "setmetatable(_G0, { __index = _G })" << std::endl <<
+      "" << std::endl <<
+      "function setNodeId(id)" << std::endl <<
+      "  setfenv(1, _G0)" << std::endl <<
+      "  __currentNodeId = id" << std::endl <<
+      "  setfenv(1, _Gcurrent)" << std::endl <<
+      "end" << std::endl <<
+      "" << std::endl <<
+      "function input(name, type, ...)" << std::endl <<
+      "  return __input[name][1]" << std::endl <<
+      "end" << std::endl <<
+      "" << std::endl <<
+      "function getNodeId(name)" << std::endl <<
+      "  return __input[name][2]" << std::endl <<
+      "end" << std::endl <<
+      "function output(name, type, val)" << std::endl <<
+      "  setfenv(1, _G0)" << std::endl <<
+      "  if (isDirty({ __currentNodeId })) then" << std::endl <<
+      "    _G[name..__currentNodeId] = val" << std::endl <<
+      "  end" << std::endl <<
+      "  setfenv(1, _Gcurrent)" << std::endl <<
+      "end" << std::endl <<
+      "" << std::endl <<
+      "function setDirty(node)" << std::endl <<
+      "  __dirty[node] = true" << std::endl <<
+      "end" << std::endl <<
+      "" << std::endl <<
+      "function isDirty(nodes)" << std::endl <<
+      "  if first_exec then" << std::endl <<
+      "    return true" << std::endl <<
+      "  end" << std::endl <<
+      "    " << std::endl <<
+      "  if #nodes == 0 then" << std::endl <<
+      "    return false" << std::endl <<
+      "  else" << std::endl <<
+      "    local node = table.remove(nodes, 1)" << std::endl <<
+      "    if node == NIL then node = nil end" << std::endl <<
+      "    return __dirty[node] or isDirty(nodes)" << std::endl <<
+      "  end" << std::endl <<
+      "end" << std::endl <<
+      "" << std::endl <<
+      "if first_exec == nil then" << std::endl <<
+      "  first_exec = true" << std::endl <<
+      "else" << std::endl <<
+      "  first_exec = false" << std::endl <<
+      "end" << std::endl <<
+      "" << std::endl <<
+      "------------------------------------------------------" << std::endl;
 
 
 
@@ -213,9 +213,6 @@ namespace Chill
   void selectProcessors();
 
   ImVec2 m_offset    = ImVec2(0, 0);
-
-  ImVec2 win_pos;
-  ImVec2 win_size;
 
   bool   m_graph_menu = false;
   bool   m_node_menu  = false;
@@ -257,7 +254,7 @@ namespace Chill
             delete test;
           }
         }
-        if (ImGui::MenuItem("Save graph")) {
+        if (ImGui::MenuItem("Save graph", "Ctrl+S")) {
           std::string graph_filename = getMainGraph()->name() + ".graph";
           fullpath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_GRAPHS);
           if (!fullpath.empty()) {
@@ -267,7 +264,7 @@ namespace Chill
             file.close();
           }
         }
-        if (ImGui::MenuItem("Save current graph")) {
+        if (ImGui::MenuItem("Save current graph", "Ctrl+Shift+S")) {
           std::string graph_filename = getCurrentGraph()->name() + ".graph";
           fullpath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_GRAPHS);
           if (!fullpath.empty()) {
@@ -387,13 +384,15 @@ namespace Chill
       ImGuiWindowFlags_NoBringToFrontOnFocus
     );
 
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImDrawList* overlay_draw_list = ImGui::GetOverlayDrawList();
 
-    win_pos  = ImGui::GetCursorScreenPos();
-    win_size = ImGui::GetWindowSize();
+    ImVec2 w_pos  = window->PosFloat;
+    ImVec2 w_size = window->Size;
+    float w_scale = window->FontWindowScale;
 
-    ImVec2 offset   = (m_offset * m_scale + (win_size - win_pos) / 2.0f);
+    ImVec2 offset   = (m_offset * w_scale + (w_size - w_pos) / 2.0F);
 
     ImGuiIO io = ImGui::GetIO();
 
@@ -415,10 +414,10 @@ namespace Chill
       text_editing = false;
 
       for (AutoPtr<Processor> processor : m_graphs.top()->processors()) {
-        ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * m_scale;
+        ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * w_scale;
 
-        ImVec2 size = processor->m_size * processor->m_scale;
-        ImVec2 min_pos = offset + win_pos + processor->m_position * m_scale - socket_size;
+        ImVec2 size = processor->m_size * window->FontWindowScale;
+        ImVec2 min_pos = offset + w_pos + processor->m_position * w_scale - socket_size;
         ImVec2 max_pos = min_pos + size + socket_size * 2;
 
         if (ImGui::IsMouseHoveringRect(min_pos, max_pos)) {
@@ -435,10 +434,10 @@ namespace Chill
       }
 
       for (AutoPtr<VisualComment> comment : m_graphs.top()->comments()) {
-        ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * m_scale;
+        ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * w_scale;
 
-        ImVec2 size = comment->m_title_size * comment->m_scale;
-        ImVec2 min_pos = offset + win_pos + comment->m_position * m_scale - socket_size;
+        ImVec2 size = comment->m_title_size * w_scale;
+        ImVec2 min_pos = offset + w_pos + comment->m_position * w_scale - socket_size;
         ImVec2 max_pos = min_pos + size + socket_size * 2;
 
         if (ImGui::IsMouseHoveringRect(min_pos, max_pos)) {
@@ -483,7 +482,7 @@ namespace Chill
             if (ProcessingGraph* v = dynamic_cast<ProcessingGraph*>(hovproc.raw())) {
               if (!v->m_edit) {
                 m_graphs.push(v);
-                m_offset = m_graphs.top()->getBarycenter() * -1.0f;
+                m_offset = m_graphs.top()->getBarycenter() * -1.0F;
                 break;
               }
             }
@@ -578,21 +577,21 @@ namespace Chill
       if (m_dragging) { 
         if (!io.KeysDown[LIBSL_KEY_CTRL]) {
           for (AutoPtr<SelectableUI> selected : selected) {
-            selected->translate(io.MouseDelta / m_scale);
+            selected->translate(io.MouseDelta / w_scale);
           }
         }
         else {
           for (AutoPtr<SelectableUI> selected : selected) {
             AutoPtr<VisualComment> com(selected);
             if(!com.isNull())
-              selected->m_size += io.MouseDelta / m_scale;
+              selected->m_size += io.MouseDelta / w_scale;
           }
         }      
       }
 
       // Move the whole canvas
       if (io.MouseDown[2] && ImGui::IsMouseHoveringAnyWindow()) {
-        m_offset += io.MouseDelta / m_scale;
+        m_offset += io.MouseDelta / w_scale;
       }
 
       zoom();
@@ -611,14 +610,14 @@ namespace Chill
         if (io.KeysDown['b'] && io.KeysDownDuration['b'] == 0) {
           if (m_graphs.size() > 1) {
             m_graphs.pop();
-            m_offset = getCurrentGraph()->getBarycenter() * -1.0f;
+            m_offset = getCurrentGraph()->getBarycenter() * -1.0F;
           }
         }
         if (io.KeysDown['c'] && io.KeysDownDuration['c'] == 0) {
           // mouse to screen
-          ImVec2 m2s = io.MousePos - (win_pos + win_size) / 2.0f;
+          ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
           // screen to grid
-          ImVec2 s2g = m2s / this->getScale() - m_offset;
+          ImVec2 s2g = m2s / w_scale - m_offset;
           AutoPtr<VisualComment> com(new VisualComment());
           com->setPosition(s2g);
           this->getCurrentGraph()->addComment(com);
@@ -643,7 +642,7 @@ namespace Chill
       }
 
       // update the offset used for display
-      offset = (m_offset * m_scale + (win_size - win_pos) / 2.0f) ;
+      offset = (m_offset * w_scale + (w_size - w_pos) / 2.0F) ;
       
 
     } // ! if window hovered
@@ -657,31 +656,29 @@ namespace Chill
 
 
     for (AutoPtr<VisualComment> comment : currentGraph->comments()) {
-      ImVec2 position = offset + comment->m_position * m_scale;
+      ImVec2 position = offset + comment->m_position * w_scale;
       ImGui::SetCursorPos(position);
-      comment->setScale(m_scale);
       comment->draw();
     }
 
     
     // Draw the nodes
     for (AutoPtr<Processor> processor : currentGraph->processors()) {
-      ImVec2 position = offset + processor->m_position * m_scale;
+      ImVec2 position = offset + processor->m_position * w_scale;
       ImGui::SetCursorPos(position);
-      processor->setScale(m_scale);
       processor->draw();
     }
 
     // Draw the pipes
-    float pipe_width = 2.0f * m_scale;
-    int pipe_res = int(25.0f / std::abs(std::log(m_scale / 2.0f)));
+    float pipe_width = 2.0F * w_scale;
+    int pipe_res = int(25.0F / std::abs(std::log(w_scale / 2.0F)));
     for (AutoPtr<Processor> processor : currentGraph->processors()) {
       for (AutoPtr<ProcessorOutput> output : processor->outputs()) {
         for (AutoPtr<ProcessorInput> input : output->m_links) {
-          ImVec2 A = input->getPosition() + win_pos;
-          ImVec2 B = output->getPosition() + win_pos;
+          ImVec2 A = input->getPosition() + w_pos;
+          ImVec2 B = output->getPosition() + w_pos;
 
-          ImVec2 bezier( abs(A.x - B.x) / 2.0f * m_scale, 0.0f);
+          ImVec2 bezier( abs(A.x - B.x) / 2.0F * w_scale, 0.0F);
 
           ImGui::GetWindowDrawList()->AddBezierCurve(
             A,
@@ -701,19 +698,19 @@ namespace Chill
 
     // Draw new pipe
     if (linking) {
-      float pipe_width = 2.0f * m_scale;
-      int pipe_res = int(25.0f / std::abs(std::log(m_scale / 2.0f)));
+      float pipe_width = 2.0F * w_scale;
+      int pipe_res = int(25.0F / std::abs(std::log(w_scale / 2.0F)));
 
       ImVec2 A = ImGui::GetMousePos();
       ImVec2 B = ImGui::GetMousePos();
 
       if (!m_selected_input.isNull()) {
-        A = win_pos + m_selected_input->getPosition();
+        A = w_pos + m_selected_input->getPosition();
       } else if (!m_selected_output.isNull()) {
-        B = win_pos + m_selected_output->getPosition();
+        B = w_pos + m_selected_output->getPosition();
       }
       
-      ImVec2 bezier(100.0f * m_scale, 0);
+      ImVec2 bezier(100.0f * w_scale, 0);
       ImGui::GetWindowDrawList()->AddBezierCurve(
         A,
         A - bezier,
@@ -726,11 +723,13 @@ namespace Chill
     }
 
     // Draw graph nav
-    ImGui::SetCursorPos(win_pos);
+    ImGui::SetCursorPos(w_pos);
     uint i = 1;
 
-    ImVec2 pos = win_pos;
+    ImVec2 pos = w_pos;
     ImVec2 size(100, 20);
+
+    size *= w_scale;
 
 
     for (auto graph : m_graphs._Get_container()) {
@@ -748,13 +747,10 @@ namespace Chill
         draw_list->AddRectFilled(pos, pos + size, style.processor_bg_color, 0, 0);
       }
 
-      ImGui::SetCursorPos(pos - win_pos + style.delta_to_center_text(ImVec2(10, size.y), ">"));
+      ImGui::SetCursorPos(pos - w_pos + style.delta_to_center_text(ImVec2(10, size.y), ">"));
       ImGui::Text(">");
-      ImGui::SetCursorPos(pos - win_pos + style.delta_to_center_text(size, graph->name().c_str()));
+      ImGui::SetCursorPos(pos - w_pos + style.delta_to_center_text(size, graph->name().c_str()));
       ImGui::Text(graph->name().c_str());
-
-      ImVec2 title_size = ImGui::CalcTextSize(graph->name().c_str());
-
 
       pos.x += size.x;
       i++;
@@ -774,17 +770,18 @@ namespace Chill
     m_selecting = true;
     
     NodeEditor* n_e = NodeEditor::Instance();
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    ImDrawList* overlay_draw_list = ImGui::GetOverlayDrawList();
 
-    ImVec2 offset = (m_offset * n_e->getScale() + (win_size - win_pos) / 2.0f);
+    ImVec2  w_pos = window->PosFloat;
+    ImVec2 w_size = window->Size;
+    float w_scale = window->FontWindowScale;
 
     ImGuiIO io = ImGui::GetIO();
 
-
-    ImVec2 A = (io.MousePos - (win_pos + win_size) / 2.0f) / n_e->getScale() - m_offset;
-    ImVec2 B = (io.MouseClickedPos[0] - (win_pos + win_size) / 2.0f) / n_e->getScale() - m_offset;
+    ImVec2 A = (io.MousePos - (w_pos + w_size) / 2.0F) / w_scale - m_offset;
+    ImVec2 B = (io.MouseClickedPos[0] - (w_pos + w_size) / 2.0F) / w_scale - m_offset;
 
     if (A.x > B.x) std::swap(A.x, B.x);
     if (A.y > B.y) std::swap(A.y, B.y);
@@ -827,33 +824,33 @@ namespace Chill
 
   //-------------------------------------------------------
   void drawGrid() {
-    NodeEditor* n_e = NodeEditor::Instance();
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    ImVec2 offset = (m_offset * n_e->getScale() + (win_size - win_pos) / 2.0f);
+    ImVec2 offset = (m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     const ImU32& GRID_COLOR = style.graph_grid_color;
     const float grid_Line_width = style.graph_grid_line_width;
 
-    int coeff = n_e->getScale() >= 0.5f ? 1 : 10;
+    int coeff = window->FontWindowScale >= 0.5F ? 1 : 10;
     int subdiv_levels[] = {
       style.graph_grid_size * coeff,
       style.graph_grid_size * coeff * 10};
 
     for (int subdiv : subdiv_levels) {
-      const float& grid_size = n_e->getScale() * subdiv;
+      const float& grid_size = window->FontWindowScale * subdiv;
 
       // Vertical lines
-      for (float x = fmodf(offset.x, grid_size); x < win_size.x; x += grid_size) {
-        ImVec2 p1 = ImVec2(x + win_pos.x, win_pos.y);
-        ImVec2 p2 = ImVec2(x + win_pos.x, win_size.y + win_pos.y);
+      for (float x = fmodf(offset.x, grid_size); x < window->Size.x; x += grid_size) {
+        ImVec2 p1 = ImVec2(x + window->Pos.x, window->Pos.y);
+        ImVec2 p2 = ImVec2(x + window->Pos.x, window->Size.y + window->Pos.y);
         draw_list->AddLine(p1, p2, GRID_COLOR, grid_Line_width);
       }
 
       // Horizontal lines
-      for (float y = fmodf(offset.y, grid_size); y < n_e->m_size.y; y += grid_size) {
-        ImVec2 p1 = ImVec2(win_pos.x, y + win_pos.y);
-        ImVec2 p2 = ImVec2(win_size.x + win_pos.x, y + win_pos.y);
+      for (float y = fmodf(offset.y, grid_size); y < window->Size.y; y += grid_size) {
+        ImVec2 p1 = ImVec2(window->Pos.x, y + window->Pos.y);
+        ImVec2 p2 = ImVec2(window->Size.x + window->Pos.x, y + window->Pos.y);
         draw_list->AddLine(p1, p2, GRID_COLOR, grid_Line_width);
       }
     }
@@ -861,33 +858,34 @@ namespace Chill
 
   //-------------------------------------------------------
   void zoom() {
-    NodeEditor* n_e = NodeEditor::Instance();
+    //NodeEditor* n_e = NodeEditor::Instance();
+    //ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    //ImDrawList* overlay_draw_list = ImGui::GetOverlayDrawList();
 
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    ImDrawList* overlay_draw_list = ImGui::GetOverlayDrawList();
-
-    ImVec2 offset = (m_offset * n_e->getScale() + (win_size - win_pos) / 2.0f);
-
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImVec2 offset = (m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
     ImGuiIO io = ImGui::GetIO();
 
-    float scale = n_e->getScale();
 
-    if (io.MouseWheel != 0.0f) {
-      float new_scale = scale;
-      if (io.MouseWheel > 0) {
-        new_scale *= 1.1f;
-      }
-      else {
-        new_scale /= 1.1f;
-      }
-      new_scale = std::min(1.0f, std::max(0.3f, new_scale));
+    if (true || io.FontAllowUserScaling) {
+        
+      float old_scale = window->FontWindowScale;
+      float new_scale = ImClamp(window->FontWindowScale + io.MouseWheel * 0.1F, 0.3F, 2.0F);
+      float scale = new_scale / window->FontWindowScale;
+      window->FontWindowScale = new_scale;
 
-      if (new_scale != scale) {
+      const ImVec2 offset = window->Size * (1.F - scale) * (io.MousePos - window->Pos) / window->Size;
+      window->Pos += offset;
+      window->PosFloat += offset;
+      window->Size *= scale;
+      window->SizeFull *= scale;
+
+
+      if (new_scale != old_scale) {
         // mouse to screen
-        ImVec2 m2s = io.MousePos - (win_pos + win_size) / 2.0f;
+        ImVec2 m2s = io.MousePos - (window->Pos + window->Size) / 2.F;
         // screen to grid
-        ImVec2 s2g = m2s / scale - m_offset;
-        n_e->setScale(new_scale);
+        ImVec2 s2g = m2s / old_scale - m_offset;
         // grid to screen
         ImVec2 g2s = (s2g + m_offset) * new_scale;
 
@@ -977,6 +975,13 @@ namespace Chill
   //-------------------------------------------------------
   void menus() {
     NodeEditor* n_e = NodeEditor::Instance();
+
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+    ImVec2 w_pos = window->PosFloat;
+    ImVec2 w_size = window->Size;
+    float w_scale = window->FontWindowScale;
+
     ImGuiIO io = ImGui::GetIO();
 
     // Draw menus
@@ -991,9 +996,9 @@ namespace Chill
     if (ImGui::BeginPopup("graph_menu"))
     {
       // mouse to screen
-      ImVec2 m2s = io.MousePos - (win_pos + win_size) / 2.0f;
+      ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
       // screen to grid
-      ImVec2 s2g = m2s / n_e->getScale() - m_offset;
+      ImVec2 s2g = m2s / w_scale - m_offset;
 
       m_graph_menu = false;
       

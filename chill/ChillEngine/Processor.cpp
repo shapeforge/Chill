@@ -136,28 +136,30 @@ namespace Chill {
 bool Chill::Processor::draw() {
   ImGui::PushID(int(getUniqueID()));
 
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImGuiIO io = ImGui::GetIO();
 
-  ImVec2 size = m_size * m_scale;
+  float w_scale = window->FontWindowScale;
+
+  ImVec2 size = m_size * w_scale;
 
   ImVec2 min_pos = ImGui::GetCursorScreenPos();
   ImVec2 max_pos = min_pos + size;
 
-  float border_width = style.processor_border_width * m_scale;
-  float rounding_corners = style.processor_rounding_corners * m_scale;
+  float border_width = style.processor_border_width * w_scale;
+  float rounding_corners = style.processor_rounding_corners * w_scale;
 
   // shadow
-  if (m_selected || m_scale > 0.5f) {
+  if (m_selected || w_scale > 0.5F) {
     draw_list->AddRectFilled(
-      min_pos + ImVec2(-5, -5) * m_scale,
-      max_pos + ImVec2(5, 5) * m_scale,
+      min_pos + ImVec2(-5, -5) * w_scale,
+      max_pos + ImVec2(5, 5) * w_scale,
       m_selected ? style.processor_shadow_selected_color : style.processor_shadow_color,
-      rounding_corners + 5.0f, style.processor_rounded_corners);
+      rounding_corners + 5.0F, style.processor_rounded_corners);
   }
 
   // border
-  ImVec2 border = ImVec2(style.processor_border_width, style.processor_border_width) * m_scale / 2.0f;
+  ImVec2 border = ImVec2(style.processor_border_width, style.processor_border_width) * w_scale / 2.0F;
   draw_list->AddRect(
     min_pos - border,
     max_pos + border,
@@ -171,18 +173,15 @@ bool Chill::Processor::draw() {
 
   float height = ImGui::GetCursorPosY();
 
-  float padding = (style.socket_radius + style.socket_border_width + style.ItemSpacing.x) * m_scale;
+  float padding = (style.socket_radius + style.socket_border_width + style.ItemSpacing.x) * w_scale;
 
-  ImGui::PushItemWidth(m_size.x * m_scale - padding * 2);
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, style.ItemSpacing * m_scale);
-
-  ImGui::SetWindowFontScale(m_scale);
-
+  ImGui::PushItemWidth(m_size.x * w_scale - padding * 2);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, style.ItemSpacing * w_scale);
 
   ImGui::BeginGroup();
   // draw title
   ImVec2 title_size(style.processor_width, style.processor_title_height);
-  title_size *= m_scale;
+  title_size *= w_scale;
 
   draw_list->AddRectFilled(min_pos, min_pos + title_size,
     m_color,
@@ -267,10 +266,9 @@ bool Chill::Processor::draw() {
   height = ImGui::GetCursorPosY() - height + padding;
 
   m_size.x = style.processor_width;
-  m_size.y = height / m_scale;
+  m_size.y = height / w_scale;
 
   ImGui::PopID();
-  ImGui::SetWindowFontScale(1.0f);
 
   return m_edit;
 }
@@ -291,29 +289,30 @@ bool Chill::Multiplexer::draw() {
 
   ImGui::PushID(int(getUniqueID()));
 
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImGuiIO io = ImGui::GetIO();
+  float w_scale = window->FontWindowScale;
 
-  ImVec2 size = m_size * m_scale;
+  ImVec2 size = m_size * w_scale;
   
   ImVec2 min_pos = ImGui::GetCursorScreenPos();
   ImVec2 max_pos = min_pos + size;
 
-  float border_width = style.processor_border_width * m_scale;
-  float rounding_corners = style.processor_rounding_corners * m_scale;
+  float border_width = style.processor_border_width * w_scale;
+  float rounding_corners = style.processor_rounding_corners * w_scale;
 
 
   // shadow
-  if (m_selected || m_scale > 0.5f) {
+  if (m_selected || w_scale > 0.5F) {
     draw_list->AddRectFilled(
-      min_pos + ImVec2(-5, -5) * m_scale,
-      max_pos + ImVec2(5, 5) * m_scale,
+      min_pos + ImVec2(-5, -5) * w_scale,
+      max_pos + ImVec2(5, 5) * w_scale,
       m_selected ? style.processor_shadow_selected_color : style.processor_shadow_color,
-      rounding_corners * 2.0f, style.processor_rounded_corners);
+      rounding_corners * 2.0F, style.processor_rounded_corners);
   }
 
   // border & background
-  ImVec2 border = ImVec2(style.processor_border_width, style.processor_border_width) * m_scale / 2.0f;
+  ImVec2 border = ImVec2(style.processor_border_width, style.processor_border_width) * w_scale / 2.0F;
   draw_list->AddRectFilled(
     min_pos - border,
     max_pos + border,
@@ -327,7 +326,7 @@ bool Chill::Multiplexer::draw() {
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 20);
   float x = ImGui::GetCursorPosX();
-  float y = ImGui::GetCursorPosY() + size.y/2 - m_scale * style.socket_radius;
+  float y = ImGui::GetCursorPosY() + size.y/2.0F - w_scale * style.socket_radius;
   
   // draw inputs
   ImGui::SetCursorPosX(x);
@@ -350,8 +349,6 @@ bool Chill::Multiplexer::draw() {
     output->draw();
   }
   ImGui::EndGroup();
-
-
 
   ImGui::PopID();
   ImGui::PopStyleVar();

@@ -31,9 +31,6 @@ public:
   /** Component's position */
   ImVec2 m_position = ImVec2(0.0f, 0.0f);
 
-  /** Graphical scale */
-  float m_scale     = 1.0f;
-
 public:
   Style style;
 
@@ -67,20 +64,8 @@ public:
     m_position += _delta;
   }
 
-  /**
-   *  Set the scale of a component
-   *  param _scale The new scale
-   */
-  void setScale(const float _scale) {
-    m_scale = _scale;
-  }
-
   inline const ImVec2 getPosition() {
     return m_position;
-  }
-
-  inline const float getScale() {
-    return m_scale;
   }
 
   inline const int64_t getUniqueID() {
