@@ -123,6 +123,9 @@ namespace Chill {
       case IOType::INTEGER:
         input = AutoPtr<ProcessorInput>(new IntInput(_args...));
         break;
+      case IOType::LIST:
+        input = AutoPtr<ProcessorInput>(new ListInput(_args...));
+        break;
       case IOType::PATH:
         input = AutoPtr<ProcessorInput>(new PathInput(_args...));
         break;
@@ -376,6 +379,79 @@ namespace Chill {
       output->setName (name());
       output->setColor(color());
       return output;
+    }
+  };
+
+
+  // IO_LIST
+  class ListInput : public ProcessorInput
+  {
+  public:
+    static inline int min() { return std::numeric_limits<int>().min(); }
+    static inline int max() { return std::numeric_limits<int>().max(); }
+    static inline int step() { return 1; }
+
+    std::vector<std::string> m_values;
+    int  m_value;
+    int  m_min;
+    int  m_max;
+
+    ListInput() {
+      setType(IOType::INTEGER);
+      setColor(color_number);
+    }
+
+    template <typename ...>
+    ListInput(int _value, std::vector<std::string>& _params) : ListInput()
+    {
+      size_t s = _params.size();
+
+      m_value = s >= 1 ? std::stoi(_params[0]) : 0;
+      m_min = 0;
+      m_max = s;
+
+      m_value = std::min(m_max, std::max(m_min, m_value));
+    };
+
+    template <typename ...>
+    ListInput(std::vector<std::string>& _params) : ListInput()
+    {
+      size_t s = _params.size();
+
+      m_values = _params;
+      m_value = 0;
+      m_min   = 0;
+      m_max   = s;
+      
+      m_value = std::min(m_max, std::max(m_min, m_value));
+    };
+
+    // For compatibility (shouldn't be called)
+    template <typename ...>
+    ListInput(...)
+    {
+      sl_assert(false);
+    };
+
+    bool drawTweak();
+
+    AutoPtr<ProcessorInput> clone() {
+      AutoPtr<ProcessorInput> input = AutoPtr<ProcessorInput>(new ListInput(m_value, m_values));
+      input->setName(name());
+      input->setColor(color());
+      return input;
+    }
+
+    void save(std::ofstream& _stream) {
+      _stream << "i_" << int64_t(this) << " = Input({" <<
+        "name = '" << name() << "'" <<
+        ", type = '" << IOType::ToString(type()) << "'" <<
+        ", value = " << m_value <<
+        "})" << std::endl;
+    }
+
+    std::string getLuaValue() {
+      return std::to_string(m_value);
     }
   };
 

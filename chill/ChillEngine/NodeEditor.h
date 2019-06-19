@@ -33,7 +33,7 @@ namespace Chill
 
   private:
     std::string m_nodeFolder = "";
-
+    
     std::stack<Chill::ProcessingGraph*> m_graphs;
 
     AutoPtr<ProcessorInput>  m_selected_input;

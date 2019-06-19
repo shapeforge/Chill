@@ -78,14 +78,17 @@ setfenv(1, _Gcurrent)    --set it\n";
   }
 
   bool GroupProcessor::draw() {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    float w_scale = window->FontWindowScale;
+
     ImVec2 initial_pos = ImGui::GetCursorScreenPos();
     Processor::draw();
     ImGui::SetCursorScreenPos(initial_pos);
 
     ImVec2 title_size(0, style.processor_title_height);
-    title_size *= m_scale;
+    title_size *= w_scale;
 
-    ImVec2 size = m_size * m_scale;
+    ImVec2 size = m_size * w_scale;
 
     ImVec2 min_pos = initial_pos;
     ImGui::SetCursorScreenPos(min_pos);
