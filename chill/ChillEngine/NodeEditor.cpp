@@ -637,8 +637,8 @@ namespace Chill
         }
       }
       if (io.KeysDown[LIBSL_KEY_DELETE]) {
-        for (AutoPtr<SelectableUI> proc : selected) {
-          getCurrentGraph()->removeSelectable(proc);
+        for (AutoPtr<SelectableUI> item : selected) {
+          getCurrentGraph()->remove(item);
         }
       }
 
@@ -880,7 +880,7 @@ namespace Chill
       else {
         new_scale /= 1.1f;
       }
-      new_scale = std::min(1.0f, std::max(0.3f, new_scale));
+      new_scale = std::min(4.0f, std::max(0.3f, new_scale));
 
       if (new_scale != scale) {
         // mouse to screen
@@ -1052,8 +1052,8 @@ namespace Chill
       }
 
       if (ImGui::MenuItem("Delete")) {
-        for (AutoPtr<SelectableUI> proc : selected) {
-          n_e->getCurrentGraph()->removeSelectable(proc);
+        for (AutoPtr<SelectableUI> item : selected) {
+          n_e->getCurrentGraph()->remove(item);
         }
       }
       if (ImGui::MenuItem("Unlink")) {

@@ -85,39 +85,48 @@ namespace Chill {
   ProcessingGraph::~ProcessingGraph() {
     m_group_inputs.clear();
     m_group_outputs.clear();
+
+    for (AutoPtr<Processor> processor : m_processors) {
+      remove(processor);
+    }
+    for (AutoPtr<VisualComment> element : m_comments) {
+      remove(element);
+    }
     Processor::~Processor();
   }
 
-  void ProcessingGraph::removeProcessor(AutoPtr<Processor>& _processor) {
+  void ProcessingGraph::remove(AutoPtr<Processor>& _processor) {
     // disconnect
-    for (AutoPtr<ProcessorInput> input : _processor->inputs()) {
-      if (!input.isNull()) {
-        disconnect(input);
+    if (_processor->owner() == this) {
+      for (AutoPtr<ProcessorInput> input : _processor->inputs()) {
+        if (!input.isNull()) {
+          disconnect(input);
+        }
       }
-    }
-    for (AutoPtr<ProcessorOutput> output : _processor->outputs()) {
-      if (!output.isNull()) {
-        disconnect(output);
+      for (AutoPtr<ProcessorOutput> output : _processor->outputs()) {
+        if (!output.isNull()) {
+          disconnect(output);
+        }
       }
     }
 
     // remove the processor
-    m_processors.erase(remove(m_processors.begin(), m_processors.end(), _processor), m_processors.end());
+    m_processors.erase(std::remove(m_processors.begin(), m_processors.end(), _processor), m_processors.end());
     //_processor.~AutoPtr();
   }
 
-  void ProcessingGraph::removeComment(AutoPtr<VisualComment>& _comment) {
-    m_comments.erase(remove(m_comments.begin(), m_comments.end(), _comment), m_comments.end());
+  void ProcessingGraph::remove(AutoPtr<VisualComment>& _comment) {
+    m_comments.erase(std::remove(m_comments.begin(), m_comments.end(), _comment), m_comments.end());
   }
 
-  void ProcessingGraph::removeSelectable(AutoPtr<SelectableUI>& _select) {
+  void ProcessingGraph::remove(AutoPtr<SelectableUI>& _select) {
     AutoPtr<Processor> proc = AutoPtr<Processor>(_select);
     if (!proc.isNull()) {
-      removeProcessor(proc);
+      remove(proc);
     }
     AutoPtr<VisualComment> com = AutoPtr<VisualComment>(_select);
     if (!com.isNull()) {
-      removeComment(com);
+      remove(com);
     }
   }
 
@@ -167,7 +176,7 @@ namespace Chill {
 
     AutoPtr<ProcessorOutput> from = to->m_link;
     if (!from.isNull()) {
-      from->m_links.erase(remove(from->m_links.begin(), from->m_links.end(), to), from->m_links.end());
+      from->m_links.erase(std::remove(from->m_links.begin(), from->m_links.end(), to), from->m_links.end());
     }
 
     to->m_link = AutoPtr<ProcessorOutput>(NULL);
@@ -196,10 +205,9 @@ namespace Chill {
     groupOutputs->setName("Group Output");
     groupOutputs->setOutputMode(true);
 
-    // move the processors
+    // move the entities
     for (AutoPtr<SelectableUI> select : subset) {
       innerGraph->add(select);
-      removeSelectable(select);
     }
 
     // edit border pipes
@@ -208,6 +216,7 @@ namespace Chill {
       if (processor.isNull()) {
         continue;
       }
+
       for (AutoPtr<ProcessorInput> input : processor->inputs()) {
         AutoPtr<ProcessorOutput> output = input->m_link;
         // not linked
@@ -274,6 +283,10 @@ namespace Chill {
       }
     }
 
+    for (AutoPtr<SelectableUI> select : subset) {
+      remove(select);
+    }
+
     AABox bbox = getBoundingBox(subset);
     ImVec2 barycenter = getBarycenter(subset);
 
@@ -317,7 +330,7 @@ namespace Chill {
       processor->setPosition(processor->getPosition() + offset);
     }
 
-    removeProcessor(AutoPtr<Processor>(collapsed));
+    remove(AutoPtr<Processor>(collapsed));
   }
 
   AutoPtr<ProcessingGraph> ProcessingGraph::copySubset(const std::vector<AutoPtr<SelectableUI>>& subset)
