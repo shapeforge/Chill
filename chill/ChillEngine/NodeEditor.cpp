@@ -75,6 +75,25 @@ void Chill::NodeEditor::mainMousePressed(uint x, uint y, uint button, uint flags
 {
 }
 
+void Chill::NodeEditor::getScreenRes(int& width, int& height) {
+#ifdef WIN32
+  RECT screen;
+
+  const HWND hScreen = GetDesktopWindow(); // get desktop handler
+  GetWindowRect(hScreen, &screen); // get entire desktop size
+
+  width = screen.right - screen.top;
+  height = screen.bottom - screen.top;
+
+#endif
+
+#ifdef __linux__
+  width = 1920;
+  height = 1080;
+#endif
+}
+
+#if 0
 //-------------------------------------------------------
 void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height) {
 #ifdef WIN32
@@ -91,18 +110,45 @@ void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height) {
   height = 1080;
 #endif
 }
+#endif
+
+#if 1
+//-------------------------------------------------------
+void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height) {
+#ifdef WIN32
+  RECT desktop;
+
+  // get desktop size WITHOUT task bar
+  SystemParametersInfoA(SPI_GETWORKAREA, NULL, &desktop, NULL);
+
+  width = desktop.right;
+  height = desktop.bottom;
+
+#endif
+
+#ifdef __linux__
+  width = 1920;
+  height = 1080;
+#endif
+}
+#endif
 
 //-------------------------------------------------------
 void Chill::NodeEditor::launch()
 {
-  int screen_width = 0;
-  int screen_height = 0;
+  int screen_width, screen_height, desktop_width, desktop_height = 0;
 
   // get screnn / desktop dimmensions
-  Chill::NodeEditor::getDesktopScreenRes(screen_width, screen_height);
+  Chill::NodeEditor::getScreenRes(screen_width, screen_height);
+  Chill::NodeEditor::getDesktopScreenRes(desktop_width, desktop_height);
 
-  int app_width = 2 * (screen_width / 3);
-  int app_heigth = screen_height;
+  int app_width = 2 * (desktop_width / 3);
+  int app_heigth = desktop_height;
+
+  //int app_pos_x = desktop_width - screen_width;
+  //int app_pos_y = desktop_height - screen_height;
+  int app_pos_x = -8;
+  int app_pos_y = 0;
 
   Chill::NodeEditor *nodeEditor = Chill::NodeEditor::Instance();
   try {
@@ -126,26 +172,22 @@ void Chill::NodeEditor::launch()
 
     // place and dock window to the left
 #ifdef WIN32
+    // get app handler
     HWND hwnd = SimpleUI::getHWND();
 
-    SetWindowPos(hwnd, HWND_TOP, 0, 0, app_width, app_heigth, SWP_SHOWWINDOW);
+    //SetWindowPos(hwnd, HWND_TOP, 0, 0, app_width, app_heigth, SWP_SHOWWINDOW);
+    SetWindowPos(hwnd, HWND_TOP, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
     //MoveWindow(hwnd, 0, 0, app_width, app_heigth, true);
-
-    std::cerr << Console::yellow << hwnd << Console::gray << std::endl;
-
-    //SimpleUI::refresh();    
-
-    std::cerr << Console::blue << screen_width << " * " << screen_height << Console::gray << std::endl;
-    std::cerr << Console::red << SimpleUI::screenWidth() << " * " << SimpleUI::screenHeight() << Console::gray << std::endl;
+ 
 #endif
 
     // launching Icesl
-    /*
-    HWND IceslInstance = NULL;
+    //HWND IceslInstance = NULL;
+    HWND IceslInstance = hwnd;
     Chill::NodeEditor::launchIcesl(IceslInstance);
     std::cerr << Console::yellow << IceslInstance << Console::gray << std::endl;
-    MoveWindow(IceslInstance, app_width, 0, screen_width - app_width, app_heigth, true);
-    */
+    // move icesl to the last part of the screen
+    //SetWindowPos(IceslInstance, HWND_TOP, app_width, app_pos_y, screen_width - app_width, app_heigth, SWP_SHOWWINDOW);
 
     // main loop
     SimpleUI::loop();
@@ -161,13 +203,14 @@ void Chill::NodeEditor::launch()
   }
 }
 
-# if 0
+# if 1
 //-------------------------------------------------------
-void Chill::NodeEditor::launchIcesl() {
+void Chill::NodeEditor::launchIcesl(HWND& icesl_hwnd) {
 #ifdef WIN32
   // CreateProcess init
   const char* icesl_path = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe";
-  
+  const char* icesl_params = NULL;
+
   PROCESS_INFORMATION ProcessInfo;
   STARTUPINFO StartupInfo;
   ZeroMemory(&StartupInfo, sizeof(StartupInfo));
@@ -175,11 +218,11 @@ void Chill::NodeEditor::launchIcesl() {
 
   // create the process
   auto icesl_process = CreateProcess(icesl_path, //application name / path
-          NULL, // command line for the application
+          LPSTR(icesl_params), // command line for the application
           NULL, // SECURITY_ATTRIBUTES for the process
           NULL, // SECURITY_ATTRIBUTES for the thread
           FALSE, // inherit handles ?
-          0, // process creation flags
+          CREATE_NEW_CONSOLE, // process creation flags
           NULL, // environment
           NULL, // current directory
           &StartupInfo, // startup info
@@ -189,12 +232,17 @@ void Chill::NodeEditor::launchIcesl() {
   {
     // watch the process
     WaitForSingleObject(ProcessInfo.hProcess, 1000);
+    // getting the hwnd
+    auto icesl_id = ProcessInfo.dwProcessId;
+    std::cerr << Console::green << "icesl process id: " << icesl_id << Console::gray << std::endl;
   }
   else
   {
     // process creation failed
     std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
     std::cerr << Console::yellow << GetLastError() << Console::gray << std::endl;
+
+    icesl_hwnd = NULL;
   }
 
   // closing the process and releasing the handles
@@ -204,7 +252,7 @@ void Chill::NodeEditor::launchIcesl() {
 }
 #endif
 
-#if 1
+#if 0
 //-------------------------------------------------------
 void Chill::NodeEditor::launchIcesl(HWND& icesl_hwnd) {
 #ifdef WIN32
@@ -215,7 +263,7 @@ void Chill::NodeEditor::launchIcesl(HWND& icesl_hwnd) {
   // context definition
   iceslShellContext.cbSize = sizeof(SHELLEXECUTEINFO);
   iceslShellContext.fMask = NULL;
-  iceslShellContext.hwnd = NULL;
+  iceslShellContext.hwnd = icesl_hwnd;
   iceslShellContext.lpVerb = "open";
   iceslShellContext.lpFile = icesl_path;
   iceslShellContext.lpParameters = icesl_params;
@@ -228,13 +276,15 @@ void Chill::NodeEditor::launchIcesl(HWND& icesl_hwnd) {
   if (IceslProcess) {
     WaitForInputIdle(iceslShellContext.hProcess, 1000);
 
-    //TODO: get hwnd by pid or get window name by registry 
-    icesl_hwnd = FindWindow(NULL, "IceSL-slicer 2.3.3-beta3");
+    auto icesl_process_id = GetProcessId(&iceslShellContext.hProcess);
+    //std::cerr << Console::red << icesl_process_id << Console::gray << std::endl;
 
-    auto icesl_pid = GetProcessId(iceslShellContext.hProcess);
+    //TODO: get hwnd by pid or get window name by registry
+    //icesl_hwnd = FindWindow(NULL, "IceSL-slicer 2.3.3-beta3");
+    //auto icesl_pid = GetProcessId(iceslShellContext.hProcess);
 
-    std::cerr << Console::blue << icesl_hwnd << Console::gray << std::endl;
-    std::cerr << Console::green << icesl_pid << Console::gray << std::endl;
+    //std::cerr << Console::blue << icesl_hwnd << Console::gray << std::endl;
+    //std::cerr << Console::green << icesl_pid << Console::gray << std::endl;
     
   }
   else {
