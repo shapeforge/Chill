@@ -21,6 +21,8 @@ LIBSL_WIN32_FIX
 const int default_width  = 800;
 const int default_height = 600;
 
+HWND icesl_hwnd = NULL;
+
 Chill::NodeEditor *Chill::NodeEditor::s_instance = nullptr;
 
 //-------------------------------------------------------
@@ -93,26 +95,6 @@ void Chill::NodeEditor::getScreenRes(int& width, int& height) {
 #endif
 }
 
-#if 0
-//-------------------------------------------------------
-void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height) {
-#ifdef WIN32
-	RECT desktop;
-	//const HWND hDesktop = GetDesktopWindow(); // get desktop handler
-	//GetWindowRect(hDesktop, &desktop); // get entire desktop size
-  SystemParametersInfoA(SPI_GETWORKAREA, 0, &desktop, 0);// get desktop size WITHOUT task bar
-	width = desktop.right;
-	height = desktop.bottom;
-#endif
-
-#ifdef __linux__
-  width = 1920;
-  height = 1080;
-#endif
-}
-#endif
-
-#if 1
 //-------------------------------------------------------
 void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height) {
 #ifdef WIN32
@@ -131,6 +113,21 @@ void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height) {
   height = 1080;
 #endif
 }
+
+//-------------------------------------------------------
+#ifdef WIN32
+BOOL CALLBACK EnumWindowsProcMy(HWND hwnd, LPARAM lParam)
+{
+  DWORD lpdwProcessId;
+  GetWindowThreadProcessId(hwnd, &lpdwProcessId);
+  if (lpdwProcessId == lParam)
+  {
+    icesl_hwnd = hwnd;
+    //set_icesl_hwnd(hwnd);
+    return FALSE;
+  }
+  return TRUE;
+}
 #endif
 
 //-------------------------------------------------------
@@ -147,7 +144,8 @@ void Chill::NodeEditor::launch()
 
   //int app_pos_x = desktop_width - screen_width;
   //int app_pos_y = desktop_height - screen_height;
-  int app_pos_x = -8;
+
+  int app_pos_x = - 8; // /!\ offset not correctly calculated !
   int app_pos_y = 0;
 
   Chill::NodeEditor *nodeEditor = Chill::NodeEditor::Instance();
@@ -173,22 +171,19 @@ void Chill::NodeEditor::launch()
     // place and dock window to the left
 #ifdef WIN32
     // get app handler
-    HWND hwnd = SimpleUI::getHWND();
+    HWND chill_hwnd = SimpleUI::getHWND();
 
-    //SetWindowPos(hwnd, HWND_TOP, 0, 0, app_width, app_heigth, SWP_SHOWWINDOW);
-    SetWindowPos(hwnd, HWND_TOP, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
-    //MoveWindow(hwnd, 0, 0, app_width, app_heigth, true);
- 
-#endif
+    //SetWindowPos(hwnd, main_hwnd, po_x, pos_y, window_width, window_heigth, flags);
+    SetWindowPos(chill_hwnd, HWND_TOPMOST, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
+    //MoveWindow(chill_hwnd, 0, 0, app_width, app_heigth, true);
 
     // launching Icesl
-    //HWND IceslInstance = NULL;
-    HWND IceslInstance = hwnd;
-    Chill::NodeEditor::launchIcesl(IceslInstance);
-    std::cerr << Console::yellow << IceslInstance << Console::gray << std::endl;
+    launchIcesl(icesl_hwnd);
     // move icesl to the last part of the screen
-    //SetWindowPos(IceslInstance, HWND_TOP, app_width, app_pos_y, screen_width - app_width, app_heigth, SWP_SHOWWINDOW);
+    int icesl_x_offset = 22; // /!\ offset not correctly calculated !
+    SetWindowPos(icesl_hwnd, HWND_TOP, app_width - icesl_x_offset, app_pos_y, screen_width - app_width + icesl_x_offset, app_heigth, SWP_SHOWWINDOW);
 
+#endif
     // main loop
     SimpleUI::loop();
 
@@ -234,7 +229,8 @@ void Chill::NodeEditor::launchIcesl(HWND& icesl_hwnd) {
     WaitForSingleObject(ProcessInfo.hProcess, 1000);
     // getting the hwnd
     auto icesl_id = ProcessInfo.dwProcessId;
-    std::cerr << Console::green << "icesl process id: " << icesl_id << Console::gray << std::endl;
+
+    EnumWindows(EnumWindowsProcMy, icesl_id);
   }
   else
   {
@@ -244,10 +240,11 @@ void Chill::NodeEditor::launchIcesl(HWND& icesl_hwnd) {
 
     icesl_hwnd = NULL;
   }
-
-  // closing the process and releasing the handles
+  
+  // releasing the handles
   CloseHandle(ProcessInfo.hThread);
   CloseHandle(ProcessInfo.hProcess);
+
 #endif
 }
 #endif

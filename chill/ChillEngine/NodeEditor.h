@@ -14,22 +14,28 @@ namespace Chill
 {
   class NodeEditor : public UI
   {
+  public:
+    NodeEditor();
+    ~NodeEditor() {}
+
   private:
     NodeEditor & operator= (const NodeEditor&) {};
     NodeEditor(const NodeEditor&) {};
 
     static NodeEditor *s_instance;
-    NodeEditor();
-    ~NodeEditor(){}
+    //NodeEditor();
+    //~NodeEditor(){}
 
   public:
-    static void NodeEditor::launch();
+    void Chill::NodeEditor::launch();
     // Get current screen size
-    static void Chill::NodeEditor::getScreenRes(int& width, int& height);
+    void Chill::NodeEditor::getScreenRes(int& width, int& height);
 	  // Get current desktop size (without taskbar for windows)
-	  static void NodeEditor::getDesktopScreenRes(int& width, int& height);
-
-    static void Chill::NodeEditor::launchIcesl(HWND& icesl_hwnd);
+	  void NodeEditor::getDesktopScreenRes(int& width, int& height);
+#ifdef WIN32
+    void Chill::NodeEditor::launchIcesl(HWND& icesl_hwnd);
+#endif
+    
 
     static NodeEditor *Instance() {
       if (!s_instance)
