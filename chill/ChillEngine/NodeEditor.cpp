@@ -22,6 +22,7 @@ const int default_width  = 800;
 const int default_height = 600;
 
 HWND icesl_hwnd = NULL;
+DWORD icesl_pid = NULL;
 
 Chill::NodeEditor *Chill::NodeEditor::s_instance = nullptr;
 
@@ -178,7 +179,7 @@ void Chill::NodeEditor::launch()
     //MoveWindow(chill_hwnd, 0, 0, app_width, app_heigth, true);
 
     // launching Icesl
-    launchIcesl(icesl_hwnd);
+    launchIcesl();
     // move icesl to the last part of the screen
     int icesl_x_offset = 22; // /!\ offset not correctly calculated !
     SetWindowPos(icesl_hwnd, HWND_TOP, app_width - icesl_x_offset, app_pos_y, screen_width - app_width + icesl_x_offset, app_heigth, SWP_SHOWWINDOW);
@@ -192,15 +193,21 @@ void Chill::NodeEditor::launch()
 
     // shutdown UI
     SimpleUI::shutdown();
+
+#ifdef WIN32
+    // closing Icesl
+    closeIcesl();
+#endif
   }
   catch (Fatal& e) {
     std::cerr << Console::red << e.message() << Console::gray << std::endl;
   }
 }
 
+
 # if 1
 //-------------------------------------------------------
-void Chill::NodeEditor::launchIcesl(HWND& icesl_hwnd) {
+void Chill::NodeEditor::launchIcesl() {
 #ifdef WIN32
   // CreateProcess init
   const char* icesl_path = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe";
@@ -228,26 +235,41 @@ void Chill::NodeEditor::launchIcesl(HWND& icesl_hwnd) {
     // watch the process
     WaitForSingleObject(ProcessInfo.hProcess, 1000);
     // getting the hwnd
-    auto icesl_id = ProcessInfo.dwProcessId;
+    icesl_pid = ProcessInfo.dwProcessId;
 
-    EnumWindows(EnumWindowsProcMy, icesl_id);
+    EnumWindows(EnumWindowsProcMy, icesl_pid);
   }
   else
   {
     // process creation failed
     std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
-    std::cerr << Console::yellow << GetLastError() << Console::gray << std::endl;
+    //std::cerr << Console::yellow << GetLastError() << Console::gray << std::endl;
 
     icesl_hwnd = NULL;
   }
-  
-  // releasing the handles
-  CloseHandle(ProcessInfo.hThread);
-  CloseHandle(ProcessInfo.hProcess);
-
 #endif
 }
 #endif
+
+
+//-------------------------------------------------------
+void Chill::NodeEditor::closeIcesl() {
+#ifdef WIN32
+  // gettings Icesl's handle
+  HANDLE icesl_handle = OpenProcess(PROCESS_ALL_ACCESS, TRUE, icesl_pid);
+
+  // closing the  process
+  LPDWORD icesl_THerror;
+  LPDWORD icesl_Perror;
+  TerminateThread(icesl_handle, GetExitCodeThread(icesl_handle, icesl_THerror));
+  TerminateProcess(icesl_handle, GetExitCodeProcess(icesl_handle, icesl_Perror));
+
+  // releasing the handles
+  CloseHandle(icesl_handle);
+  CloseHandle(icesl_handle);
+#endif
+}
+
 
 #if 0
 //-------------------------------------------------------

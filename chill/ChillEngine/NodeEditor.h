@@ -32,10 +32,9 @@ namespace Chill
     void Chill::NodeEditor::getScreenRes(int& width, int& height);
 	  // Get current desktop size (without taskbar for windows)
 	  void NodeEditor::getDesktopScreenRes(int& width, int& height);
-#ifdef WIN32
-    void Chill::NodeEditor::launchIcesl(HWND& icesl_hwnd);
-#endif
-    
+
+    void Chill::NodeEditor::launchIcesl();
+    void Chill::NodeEditor::closeIcesl();    
 
     static NodeEditor *Instance() {
       if (!s_instance)
