@@ -255,10 +255,10 @@ void Chill::NodeEditor::launchIcesl() {
 //-------------------------------------------------------
 void Chill::NodeEditor::closeIcesl() {
 #ifdef WIN32
-  // gettings Icesl's handle
+  // gettings back Icesl's handle
   HANDLE icesl_handle = OpenProcess(PROCESS_ALL_ACCESS, TRUE, icesl_pid);
 
-  // closing the  process
+  // closing the process
   LPDWORD icesl_THerror;
   LPDWORD icesl_Perror;
   TerminateThread(icesl_handle, GetExitCodeThread(icesl_handle, icesl_THerror));
