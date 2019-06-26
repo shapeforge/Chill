@@ -87,8 +87,8 @@ namespace Chill {
     return output_;
   }
 
-  AutoPtr<ProcessorOutput> Processor::addOutput(std::string name_, IOType::IOType type_) {
-    return addOutput(ProcessorOutput::create(name_, type_));
+  AutoPtr<ProcessorOutput> Processor::addOutput(std::string _name, IOType::IOType _type, bool _emitable) {
+    return addOutput(ProcessorOutput::create(_name, _type, _emitable));
   }
 
   void Processor::removeInput(AutoPtr<ProcessorInput>& input) {
@@ -134,30 +134,34 @@ namespace Chill {
 };
 
 bool Chill::Processor::draw() {
+  m_dirty = false;
+
   ImGui::PushID(int(getUniqueID()));
 
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImGuiIO io = ImGui::GetIO();
 
-  ImVec2 size = m_size * m_scale;
+  float w_scale = window->FontWindowScale;
+
+  ImVec2 size = m_size * w_scale;
 
   ImVec2 min_pos = ImGui::GetCursorScreenPos();
   ImVec2 max_pos = min_pos + size;
 
-  float border_width = style.processor_border_width * m_scale;
-  float rounding_corners = style.processor_rounding_corners * m_scale;
+  float border_width = style.processor_border_width * w_scale;
+  float rounding_corners = style.processor_rounding_corners * w_scale;
 
   // shadow
-  if (m_selected || m_scale > 0.5f) {
+  if (m_selected || w_scale > 0.5F) {
     draw_list->AddRectFilled(
-      min_pos + ImVec2(-5, -5) * m_scale,
-      max_pos + ImVec2(5, 5) * m_scale,
+      min_pos + ImVec2(-5, -5) * w_scale,
+      max_pos + ImVec2(5, 5) * w_scale,
       m_selected ? style.processor_shadow_selected_color : style.processor_shadow_color,
-      rounding_corners + 5.0f, style.processor_rounded_corners);
+      rounding_corners + 5.0F, style.processor_rounded_corners);
   }
 
   // border
-  ImVec2 border = ImVec2(style.processor_border_width, style.processor_border_width) * m_scale / 2.0f;
+  ImVec2 border = ImVec2(style.processor_border_width, style.processor_border_width) * w_scale / 2.0F;
   draw_list->AddRect(
     min_pos - border,
     max_pos + border,
@@ -171,18 +175,18 @@ bool Chill::Processor::draw() {
 
   float height = ImGui::GetCursorPosY();
 
-  float padding = (style.socket_radius + style.socket_border_width + style.ItemSpacing.x) * m_scale;
+  float padding = (style.socket_radius + style.socket_border_width + style.ItemSpacing.x) * w_scale;
 
-  ImGui::PushItemWidth(m_size.x * m_scale - padding * 2);
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, style.ItemSpacing * m_scale);
-
-  ImGui::SetWindowFontScale(m_scale);
-
+  ImGui::PushItemWidth(m_size.x * w_scale - padding * 2);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, style.ItemSpacing * w_scale);
 
   ImGui::BeginGroup();
+
+  float button_size = style.processor_title_height / 2.0F * w_scale;
+
   // draw title
   ImVec2 title_size(style.processor_width, style.processor_title_height);
-  title_size *= m_scale;
+  title_size *= w_scale;
 
   draw_list->AddRectFilled(min_pos, min_pos + title_size,
     m_color,
@@ -192,9 +196,9 @@ bool Chill::Processor::draw() {
     ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_Border,        ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_Border,        ImVec4(0, 0, 0, 255));
     ImGui::PushStyleColor(ImGuiCol_Text,          ImVec4(0, 0, 0, 255));
-    if (ImGui::ButtonEx((name() + "##" + std::to_string(getUniqueID())).c_str(), title_size, ImGuiButtonFlags_PressedOnDoubleClick ))
+    if (ImGui::ButtonEx((name() + "##" + std::to_string(getUniqueID())).c_str(), title_size - ImVec2(2*button_size, 0), ImGuiButtonFlags_PressedOnDoubleClick ))
       m_edit = true;
     ImGui::PopStyleColor();
     ImGui::PopStyleColor();
@@ -211,6 +215,46 @@ bool Chill::Processor::draw() {
       m_edit = false;
     }
   }
+
+
+   // DISABLE / EMIT
+
+  ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + style.processor_title_height / 4.0F * w_scale);
+  ImU32 color(m_state == DISABLED ? 0XFF0000CC : m_state == DEFAULT ? 0XFFCC7700 : m_state == EMITING ? 0XFF00CC00 : 0XFF888888);
+  ImGui::PushStyleColor(ImGuiCol_Button       , color);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive , color);
+  ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 255));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, button_size);
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
+  if (ImGui::Button("", ImVec2(button_size, button_size))) {
+    setDirty(true);
+    switch (m_state) {
+    case DISABLED:
+      m_state = DEFAULT;
+      break;
+    case DEFAULT:
+      if (isEmiter())
+        m_state = DISABLED;
+      else
+        m_state = EMITING;
+      break;
+    case EMITING:
+      m_state = DISABLED;
+      break;
+    default:
+      m_state = DEFAULT;
+      break;
+    }
+  }
+  ImGui::PopStyleVar();
+  ImGui::PopStyleVar();
+  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
+
 
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 20);
@@ -240,14 +284,15 @@ bool Chill::Processor::draw() {
   //ImGui::PushClipRect(min_pos - border - ImVec2(0.5, 0.5), max_pos + border + ImVec2(0.5, 0.5), true);
 
   float y = ImGui::GetCursorPosY();
+
   // draw inputs
-  m_dirty = false;
   ImGui::BeginGroup();
   for (AutoPtr<ProcessorInput> input : m_inputs) {
     m_dirty |= input->draw();
   }
   ImGui::EndGroup();
 
+  // draw outputs
   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + size.x);
   ImGui::BeginGroup();
   for (AutoPtr<ProcessorOutput> output : m_outputs) {
@@ -267,10 +312,9 @@ bool Chill::Processor::draw() {
   height = ImGui::GetCursorPosY() - height + padding;
 
   m_size.x = style.processor_width;
-  m_size.y = height / m_scale;
+  m_size.y = height / w_scale;
 
   ImGui::PopID();
-  ImGui::SetWindowFontScale(1.0f);
 
   return m_edit;
 }
@@ -291,29 +335,30 @@ bool Chill::Multiplexer::draw() {
 
   ImGui::PushID(int(getUniqueID()));
 
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImGuiIO io = ImGui::GetIO();
+  float w_scale = window->FontWindowScale;
 
-  ImVec2 size = m_size * m_scale;
+  ImVec2 size = m_size * w_scale;
   
   ImVec2 min_pos = ImGui::GetCursorScreenPos();
   ImVec2 max_pos = min_pos + size;
 
-  float border_width = style.processor_border_width * m_scale;
-  float rounding_corners = style.processor_rounding_corners * m_scale;
+  float border_width = style.processor_border_width * w_scale;
+  float rounding_corners = style.processor_rounding_corners * w_scale;
 
 
   // shadow
-  if (m_selected || m_scale > 0.5f) {
+  if (m_selected || w_scale > 0.5F) {
     draw_list->AddRectFilled(
-      min_pos + ImVec2(-5, -5) * m_scale,
-      max_pos + ImVec2(5, 5) * m_scale,
+      min_pos + ImVec2(-5, -5) * w_scale,
+      max_pos + ImVec2(5, 5) * w_scale,
       m_selected ? style.processor_shadow_selected_color : style.processor_shadow_color,
-      rounding_corners * 2.0f, style.processor_rounded_corners);
+      rounding_corners * 2.0F, style.processor_rounded_corners);
   }
 
   // border & background
-  ImVec2 border = ImVec2(style.processor_border_width, style.processor_border_width) * m_scale / 2.0f;
+  ImVec2 border = ImVec2(style.processor_border_width, style.processor_border_width) * w_scale / 2.0F;
   draw_list->AddRectFilled(
     min_pos - border,
     max_pos + border,
@@ -327,7 +372,7 @@ bool Chill::Multiplexer::draw() {
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 20);
   float x = ImGui::GetCursorPosX();
-  float y = ImGui::GetCursorPosY() + size.y/2 - m_scale * style.socket_radius;
+  float y = ImGui::GetCursorPosY() + size.y/2.0F - w_scale * style.socket_radius;
   
   // draw inputs
   ImGui::SetCursorPosX(x);
@@ -350,8 +395,6 @@ bool Chill::Multiplexer::draw() {
     output->draw();
   }
   ImGui::EndGroup();
-
-
 
   ImGui::PopID();
   ImGui::PopStyleVar();

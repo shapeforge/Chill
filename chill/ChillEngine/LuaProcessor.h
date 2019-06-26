@@ -11,6 +11,9 @@ namespace Chill
   private:
     std::string m_nodepath;
     std::string m_program;
+    bool        m_program_edited = false;
+
+    std::tuple<int, int> m_icesl_export_linenumbers;
 
     LuaProcessor(LuaProcessor &_processor);
   public:
@@ -65,9 +68,9 @@ namespace Chill
     *  @param _type The output type.
     *  @return A pointer to the new output.
     **/
-    AutoPtr<ProcessorOutput> addOutput(std::string _name, IOType::IOType _type = IOType::UNDEF)
+    AutoPtr<ProcessorOutput> addOutput(std::string _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false)
     {
-      return addOutput(ProcessorOutput::create(_name, _type));
+      return addOutput(ProcessorOutput::create(_name, _type, _emitable));
     }
 
     /**

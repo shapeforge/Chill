@@ -118,11 +118,11 @@ namespace Chill
      *  Remove an existing processor from the graph.
      *  @param _processor The AutoPtr related to the processor.
      **/
-    void removeProcessor(AutoPtr<Processor>& _processor);
+    void remove(AutoPtr<Processor>& _processor);
 
-    void removeComment(AutoPtr<VisualComment>& _comment);
+    void remove(AutoPtr<VisualComment>& _comment);
 
-    void removeSelectable(AutoPtr<SelectableUI>& _select);
+    void remove(AutoPtr<SelectableUI>& _select);
 
     /**
      *  Add a new connection to the graph if, and only if, there is no cycle created.

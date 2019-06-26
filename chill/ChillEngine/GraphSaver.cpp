@@ -112,7 +112,7 @@ namespace Chill
   public:
     //-------------------------------------------------------
     Lua_Output() {
-      m_Ptr = ProcessorOutput::create("undef", IOType::UNDEF);
+      m_Ptr = ProcessorOutput::create("undef", IOType::UNDEF, false);
     };
 
     //-------------------------------------------------------
@@ -130,7 +130,7 @@ namespace Chill
         }
       }
 
-      m_Ptr = ProcessorOutput::create(name, type);
+      m_Ptr = ProcessorOutput::create(name, type, type == IOType::SHAPE);
     }
 
     //-------------------------------------------------------

@@ -14,20 +14,23 @@ bool Chill::VisualComment::draw() {
   m_size.x = max(50, m_size.x);
   ImGui::PushID(int(getUniqueID()));
 
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+  float w_scale = window->FontWindowScale;
   ImGuiIO io = ImGui::GetIO();
 
-  ImVec2 size = m_size * m_scale;
+  ImVec2 size = m_size * w_scale;
 
   ImVec2 min_pos = ImGui::GetCursorScreenPos();
   ImVec2 max_pos = min_pos + size;
 
-  float border_width = style.processor_border_width * m_scale;
-  float rounding_corners = style.processor_rounding_corners * m_scale;
+  float border_width = style.processor_border_width * w_scale;
+  float rounding_corners = style.processor_rounding_corners * w_scale;
 
 
   // border
-  ImVec2 border = ImVec2(style.processor_border_width, style.processor_border_width) * m_scale / 2.0f;
+  ImVec2 border = ImVec2(style.processor_border_width, style.processor_border_width) * w_scale / 2.0f;
   draw_list->AddRect(
     min_pos - border,
     max_pos + border,
@@ -43,18 +46,15 @@ bool Chill::VisualComment::draw() {
 
   float height = ImGui::GetCursorPosY();
 
-  float padding = (style.socket_radius + style.socket_border_width + style.ItemSpacing.x) * m_scale;
+  float padding = (style.socket_radius + style.socket_border_width + style.ItemSpacing.x) * w_scale;
 
-  ImGui::PushItemWidth(m_size.x * m_scale - padding * 2);
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, style.ItemSpacing * m_scale);
-
-  ImGui::SetWindowFontScale(m_scale);
-
+  ImGui::PushItemWidth(m_size.x * w_scale - padding * 2);
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, style.ItemSpacing * w_scale);
 
   ImGui::BeginGroup();
   // draw title
   m_title_size = ImVec2(m_size.x, min(50, m_size.y));
-  ImVec2 title_size = m_title_size* m_scale;
+  ImVec2 title_size = m_title_size* w_scale;
 
   draw_list->AddRectFilled(min_pos, min_pos + title_size,
     0x30FFFFFF,
