@@ -23,18 +23,17 @@ namespace Chill
     NodeEditor(const NodeEditor&) {};
 
     static NodeEditor *s_instance;
-    //NodeEditor();
-    //~NodeEditor(){}
 
-  public:
-    void Chill::NodeEditor::launch();
     // Get current screen size
     void Chill::NodeEditor::getScreenRes(int& width, int& height);
-	  // Get current desktop size (without taskbar for windows)
-	  void NodeEditor::getDesktopScreenRes(int& width, int& height);
+    // Get current desktop size (without taskbar for windows)
+    void NodeEditor::getDesktopScreenRes(int& width, int& height);
 
     void Chill::NodeEditor::launchIcesl();
-    void Chill::NodeEditor::closeIcesl();    
+    void Chill::NodeEditor::closeIcesl();
+
+  public:
+    void Chill::NodeEditor::launch();        
 
     static NodeEditor *Instance() {
       if (!s_instance)
@@ -43,7 +42,7 @@ namespace Chill
     }
 
   private:
-    std::string m_nodeFolder = "";
+    std::string m_nodeFolder = getenv("AppData") + std::string("/Chill/nodes");
 
     std::stack<Chill::ProcessingGraph*> m_graphs;
 

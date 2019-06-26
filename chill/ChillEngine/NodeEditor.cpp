@@ -18,11 +18,22 @@
 
 LIBSL_WIN32_FIX
 
+bool m_auto_save = true;
+bool m_auto_export = true;
+bool m_auto_icesl = true;
+
+std::string iceSLExportPath = "";
+#ifdef WIN32
+std::string iceSLTempExportPath = getenv("TEMP") + std::to_string(std::time(0)) + ".lua";
+#endif
+
 const int default_width  = 800;
 const int default_height = 600;
 
+#ifdef WIN32
 HWND icesl_hwnd = NULL;
 DWORD icesl_pid = NULL;
+#endif
 
 Chill::NodeEditor *Chill::NodeEditor::s_instance = nullptr;
 
@@ -117,14 +128,13 @@ void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height) {
 
 //-------------------------------------------------------
 #ifdef WIN32
-BOOL CALLBACK EnumWindowsProcMy(HWND hwnd, LPARAM lParam)
+BOOL CALLBACK EnumWindowsFromPid(HWND hwnd, LPARAM lParam)
 {
   DWORD lpdwProcessId;
   GetWindowThreadProcessId(hwnd, &lpdwProcessId);
   if (lpdwProcessId == lParam)
   {
     icesl_hwnd = hwnd;
-    //set_icesl_hwnd(hwnd);
     return FALSE;
   }
   return TRUE;
@@ -146,7 +156,7 @@ void Chill::NodeEditor::launch()
   //int app_pos_x = desktop_width - screen_width;
   //int app_pos_y = desktop_height - screen_height;
 
-  int app_pos_x = - 8; // /!\ offset not correctly calculated !
+  int app_pos_x = - 8; // TODO  PB:get a correct offset / resolution calculation
   int app_pos_y = 0;
 
   Chill::NodeEditor *nodeEditor = Chill::NodeEditor::Instance();
@@ -167,24 +177,26 @@ void Chill::NodeEditor::launch()
     SimpleUI::bindImGui();
     SimpleUI::initImGui();
     SimpleUI::onReshape(default_width, default_height);
-    //SimpleUI::onReshape(app_width, app_heigth);
 
+    if (m_auto_icesl) {
     // place and dock window to the left
 #ifdef WIN32
     // get app handler
     HWND chill_hwnd = SimpleUI::getHWND();
-
-    //SetWindowPos(hwnd, main_hwnd, po_x, pos_y, window_width, window_heigth, flags);
+    // move to position
     SetWindowPos(chill_hwnd, HWND_TOPMOST, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
-    //MoveWindow(chill_hwnd, 0, 0, app_width, app_heigth, true);
 
     // launching Icesl
+    
+
+
     launchIcesl();
     // move icesl to the last part of the screen
-    int icesl_x_offset = 22; // /!\ offset not correctly calculated !
+    int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
     SetWindowPos(icesl_hwnd, HWND_TOP, app_width - icesl_x_offset, app_pos_y, screen_width - app_width + icesl_x_offset, app_heigth, SWP_SHOWWINDOW);
 
 #endif
+    }
     // main loop
     SimpleUI::loop();
 
@@ -194,24 +206,24 @@ void Chill::NodeEditor::launch()
     // shutdown UI
     SimpleUI::shutdown();
 
-#ifdef WIN32
-    // closing Icesl
-    closeIcesl();
-#endif
+    if (m_auto_icesl) {
+      // closing Icesl
+      closeIcesl();
+    }
   }
   catch (Fatal& e) {
     std::cerr << Console::red << e.message() << Console::gray << std::endl;
   }
 }
 
-
-# if 1
 //-------------------------------------------------------
 void Chill::NodeEditor::launchIcesl() {
 #ifdef WIN32
+  std::cerr << m_nodeFolder;
+
   // CreateProcess init
   const char* icesl_path = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe";
-  const char* icesl_params = NULL;
+  std::string icesl_params = "--remote " + iceSLTempExportPath;
 
   PROCESS_INFORMATION ProcessInfo;
   STARTUPINFO StartupInfo;
@@ -220,7 +232,7 @@ void Chill::NodeEditor::launchIcesl() {
 
   // create the process
   auto icesl_process = CreateProcess(icesl_path, //application name / path
-          LPSTR(icesl_params), // command line for the application
+          LPSTR(icesl_params.c_str()), // command line for the application
           NULL, // SECURITY_ATTRIBUTES for the process
           NULL, // SECURITY_ATTRIBUTES for the thread
           FALSE, // inherit handles ?
@@ -237,7 +249,7 @@ void Chill::NodeEditor::launchIcesl() {
     // getting the hwnd
     icesl_pid = ProcessInfo.dwProcessId;
 
-    EnumWindows(EnumWindowsProcMy, icesl_pid);
+    EnumWindows(EnumWindowsFromPid, icesl_pid);
   }
   else
   {
@@ -249,8 +261,6 @@ void Chill::NodeEditor::launchIcesl() {
   }
 #endif
 }
-#endif
-
 
 //-------------------------------------------------------
 void Chill::NodeEditor::closeIcesl() {
@@ -259,62 +269,15 @@ void Chill::NodeEditor::closeIcesl() {
   HANDLE icesl_handle = OpenProcess(PROCESS_ALL_ACCESS, TRUE, icesl_pid);
 
   // closing the process
-  LPDWORD icesl_THerror;
-  LPDWORD icesl_Perror;
-  TerminateThread(icesl_handle, GetExitCodeThread(icesl_handle, icesl_THerror));
-  TerminateProcess(icesl_handle, GetExitCodeProcess(icesl_handle, icesl_Perror));
+  LPDWORD icesl_ThError = NULL, icesl_PrError = NULL;
+  TerminateThread(icesl_handle, GetExitCodeThread(icesl_handle, icesl_ThError));
+  TerminateProcess(icesl_handle, GetExitCodeProcess(icesl_handle, icesl_PrError));
 
   // releasing the handles
   CloseHandle(icesl_handle);
   CloseHandle(icesl_handle);
 #endif
 }
-
-
-#if 0
-//-------------------------------------------------------
-void Chill::NodeEditor::launchIcesl(HWND& icesl_hwnd) {
-#ifdef WIN32
-  SHELLEXECUTEINFO iceslShellContext;
-  const char* icesl_path = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe"; //TODO: get icesl path from %Path% or registery key
-  const char* icesl_params = NULL;
-
-  // context definition
-  iceslShellContext.cbSize = sizeof(SHELLEXECUTEINFO);
-  iceslShellContext.fMask = NULL;
-  iceslShellContext.hwnd = icesl_hwnd;
-  iceslShellContext.lpVerb = "open";
-  iceslShellContext.lpFile = icesl_path;
-  iceslShellContext.lpParameters = icesl_params;
-  iceslShellContext.lpDirectory = NULL;
-  iceslShellContext.nShow = SW_SHOWNORMAL;
-  iceslShellContext.hInstApp = NULL;
-
-  // executing icesl
-  auto IceslProcess = ShellExecuteEx(&iceslShellContext);
-  if (IceslProcess) {
-    WaitForInputIdle(iceslShellContext.hProcess, 1000);
-
-    auto icesl_process_id = GetProcessId(&iceslShellContext.hProcess);
-    //std::cerr << Console::red << icesl_process_id << Console::gray << std::endl;
-
-    //TODO: get hwnd by pid or get window name by registry
-    //icesl_hwnd = FindWindow(NULL, "IceSL-slicer 2.3.3-beta3");
-    //auto icesl_pid = GetProcessId(iceslShellContext.hProcess);
-
-    //std::cerr << Console::blue << icesl_hwnd << Console::gray << std::endl;
-    //std::cerr << Console::green << icesl_pid << Console::gray << std::endl;
-    
-  }
-  else {
-    std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
-    std::cerr << Console::red << GetLastError() << Console::gray << std::endl;
-
-    icesl_hwnd = NULL;
-  }
-#endif
-}
-#endif
 
 //-------------------------------------------------------
 void Chill::NodeEditor::exportIceSL(std::string& filename) {
@@ -428,8 +391,6 @@ namespace Chill
   bool   m_visible   = true;
   bool   m_show_grid = true;
 
-  std::string iceSlExportPath = "";
-
   Style style;
 
   //-------------------------------------------------------
@@ -484,23 +445,23 @@ namespace Chill
         if (!fullpath.empty()) {
           const size_t last_slash_idx = fullpath.rfind(Resources::separator());
           if (std::string::npos != last_slash_idx) {
-            m_nodeFolder = fullpath.substr(0, last_slash_idx) + Resources::separator() + "nodes";
+            //m_nodeFolder = fullpath.substr(0, last_slash_idx) + Resources::separator() + "nodes";
           }
         }
 
 
         if (ImGui::MenuItem("Export to IceSL lua")) {
           std::string graph_filename = getMainGraph()->name() + ".lua";
-          iceSlExportPath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_LUA);
-          exportIceSL(iceSlExportPath);
+          iceSLExportPath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_LUA);
+          exportIceSL(iceSLExportPath);
         }
         ImGui::EndMenu();
       }
 
-      bool test = true;
-      if (ImGui::BeginMenu("Parameters")) {
-        ImGui::MenuItem("Automatic save", "", test);
-        ImGui::MenuItem("Automatic export", "", test);
+      if (ImGui::BeginMenu("Settings")) {
+        ImGui::MenuItem("Automatic save", "", &m_auto_save);
+        ImGui::MenuItem("Automatic export", "", &m_auto_export);
+        ImGui::MenuItem("Automatic use of IceSL", "", &m_auto_icesl);
         ImGui::EndMenu();
       }
       // save the effective menubar height in the style
@@ -565,7 +526,7 @@ namespace Chill
 
 
 
-  bool dirty;
+  bool dirty = true;
   bool text_editing;
   bool linking;
 
@@ -607,7 +568,11 @@ namespace Chill
     }
 
     if (dirty) {
-      exportIceSL(iceSlExportPath);
+#ifdef WIN32
+      exportIceSL(iceSLTempExportPath);
+#endif
+      exportIceSL(iceSLExportPath);
+
       dirty = false;
     }
 
