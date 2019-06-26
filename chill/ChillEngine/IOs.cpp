@@ -72,7 +72,7 @@ namespace Chill {
     return false;
   }
 
-  AutoPtr<ProcessorOutput> ProcessorOutput::create(std::string name_, IOType::IOType type_ = IOType::UNDEF) {
+  AutoPtr<ProcessorOutput> ProcessorOutput::create(std::string name_, IOType::IOType type_ = IOType::UNDEF, bool _emitable = false) {
     AutoPtr<ProcessorOutput> output;
     switch (type_) {
     case IOType::BOOLEAN:
@@ -107,6 +107,7 @@ namespace Chill {
     }
     output->setName(name_);
     output->setType(type_);
+    output->setEmitable(_emitable);
     return output;
   }
 }

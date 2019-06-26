@@ -97,7 +97,23 @@ setfenv(1, _Gcurrent)    --set it\n\
     code += "})) then\n\
 setDirty(__currentNodeId)\n";
     code += m_program;
-    code += "\nend";
+
+    if (getState() == EMITING) {
+      for (auto output : outputs()) {
+        if (output->isEmitable()) {
+          code += "emit( _G['"+ std::string(output->name()) +"'..__currentNodeId])" + "\n";
+        }
+      }
+    }
+    if (getState() == DISABLED) {
+      for (auto output : outputs()) {
+        if (output->isEmitable()) {
+          code += "_G['" + std::string(output->name()) + "'..__currentNodeId] = Void" + "\n";
+        }
+      }
+    }
+
+    code += "\nend --vb";
 
     _stream << code << std::endl;
   }
@@ -148,7 +164,7 @@ setDirty(__currentNodeId)\n";
         + "(," + REGEX_WSPACES + ".*" + REGEX_WSPACES + ")*?\\)");
       std::smatch sm;
       while (regex_search(outcome, sm, outputEx)) {
-        addOutput(sm[1], IOType::FromString(sm[2]));
+        addOutput(sm[1], IOType::FromString(sm[2]), IOType::FromString(sm[2]) == IOType::SHAPE);
         outcome = sm.suffix().str();
       }
     }

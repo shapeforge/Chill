@@ -87,8 +87,8 @@ namespace Chill {
     return output_;
   }
 
-  AutoPtr<ProcessorOutput> Processor::addOutput(std::string name_, IOType::IOType type_) {
-    return addOutput(ProcessorOutput::create(name_, type_));
+  AutoPtr<ProcessorOutput> Processor::addOutput(std::string _name, IOType::IOType _type, bool _emitable) {
+    return addOutput(ProcessorOutput::create(_name, _type, _emitable));
   }
 
   void Processor::removeInput(AutoPtr<ProcessorInput>& input) {
@@ -134,6 +134,8 @@ namespace Chill {
 };
 
 bool Chill::Processor::draw() {
+  m_dirty = false;
+
   ImGui::PushID(int(getUniqueID()));
 
   ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -179,6 +181,9 @@ bool Chill::Processor::draw() {
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, style.ItemSpacing * w_scale);
 
   ImGui::BeginGroup();
+
+  float button_size = style.processor_title_height / 2.0F * w_scale;
+
   // draw title
   ImVec2 title_size(style.processor_width, style.processor_title_height);
   title_size *= w_scale;
@@ -191,9 +196,9 @@ bool Chill::Processor::draw() {
     ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_Border,        ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_Border,        ImVec4(0, 0, 0, 255));
     ImGui::PushStyleColor(ImGuiCol_Text,          ImVec4(0, 0, 0, 255));
-    if (ImGui::ButtonEx((name() + "##" + std::to_string(getUniqueID())).c_str(), title_size, ImGuiButtonFlags_PressedOnDoubleClick ))
+    if (ImGui::ButtonEx((name() + "##" + std::to_string(getUniqueID())).c_str(), title_size - ImVec2(2*button_size, 0), ImGuiButtonFlags_PressedOnDoubleClick ))
       m_edit = true;
     ImGui::PopStyleColor();
     ImGui::PopStyleColor();
@@ -210,6 +215,46 @@ bool Chill::Processor::draw() {
       m_edit = false;
     }
   }
+
+
+   // DISABLE / EMIT
+
+  ImGui::SameLine();
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + style.processor_title_height / 4.0F * w_scale);
+  ImU32 color(m_state == DISABLED ? 0XFF0000CC : m_state == DEFAULT ? 0XFFCC7700 : m_state == EMITING ? 0XFF00CC00 : 0XFF888888);
+  ImGui::PushStyleColor(ImGuiCol_Button       , color);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive , color);
+  ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 255));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, button_size);
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
+  if (ImGui::Button("", ImVec2(button_size, button_size))) {
+    setDirty(true);
+    switch (m_state) {
+    case DISABLED:
+      m_state = DEFAULT;
+      break;
+    case DEFAULT:
+      if (isEmiter())
+        m_state = DISABLED;
+      else
+        m_state = EMITING;
+      break;
+    case EMITING:
+      m_state = DISABLED;
+      break;
+    default:
+      m_state = DEFAULT;
+      break;
+    }
+  }
+  ImGui::PopStyleVar();
+  ImGui::PopStyleVar();
+  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
+  ImGui::PopStyleColor();
+
 
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 20);
@@ -239,14 +284,15 @@ bool Chill::Processor::draw() {
   //ImGui::PushClipRect(min_pos - border - ImVec2(0.5, 0.5), max_pos + border + ImVec2(0.5, 0.5), true);
 
   float y = ImGui::GetCursorPosY();
+
   // draw inputs
-  m_dirty = false;
   ImGui::BeginGroup();
   for (AutoPtr<ProcessorInput> input : m_inputs) {
     m_dirty |= input->draw();
   }
   ImGui::EndGroup();
 
+  // draw outputs
   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + size.x);
   ImGui::BeginGroup();
   for (AutoPtr<ProcessorOutput> output : m_outputs) {

@@ -30,6 +30,13 @@ namespace Chill
 
 namespace Chill
 {
+  enum ProcessorState {
+    DEFAULT,
+    DISABLED,
+    EMITING
+  };
+  
+
   /**
    *  Processor class.
    *  Is a node within the graph. Contains inputs and outputs.
@@ -45,6 +52,8 @@ namespace Chill
     std::vector<AutoPtr<ProcessorOutput>> m_outputs;
     /** Next nodes have to update themselves. */
     bool                                  m_dirty = false;
+
+    ProcessorState                        m_state = DEFAULT;
 
   public:
     /**
@@ -145,7 +154,7 @@ namespace Chill
      *  @param _type The output type.
      *  @return A pointer to the new output.
      **/
-    AutoPtr<ProcessorOutput> addOutput(std::string _name, IOType::IOType _type = IOType::UNDEF);
+    AutoPtr<ProcessorOutput> addOutput(std::string _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false);
 
     /**
      *  Remove an input.
@@ -191,6 +200,10 @@ namespace Chill
 
     void setEmiter(bool _emit = true) {
       m_emit = _emit;
+    }
+
+    ProcessorState getState() {
+      return m_state;
     }
 
     /**

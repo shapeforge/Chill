@@ -82,10 +82,20 @@ namespace Chill {
     /** List of all linked inputs. */
     std::vector<AutoPtr<ProcessorInput>> m_links;
 
+    bool m_emitable = false;
+
+    void setEmitable(bool _emit) {
+      m_emitable = _emit;
+    }
+
+    bool isEmitable() {
+     return m_emitable;
+    }
+
   public:
     ~ProcessorOutput();
 
-    static AutoPtr<ProcessorOutput> create(std::string _name, IOType::IOType _type);
+    static AutoPtr<ProcessorOutput> create(std::string _name, IOType::IOType _type, bool _emitable);
 
     bool draw();
     virtual AutoPtr<ProcessorOutput> clone() = 0;
@@ -298,6 +308,8 @@ namespace Chill {
       setColor(color_number);
     }
 
+//    IntInput(const IntInput &input) = default;
+    
     template <typename ...>
     IntInput(int _value, int _min = min(), int _max = max(), bool _alt = false, int _step = step(), ...) : IntInput()
     {
@@ -319,7 +331,6 @@ namespace Chill {
       }
     };
 
-    template <typename ...>
     IntInput(std::vector<std::string>& _params) : IntInput()
     {
       size_t s = _params.size();
