@@ -732,7 +732,7 @@ namespace Chill
 
       { // RIGHT CLICK
         if (io.MouseClicked[1]) {
-          if (selected.empty() ){
+          if (selected.empty() || (selected.size() == 1 && hovered.empty() )){
             m_graph_menu = true;
           }
           else {
