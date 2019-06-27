@@ -1,7 +1,6 @@
 #include "NodeEditor.h"
 
 int main(int argc, char **argv) {
-  Chill::NodeEditor chill;
-  chill.launch();
+  Chill::NodeEditor::launch();
   return 0;
 }

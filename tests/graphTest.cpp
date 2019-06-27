@@ -123,7 +123,7 @@ public:
     g1->connect(p3, "io", p4, "io");
     g1->connect(p1, "io", p4, "io");
 
-    g1->removeProcessor(p2);
+    g1->remove(p2);
 
     Assert::AreEqual((size_t)3, g1->processors().size(),
       L"Incorrect size", LINE_INFO());

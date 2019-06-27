@@ -16,16 +16,16 @@
 #include <GL/glut.h>
 #endif
 
+namespace fs = std::experimental::filesystem;
+
 LIBSL_WIN32_FIX
 
-bool m_auto_save = true;
-bool m_auto_export = true;
-bool m_auto_icesl = true;
+bool g_auto_save = true;
+bool g_auto_export = true;
+bool g_auto_icesl = true;
 
 std::string iceSLExportPath = "";
-#ifdef WIN32
-std::string iceSLTempExportPath = getenv("TEMP") + std::to_string(std::time(0)) + ".lua";
-#endif
+std::string iceSLTempExportPath = fs::temp_directory_path().string() + std::to_string(std::time(0)) + ".lua";
 
 const int default_width  = 800;
 const int default_height = 600;
@@ -36,6 +36,15 @@ DWORD icesl_pid = NULL;
 #endif
 
 Chill::NodeEditor *Chill::NodeEditor::s_instance = nullptr;
+
+//-------------------------------------------------------
+ std::string Chill::NodeEditor::NodeFolder() {
+#ifdef WIN32
+   return getenv("AppData") + std::string("/Chill/nodes");
+#elif __linux__
+   return getenv("HOME") + std::string("/Chill/nodes");
+#endif
+}
 
 //-------------------------------------------------------
 Chill::NodeEditor::NodeEditor(){
@@ -56,6 +65,16 @@ void Chill::NodeEditor::mainRender()
 //-------------------------------------------------------
 void Chill::NodeEditor::mainOnResize(uint width, uint height) {
   Instance()->m_size = ImVec2((float)width, (float)height);
+
+#ifdef WIN32
+  // get app handler
+  HWND chill_hwnd = SimpleUI::getHWND();
+  // move to position
+  RECT rect;
+  GetWindowRect(chill_hwnd,&rect);
+  // move icesl on the side
+  SetWindowPos(icesl_hwnd, HWND_NOTOPMOST, rect.right, rect.top, (rect.right-rect.left+1) / 2, rect.bottom-rect.top+1, SWP_NOACTIVATE);
+#endif
 }
 
 //-------------------------------------------------------
@@ -141,6 +160,38 @@ BOOL CALLBACK EnumWindowsFromPid(HWND hwnd, LPARAM lParam)
   }
   return TRUE;
 }
+
+LRESULT CALLBACK custom_wndProc(
+  _In_ HWND   hwnd,
+  _In_ UINT   uMsg,
+  _In_ WPARAM wParam,
+  _In_ LPARAM lParam)
+{
+  // get app handler
+  HWND chill_hwnd = SimpleUI::getHWND();
+  // move to position
+  RECT rect;
+  GetWindowRect(chill_hwnd, &rect);
+  switch (uMsg) {
+  case WM_MOVE:
+    // move icesl on the side
+    SetWindowPos(icesl_hwnd, HWND_NOTOPMOST, rect.right, rect.top, (rect.right - rect.left + 1) / 2, rect.bottom - rect.top + 1, SWP_NOACTIVATE);
+    std::cerr << Console::yellow << "moved" << Console::gray << std::endl;
+    break;
+  case WS_MAXIMIZE:
+    std::cerr << Console::green << "maximized" << Console::gray << std::endl;
+    break;
+  case SIZE_RESTORED:
+    // move icesl on the side
+    SetWindowPos(icesl_hwnd, HWND_NOTOPMOST, rect.right, rect.top, (rect.right - rect.left + 1) / 3 , rect.bottom - rect.top + 1, SWP_NOACTIVATE);
+    std::cerr << Console::red << "restored" << Console::gray << std::endl;
+    break;
+  default:
+    //std::cerr << Console::red << uMsg << Console::gray << std::endl;
+    break;
+  }
+  return 0;
+}
 #endif
 
 //-------------------------------------------------------
@@ -149,8 +200,8 @@ void Chill::NodeEditor::launch()
   int screen_width, screen_height, desktop_width, desktop_height = 0;
 
   // get screnn / desktop dimmensions
-  Chill::NodeEditor::getScreenRes(screen_width, screen_height);
-  Chill::NodeEditor::getDesktopScreenRes(desktop_width, desktop_height);
+  getScreenRes(screen_width, screen_height);
+  getDesktopScreenRes(desktop_width, desktop_height);
 
   int app_width = 2 * (desktop_width / 3);
   int app_heigth = desktop_height;
@@ -181,18 +232,16 @@ void Chill::NodeEditor::launch()
     SimpleUI::initImGui();
     SimpleUI::onReshape(default_width, default_height);
 
-    if (m_auto_icesl) {
+    if (g_auto_icesl) {
     // place and dock window to the left
 #ifdef WIN32
+    SimpleUI::setCustomCallbackMsgProc(custom_wndProc);
     // get app handler
     HWND chill_hwnd = SimpleUI::getHWND();
     // move to position
     SetWindowPos(chill_hwnd, HWND_TOPMOST, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
 
     // launching Icesl
-    
-
-
     launchIcesl();
     // move icesl to the last part of the screen
     int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
@@ -209,7 +258,7 @@ void Chill::NodeEditor::launch()
     // shutdown UI
     SimpleUI::shutdown();
 
-    if (m_auto_icesl) {
+    if (g_auto_icesl) {
       // closing Icesl
       closeIcesl();
     }
@@ -222,8 +271,6 @@ void Chill::NodeEditor::launch()
 //-------------------------------------------------------
 void Chill::NodeEditor::launchIcesl() {
 #ifdef WIN32
-  std::cerr << m_nodeFolder;
-
   // CreateProcess init
   const char* icesl_path = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe";
   std::string icesl_params = "--remote " + iceSLTempExportPath;
@@ -278,7 +325,7 @@ void Chill::NodeEditor::closeIcesl() {
 
   // releasing the handles
   CloseHandle(icesl_handle);
-  CloseHandle(icesl_handle);
+  //CloseHandle(icesl_handle);
 #endif
 }
 
@@ -345,6 +392,7 @@ void Chill::NodeEditor::exportIceSL(std::string& filename) {
       "  first_exec = false" << std::endl <<
       "end" << std::endl <<
       "" << std::endl <<
+      "emit(Void)" << std::endl<<
       "------------------------------------------------------" << std::endl;
 
 
@@ -458,9 +506,9 @@ namespace Chill
       }
 
       if (ImGui::BeginMenu("Settings")) {
-        ImGui::MenuItem("Automatic save", "", &m_auto_save);
-        ImGui::MenuItem("Automatic export", "", &m_auto_export);
-        ImGui::MenuItem("Automatic use of IceSL", "", &m_auto_icesl);
+        ImGui::MenuItem("Automatic save", "", &g_auto_save);
+        ImGui::MenuItem("Automatic export", "", &g_auto_export);
+        ImGui::MenuItem("Automatic use of IceSL", "", &g_auto_icesl);
         ImGui::EndMenu();
       }
       // save the effective menubar height in the style
@@ -1066,11 +1114,9 @@ namespace Chill
   //-------------------------------------------------------
   void listFolderinDir(std::vector<std::string>& files, std::string folder)
   {
-    using namespace std::experimental::filesystem;
-
-    for (directory_iterator itr(folder); itr != directory_iterator(); ++itr)
+    for (fs::directory_iterator itr(folder); itr != fs::directory_iterator(); ++itr)
     {
-      path file = itr->path();
+      fs::path file = itr->path();
       if (is_directory(file))files.push_back(file.filename().generic_string());
     }
   }
@@ -1082,11 +1128,9 @@ namespace Chill
 
   void listLuaFileInDir(std::vector<std::string>& files, std::string directory)
   {
-    using namespace std::experimental::filesystem;
-
-    for (directory_iterator itr(directory); itr != directory_iterator(); ++itr)
+    for (fs::directory_iterator itr(directory); itr != fs::directory_iterator(); ++itr)
     {
-      std::experimental::filesystem::path file = itr->path();
+      fs::path file = itr->path();
       if (!is_directory(file) && strcmp(extractExtension(file.filename().generic_string()).c_str(), "lua") == 0) {
         files.push_back(file.filename().generic_string());
       }

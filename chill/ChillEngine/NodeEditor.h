@@ -14,26 +14,25 @@ namespace Chill
 {
   class NodeEditor : public UI
   {
-  public:
+  private:
     NodeEditor();
     ~NodeEditor() {}
 
-  private:
     NodeEditor & operator= (const NodeEditor&) {};
     NodeEditor(const NodeEditor&) {};
 
     static NodeEditor *s_instance;
 
     // Get current screen size
-    void Chill::NodeEditor::getScreenRes(int& width, int& height);
+    static void Chill::NodeEditor::getScreenRes(int& width, int& height);
     // Get current desktop size (without taskbar for windows)
-    void NodeEditor::getDesktopScreenRes(int& width, int& height);
+    static void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height);
 
-    void Chill::NodeEditor::launchIcesl();
-    void Chill::NodeEditor::closeIcesl();
+    static void Chill::NodeEditor::launchIcesl();
+    static void Chill::NodeEditor::closeIcesl();
 
   public:
-    void Chill::NodeEditor::launch();        
+    static void Chill::NodeEditor::launch();        
 
     static NodeEditor *Instance() {
       if (!s_instance)
@@ -42,8 +41,6 @@ namespace Chill
     }
 
   private:
-    std::string m_nodeFolder = getenv("AppData") + std::string("/Chill/nodes");
-
     std::stack<Chill::ProcessingGraph*> m_graphs;
 
     AutoPtr<ProcessorInput>  m_selected_input;
@@ -74,9 +71,7 @@ namespace Chill
     static void mainMousePressed(uint _x, uint _y, uint _button, uint _flags);
 
   public:
-    static std::string NodeFolder() {
-      return s_instance->m_nodeFolder;
-    }
+    static inline std::string NodeFolder();
 
     void exportIceSL(std::string& filename_);
 
