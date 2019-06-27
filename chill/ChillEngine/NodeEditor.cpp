@@ -7,7 +7,6 @@
 #include "Resources.h"
 #include "VisualComment.h"
 
-
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -31,11 +30,51 @@ const int default_width  = 800;
 const int default_height = 600;
 
 #ifdef WIN32
-HWND icesl_hwnd = NULL;
-DWORD icesl_pid = NULL;
+HWND g_chill_hwnd = NULL;
+HWND g_icesl_hwnd = NULL;
+DWORD g_icesl_pid = NULL;
 #endif
 
 Chill::NodeEditor *Chill::NodeEditor::s_instance = nullptr;
+
+//-------------------------------------------------------
+static void setDefaultAppsPos() {
+  int screen_width, screen_height, desktop_width, desktop_height = 0;
+
+  // get screnn / desktop dimmensions
+  Chill::NodeEditor::getScreenRes(screen_width, screen_height);
+  Chill::NodeEditor::getDesktopScreenRes(desktop_width, desktop_height);
+
+  int app_width = 2 * (desktop_width / 3);
+  int app_heigth = desktop_height;
+
+  //int app_pos_x = desktop_width - screen_width;
+  //int app_pos_y = desktop_height - screen_height;
+
+  int app_pos_x = -8; // TODO  PB:get a correct offset / resolution calculation
+  int app_pos_y = 0;
+
+  // move to position
+#ifdef WIN32
+  SetWindowPos(g_chill_hwnd, HWND_TOPMOST, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
+
+  // move icesl to the last part of the screen
+  int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
+  SetWindowPos(g_icesl_hwnd, HWND_TOP, app_width - icesl_x_offset, app_pos_y, screen_width - app_width + icesl_x_offset*1.2, app_heigth, SWP_SHOWWINDOW);  
+#endif
+}
+
+//-------------------------------------------------------
+static void moveIceSLWindowAlongChill() {
+#ifdef WIN32
+  // get Chill current size
+  RECT chillRect;
+  GetWindowRect(g_chill_hwnd, &chillRect);
+  int icesl_x_offset = 15; // TODO PB:get a correct offset / resolution calculation
+  // move and resize according to Chill
+  SetWindowPos(g_icesl_hwnd, HWND_NOTOPMOST, chillRect.right - icesl_x_offset, chillRect.top, ((chillRect.right - chillRect.left + 1) / 2) + icesl_x_offset*2, chillRect.bottom - chillRect.top + 1, SWP_NOACTIVATE);
+#endif
+}
 
 //-------------------------------------------------------
  std::string Chill::NodeEditor::NodeFolder() {
@@ -65,16 +104,7 @@ void Chill::NodeEditor::mainRender()
 //-------------------------------------------------------
 void Chill::NodeEditor::mainOnResize(uint width, uint height) {
   Instance()->m_size = ImVec2((float)width, (float)height);
-
-#ifdef WIN32
-  // get app handler
-  HWND chill_hwnd = SimpleUI::getHWND();
-  // move to position
-  RECT rect;
-  GetWindowRect(chill_hwnd,&rect);
-  // move icesl on the side
-  SetWindowPos(icesl_hwnd, HWND_NOTOPMOST, rect.right, rect.top, (rect.right-rect.left+1) / 2, rect.bottom-rect.top+1, SWP_NOACTIVATE);
-#endif
+  moveIceSLWindowAlongChill();
 }
 
 //-------------------------------------------------------
@@ -155,7 +185,7 @@ BOOL CALLBACK EnumWindowsFromPid(HWND hwnd, LPARAM lParam)
   GetWindowThreadProcessId(hwnd, &lpdwProcessId);
   if (lpdwProcessId == lParam)
   {
-    icesl_hwnd = hwnd;
+    g_icesl_hwnd = hwnd;
     return FALSE;
   }
   return TRUE;
@@ -167,27 +197,18 @@ LRESULT CALLBACK custom_wndProc(
   _In_ WPARAM wParam,
   _In_ LPARAM lParam)
 {
-  // get app handler
-  HWND chill_hwnd = SimpleUI::getHWND();
-  // move to position
-  RECT rect;
-  GetWindowRect(chill_hwnd, &rect);
   switch (uMsg) {
   case WM_MOVE:
-    // move icesl on the side
-    SetWindowPos(icesl_hwnd, HWND_NOTOPMOST, rect.right, rect.top, (rect.right - rect.left + 1) / 2, rect.bottom - rect.top + 1, SWP_NOACTIVATE);
-    std::cerr << Console::yellow << "moved" << Console::gray << std::endl;
-    break;
-  case WS_MAXIMIZE:
-    std::cerr << Console::green << "maximized" << Console::gray << std::endl;
-    break;
-  case SIZE_RESTORED:
-    // move icesl on the side
-    SetWindowPos(icesl_hwnd, HWND_NOTOPMOST, rect.right, rect.top, (rect.right - rect.left + 1) / 3 , rect.bottom - rect.top + 1, SWP_NOACTIVATE);
-    std::cerr << Console::red << "restored" << Console::gray << std::endl;
-    break;
-  default:
-    //std::cerr << Console::red << uMsg << Console::gray << std::endl;
+    moveIceSLWindowAlongChill();
+
+    // get window placement / style
+    WINDOWPLACEMENT wPlacement;    
+    GetWindowPlacement(g_chill_hwnd, &wPlacement);
+
+    if (wPlacement.showCmd == SW_MAXIMIZE) {
+      // set default pos
+      setDefaultAppsPos();
+    }
     break;
   }
   return 0;
@@ -197,21 +218,6 @@ LRESULT CALLBACK custom_wndProc(
 //-------------------------------------------------------
 void Chill::NodeEditor::launch()
 {
-  int screen_width, screen_height, desktop_width, desktop_height = 0;
-
-  // get screnn / desktop dimmensions
-  getScreenRes(screen_width, screen_height);
-  getDesktopScreenRes(desktop_width, desktop_height);
-
-  int app_width = 2 * (desktop_width / 3);
-  int app_heigth = desktop_height;
-
-  //int app_pos_x = desktop_width - screen_width;
-  //int app_pos_y = desktop_height - screen_height;
-
-  int app_pos_x = - 8; // TODO  PB:get a correct offset / resolution calculation
-  int app_pos_y = 0;
-
   Chill::NodeEditor *nodeEditor = Chill::NodeEditor::Instance();
 
   try {
@@ -233,20 +239,17 @@ void Chill::NodeEditor::launch()
     SimpleUI::onReshape(default_width, default_height);
 
     if (g_auto_icesl) {
-    // place and dock window to the left
 #ifdef WIN32
-    SimpleUI::setCustomCallbackMsgProc(custom_wndProc);
-    // get app handler
-    HWND chill_hwnd = SimpleUI::getHWND();
-    // move to position
-    SetWindowPos(chill_hwnd, HWND_TOPMOST, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
+      SimpleUI::setCustomCallbackMsgProc(custom_wndProc);
+      // get app handler
+      g_chill_hwnd = SimpleUI::getHWND();
 
-    // launching Icesl
-    launchIcesl();
-    // move icesl to the last part of the screen
-    int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
-    SetWindowPos(icesl_hwnd, HWND_TOP, app_width - icesl_x_offset, app_pos_y, screen_width - app_width + icesl_x_offset, app_heigth, SWP_SHOWWINDOW);
+      // launching Icesl
+      launchIcesl();
 
+      // place apps in default pos
+      setDefaultAppsPos();
+      
 #endif
     }
     // main loop
@@ -281,25 +284,25 @@ void Chill::NodeEditor::launchIcesl() {
   StartupInfo.cb = sizeof StartupInfo;
 
   // create the process
-  auto icesl_process = CreateProcess(icesl_path, //application name / path
-          LPSTR(icesl_params.c_str()), // command line for the application
-          NULL, // SECURITY_ATTRIBUTES for the process
-          NULL, // SECURITY_ATTRIBUTES for the thread
-          FALSE, // inherit handles ?
-          CREATE_NEW_CONSOLE, // process creation flags
-          NULL, // environment
-          NULL, // current directory
-          &StartupInfo, // startup info
-          &ProcessInfo); // process info
+  auto icesl_process = CreateProcess(icesl_path, // @lpApplicationName - application name / path 
+          LPSTR(icesl_params.c_str()), // @lpCommandLine - command line for the application
+          NULL, // @lpProcessAttributes - SECURITY_ATTRIBUTES for the process
+          NULL, // @lpThreadAttributes - SECURITY_ATTRIBUTES for the thread
+          FALSE, // @bInheritHandles - inherit handles ?
+          CREATE_NEW_CONSOLE, // @dwCreationFlags - process creation flags
+          NULL, // @lpEnvironment - environment
+          NULL, // @lpCurrentDirectory - current directory
+          &StartupInfo, // @lpStartupInfo -startup info
+          &ProcessInfo); // @lpProcessInformation - process info
 
   if(icesl_process)
   {
     // watch the process
     WaitForSingleObject(ProcessInfo.hProcess, 1000);
     // getting the hwnd
-    icesl_pid = ProcessInfo.dwProcessId;
+    g_icesl_pid = ProcessInfo.dwProcessId;
 
-    EnumWindows(EnumWindowsFromPid, icesl_pid);
+    EnumWindows(EnumWindowsFromPid, g_icesl_pid);
   }
   else
   {
@@ -307,7 +310,7 @@ void Chill::NodeEditor::launchIcesl() {
     std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
     //std::cerr << Console::yellow << GetLastError() << Console::gray << std::endl;
 
-    icesl_hwnd = NULL;
+    g_icesl_hwnd = NULL;
   }
 #endif
 }
@@ -316,7 +319,7 @@ void Chill::NodeEditor::launchIcesl() {
 void Chill::NodeEditor::closeIcesl() {
 #ifdef WIN32
   // gettings back Icesl's handle
-  HANDLE icesl_handle = OpenProcess(PROCESS_ALL_ACCESS, TRUE, icesl_pid);
+  HANDLE icesl_handle = OpenProcess(PROCESS_ALL_ACCESS, TRUE, g_icesl_pid);
 
   // closing the process
   LPDWORD icesl_ThError = NULL, icesl_PrError = NULL;
