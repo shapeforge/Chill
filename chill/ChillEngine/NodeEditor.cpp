@@ -242,7 +242,7 @@ void Chill::NodeEditor::launch()
     SetWindowPos(chill_hwnd, HWND_TOPMOST, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
 
     // launching Icesl
-    launchIcesl();
+    //launchIcesl();
     // move icesl to the last part of the screen
     int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
     SetWindowPos(icesl_hwnd, HWND_TOP, app_width - icesl_x_offset, app_pos_y, screen_width - app_width + icesl_x_offset, app_heigth, SWP_SHOWWINDOW);
@@ -320,11 +320,11 @@ void Chill::NodeEditor::closeIcesl() {
 
   // closing the process
   LPDWORD icesl_ThError = NULL, icesl_PrError = NULL;
-  TerminateThread(icesl_handle, GetExitCodeThread(icesl_handle, icesl_ThError));
-  TerminateProcess(icesl_handle, GetExitCodeProcess(icesl_handle, icesl_PrError));
+  //TerminateThread(icesl_handle, GetExitCodeThread(icesl_handle, icesl_ThError));
+  //TerminateProcess(icesl_handle, GetExitCodeProcess(icesl_handle, icesl_PrError));
 
   // releasing the handles
-  CloseHandle(icesl_handle);
+  //CloseHandle(icesl_handle);
   //CloseHandle(icesl_handle);
 #endif
 }
@@ -402,24 +402,7 @@ void Chill::NodeEditor::exportIceSL(std::string& filename) {
   }
 }
 
-
-
 //-------------------------------------------------------
-bool Chill::NodeEditor::draw()
-{
-  drawMenuBar();
-
-  ImGui::SetNextWindowPos(ImVec2(0, 20));
-  ImGui::SetNextWindowSize(ImVec2(200, m_size.y));
-  drawLeftMenu();
-
-  ImGui::SetNextWindowPos(ImVec2(200, 20));
-  ImGui::SetNextWindowSize(m_size);
-  drawGraph();
-
-  return true;
-}
-
 namespace Chill
 {
   void zoom();
@@ -439,6 +422,49 @@ namespace Chill
   bool   m_show_grid = true;
 
   Style style;
+
+  //-------------------------------------------------------
+  bool NodeEditor::draw()
+  {
+    drawMenuBar();
+
+    ImGui::SetNextWindowPos(ImVec2(0, 20));
+    ImGui::SetNextWindowSize(ImVec2(200, m_size.y));
+    drawLeftMenu();
+
+    ImGui::SetNextWindowPos(ImVec2(200, 20));
+    ImGui::SetNextWindowSize(m_size);
+    drawGraph();
+    
+    return true;
+  }
+
+  //-------------------------------------------------------
+
+  void zoom() {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImGuiIO io = ImGui::GetIO();
+
+    if (true || io.FontAllowUserScaling) {
+      float old_scale = window->FontWindowScale;
+      float new_scale = ImClamp(window->FontWindowScale + io.MouseWheel * 0.1F, 0.3F, 2.0F);
+      float scale = new_scale / old_scale;
+      window->FontWindowScale = new_scale;
+      
+      const ImVec2 offset = window->Size * (1.F - scale) * (io.MousePos - window->Pos) / window->Size;
+
+      if (new_scale != old_scale) {
+        // mouse to screen
+        ImVec2 m2s = io.MousePos - (window->Pos + window->Size) / 2.F;
+        // screen to grid
+        ImVec2 s2g = m2s / old_scale - m_offset;
+        // grid to screen
+        ImVec2 g2s = (s2g + m_offset) * new_scale;
+
+        m_offset += (m2s - g2s) / new_scale;
+      }
+    }
+  }
 
   //-------------------------------------------------------
   void NodeEditor::drawMenuBar()
@@ -597,6 +623,8 @@ namespace Chill
 
       ImGuiWindowFlags_NoBringToFrontOnFocus
     );
+
+    zoom();
 
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -811,9 +839,6 @@ namespace Chill
       if (io.MouseDown[2] && ImGui::IsMouseHoveringAnyWindow()) {
         m_offset += io.MouseDelta / w_scale;
       }
-
-      zoom();
-
 
       // Keyboard
       if (!text_editing)
@@ -1074,42 +1099,6 @@ namespace Chill
     }
   }
 
-  //-------------------------------------------------------
-  void zoom() {
-    //NodeEditor* n_e = NodeEditor::Instance();
-    //ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    //ImDrawList* overlay_draw_list = ImGui::GetOverlayDrawList();
-
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
-    ImVec2 offset = (m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
-    ImGuiIO io = ImGui::GetIO();
-
-
-    if (true || io.FontAllowUserScaling) {
-
-      float old_scale = window->FontWindowScale;
-      float new_scale = ImClamp(window->FontWindowScale + io.MouseWheel * 0.1F, 0.3F, 2.0F);
-      float scale = new_scale / window->FontWindowScale;
-      window->FontWindowScale = new_scale;
-
-      const ImVec2 offset = window->Size * (1.F - scale) * (io.MousePos - window->Pos) / window->Size;
-      window->Pos += offset;
-      window->Pos += offset;
-      window->Size *= scale;
-      window->SizeFull *= scale;
-
-      if (new_scale != old_scale) {
-        // mouse to screen
-        ImVec2 m2s = io.MousePos - (window->Pos + window->Size) / 2.F;
-        // screen to grid
-        ImVec2 s2g = m2s / old_scale - m_offset;
-        // grid to screen
-        ImVec2 g2s = (s2g + m_offset) * new_scale;
-
-        m_offset += (m2s - g2s) / new_scale;
-      }
-    }
-  }
 
   //-------------------------------------------------------
   void listFolderinDir(std::vector<std::string>& files, std::string folder)
