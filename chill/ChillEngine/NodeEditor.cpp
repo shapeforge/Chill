@@ -255,16 +255,18 @@ void Chill::NodeEditor::launch()
     // main loop
     SimpleUI::loop();
 
+    if (g_auto_icesl) {
+      // closing Icesl
+      closeIcesl();
+    }
+
     // clean up
     SimpleUI::terminateImGui();
 
     // shutdown UI
     SimpleUI::shutdown();
 
-    if (g_auto_icesl) {
-      // closing Icesl
-      closeIcesl();
-    }
+
   }
   catch (Fatal& e) {
     std::cerr << Console::red << e.message() << Console::gray << std::endl;
@@ -318,17 +320,28 @@ void Chill::NodeEditor::launchIcesl() {
 //-------------------------------------------------------
 void Chill::NodeEditor::closeIcesl() {
 #ifdef WIN32
-  // gettings back Icesl's handle
-  HANDLE icesl_handle = OpenProcess(PROCESS_ALL_ACCESS, TRUE, g_icesl_pid);
+  try
+  {
+    // gettings back Icesl's handle
+    HANDLE icesl_handle = OpenProcess(PROCESS_ALL_ACCESS, TRUE, g_icesl_pid);
 
-  // closing the process
-  LPDWORD icesl_ThError = NULL, icesl_PrError = NULL;
-  TerminateThread(icesl_handle, GetExitCodeThread(icesl_handle, icesl_ThError));
-  TerminateProcess(icesl_handle, GetExitCodeProcess(icesl_handle, icesl_PrError));
+    // closing the process
+    LPDWORD icesl_ThError = NULL, icesl_PrError = NULL;
+    TerminateThread(icesl_handle, GetExitCodeThread(icesl_handle, icesl_ThError));
+    TerminateProcess(icesl_handle, GetExitCodeProcess(icesl_handle, icesl_PrError));
 
-  // releasing the handles
-  CloseHandle(icesl_handle);
-  //CloseHandle(icesl_handle);
+    // releasing the handles
+    CloseHandle(icesl_handle);
+    //CloseHandle(icesl_handle);
+
+    std::cerr << Console::red << GetLastError << Console::gray << std::endl;
+    std::cerr << Console::yellow << "icesl_ThError: " << icesl_ThError << Console::gray << std::endl;
+    std::cerr << Console::yellow << "icesl_PrError: " << icesl_PrError << Console::gray << std::endl;
+  }
+  catch (Fatal& e)
+  {
+    std::cerr << Console::red << e.message() << Console::gray << std::endl;
+  }
 #endif
 }
 
