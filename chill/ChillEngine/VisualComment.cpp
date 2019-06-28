@@ -66,7 +66,7 @@ bool Chill::VisualComment::draw() {
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(255, 255, 255, 255));
-    if (ImGui::ButtonEx((m_comment + "##" + std::to_string(getUniqueID())).c_str(), title_size, ImGuiButtonFlags_PressedOnDoubleClick))
+    if (ImGui::ButtonEx((m_name + "##" + std::to_string(getUniqueID())).c_str(), title_size, ImGuiButtonFlags_PressedOnDoubleClick))
       m_edit = true;
     ImGui::PopStyleColor();
     ImGui::PopStyleColor();
@@ -74,8 +74,10 @@ bool Chill::VisualComment::draw() {
     ImGui::PopStyleColor();
   }
   else {
-    if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), m_charComment, 256)) {
-      m_comment = m_charComment;
+    char name[32];
+    strcpy(name, m_name.c_str());
+    if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), name, 32)) {
+      m_name = name;
     }
     else if (!m_selected) {
       m_edit = false;

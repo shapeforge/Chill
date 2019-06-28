@@ -242,7 +242,7 @@ void Chill::NodeEditor::launch()
     SetWindowPos(chill_hwnd, HWND_TOPMOST, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
 
     // launching Icesl
-    //launchIcesl();
+    launchIcesl();
     // move icesl to the last part of the screen
     int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
     SetWindowPos(icesl_hwnd, HWND_TOP, app_width - icesl_x_offset, app_pos_y, screen_width - app_width + icesl_x_offset, app_heigth, SWP_SHOWWINDOW);
@@ -569,34 +569,58 @@ namespace Chill
       ImGuiWindowFlags_NoBringToFrontOnFocus
     );
 
-    ImGui::Text("Graph name:");
-    ImGui::SameLine();
-    strcpy(title, m_graphs.top()->name().c_str());
-    if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), title, 16)) {
-      m_graphs.top()->setName(title);
+
+    if (ImGui::CollapsingHeader("Graph tree")) {
+      uint i = 1;
+
+      ImVec2 size(100, 20);
+
+      for (auto graph : m_graphs._Get_container()) {
+        std::string text = "";
+        for (int j = 0; j < i; j++)
+          text += " ";
+        text += ">";
+        ImGui::TextDisabled(text.c_str());
+        ImGui::SameLine();
+
+        if (i == m_graphs.size()) {
+          strcpy(title, m_graphs.top()->name().c_str());
+          if (ImGui::InputText(("##graphname" + std::to_string(getUniqueID())).c_str(), title, 32)) {
+            m_graphs.top()->setName(title);
+          }
+        } else {
+          if (ImGui::Button(graph->name().c_str())) {
+            while (m_graphs.size() > i) {
+              m_graphs.pop();
+            }
+          }
+        }
+
+        i++;
+      }
     }
 
-
     ImGui::NewLine();
-    if (selected.size() == 1) {
-      ImGui::Text("Name:");
-      strcpy(name, selected[0]->name().c_str());
-      if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), name, 16)) {
-        m_graphs.top()->setName(name);
-      }
 
-      ImGuiColorEditFlags flags = ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_AlphaBar;
-      ImVec4 col = ImGui::ColorConvertU32ToFloat4(selected[0]->color());
-      float color[4] = { col.x, col.y , col.z , col.w };
-      if (ImGui::ColorPicker4("Color", color, flags)) {
-        selected[0]->setColor(ImGui::ColorConvertFloat4ToU32(ImVec4(color[0], color[1], color[2], color[3])));
+    if (!selected.empty() && ImGui::CollapsingHeader("Selected")) {
+      for (auto select : selected) {
+        ImGui::Text("Name:");
+        strcpy(name, select->name().c_str());
+        if (ImGui::InputText(("##nodename" + std::to_string(select->getUniqueID())).c_str(), name, 32)) {
+          select->setName(name);
+        }
+
+        ImGuiColorEditFlags flags = ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_AlphaBar;
+        ImVec4 col = ImGui::ColorConvertU32ToFloat4(select->color());
+        float color[4] = { col.x, col.y , col.z , col.w };
+        if (ImGui::ColorPicker4(("##color" + std::to_string(select->getUniqueID())).c_str(), color, flags)) {
+          select->setColor(ImGui::ColorConvertFloat4ToU32(ImVec4(color[0], color[1], color[2], color[3])));
+        }
       }
     }
 
     ImGui::End();
   }
-
-
 
 
   bool dirty = true;
@@ -914,7 +938,7 @@ namespace Chill
 
     // Draw the pipes
     float pipe_width = 2.0F * w_scale;
-    int pipe_res = int(25.0F / std::abs(std::log(w_scale / 2.0F)));
+    int pipe_res = int(25.0F / std::abs(std::log(w_scale / 2.5F)));
     for (AutoPtr<Processor> processor : currentGraph->processors()) {
       for (AutoPtr<ProcessorOutput> output : processor->outputs()) {
         for (AutoPtr<ProcessorInput> input : output->m_links) {
@@ -936,14 +960,8 @@ namespace Chill
       }
     }
 
-
-
-
     // Draw new pipe
     if (linking) {
-      float pipe_width = 2.0F * w_scale;
-      int pipe_res = int(25.0F / std::abs(std::log(w_scale / 2.0F)));
-
       ImVec2 A = ImGui::GetMousePos();
       ImVec2 B = ImGui::GetMousePos();
 
@@ -963,40 +981,6 @@ namespace Chill
         pipe_width,
         pipe_res
       );
-    }
-
-    // Draw graph nav
-    ImGui::SetCursorPos(w_pos);
-    uint i = 1;
-
-    ImVec2 pos = w_pos;
-    ImVec2 size(100, 20);
-
-    size *= w_scale;
-
-
-    for (auto graph : m_graphs._Get_container()) {
-      draw_list->AddRectFilled(pos, pos + size, style.processor_bg_color, 0, 0);
-      if (ImGui::IsMouseHoveringRect(pos, pos + size)) {
-        draw_list->AddRectFilled(pos, pos + size, style.processor_bg_color, 0, 0);
-
-        if (ImGui::IsMouseClicked(0)) {
-          while (m_graphs.size() > i) {
-            m_graphs.pop();
-          }
-        }
-      }
-      else {
-        draw_list->AddRectFilled(pos, pos + size, style.processor_bg_color, 0, 0);
-      }
-
-      ImGui::SetCursorPos(pos - w_pos + style.delta_to_center_text(ImVec2(10, size.y), ">"));
-      ImGui::Text(">");
-      ImGui::SetCursorPos(pos - w_pos + style.delta_to_center_text(size, graph->name().c_str()));
-      ImGui::Text(graph->name().c_str());
-
-      pos.x += size.x;
-      i++;
     }
 
     menus();

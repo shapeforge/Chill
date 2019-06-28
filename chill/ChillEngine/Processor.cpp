@@ -217,14 +217,39 @@ bool Chill::Processor::draw() {
   }
 
 
-   // DISABLE / EMIT
+   
 
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 20);
+
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + padding);
+  
+  // Drag and Drop Target
+  bool value_changed = false;
+  if (ImGui::BeginDragDropTarget())
+  {
+    float col[4];
+    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
+    {
+      memcpy((float*)col, payload->Data, sizeof(float) * 3);
+      value_changed = true;
+    }
+    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
+    {
+      memcpy((float*)col, payload->Data, sizeof(float) * 4);
+      value_changed = true;
+    }
+    if (value_changed) m_color = ImColor(col[0], col[1], col[2]);
+    ImGui::EndDragDropTarget();
+  }
+
+  // DISABLE / EMIT
   ImGui::SameLine();
   ImGui::SetCursorPosY(ImGui::GetCursorPosY() + style.processor_title_height / 4.0F * w_scale);
   ImU32 color(m_state == DISABLED ? 0XFF0000CC : m_state == DEFAULT ? 0XFFCC7700 : m_state == EMITING ? 0XFF00CC00 : 0XFF888888);
-  ImGui::PushStyleColor(ImGuiCol_Button       , color);
+  ImGui::PushStyleColor(ImGuiCol_Button, color);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive , color);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
   ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 255));
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, button_size);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
@@ -256,29 +281,6 @@ bool Chill::Processor::draw() {
   ImGui::PopStyleColor();
 
 
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 20);
-
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + padding);
-  
-  // Drag and Drop Target
-  bool value_changed = false;
-  if (ImGui::BeginDragDropTarget())
-  {
-    float col[4];
-    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
-    {
-      memcpy((float*)col, payload->Data, sizeof(float) * 3);
-      value_changed = true;
-    }
-    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
-    {
-      memcpy((float*)col, payload->Data, sizeof(float) * 4);
-      value_changed = true;
-    }
-    if (value_changed) m_color = ImColor(col[0], col[1], col[2]);
-    ImGui::EndDragDropTarget();
-  }
   //ImGui::PopID();
 
   //ImGui::PushClipRect(min_pos - border - ImVec2(0.5, 0.5), max_pos + border + ImVec2(0.5, 0.5), true);
