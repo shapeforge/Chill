@@ -31,8 +31,12 @@ const int default_height = 600;
 
 #ifdef WIN32
 HWND g_chill_hwnd = NULL;
+
 HWND g_icesl_hwnd = NULL;
-DWORD g_icesl_pid = NULL;
+
+PROCESS_INFORMATION g_icesl_p_info;
+#include "aclapi.h"
+#include "sddl.h"
 #endif
 
 Chill::NodeEditor *Chill::NodeEditor::s_instance = nullptr;
@@ -181,13 +185,26 @@ void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height) {
 #ifdef WIN32
 BOOL CALLBACK EnumWindowsFromPid(HWND hwnd, LPARAM lParam)
 {
-  DWORD lpdwProcessId;
-  GetWindowThreadProcessId(hwnd, &lpdwProcessId);
-  if (lpdwProcessId == lParam)
+  DWORD pID;
+  GetWindowThreadProcessId(hwnd, &pID);
+  if (pID == lParam)
   {
     g_icesl_hwnd = hwnd;
     return FALSE;
   }
+  return TRUE;
+}
+
+BOOL CALLBACK TerminateAppEnum(HWND hwnd, LPARAM lParam)
+{
+  DWORD pID;
+  GetWindowThreadProcessId(hwnd, &pID);
+
+  if (pID == (DWORD)lParam)
+  {
+    PostMessage(hwnd, WM_CLOSE, 0, 0);
+  }
+
   return TRUE;
 }
 
@@ -241,23 +258,24 @@ void Chill::NodeEditor::launch()
     if (g_auto_icesl) {
 #ifdef WIN32
       SimpleUI::setCustomCallbackMsgProc(custom_wndProc);
+
       // get app handler
       g_chill_hwnd = SimpleUI::getHWND();
+#endif
 
       // launching Icesl
       launchIcesl();
 
       // place apps in default pos
       setDefaultAppsPos();
-      
-#endif
     }
     // main loop
     SimpleUI::loop();
 
     if (g_auto_icesl) {
       // closing Icesl
-      closeIcesl();
+      //closeIcesl();
+      std::atexit(closeIcesl);
     }
 
     // clean up
@@ -265,7 +283,6 @@ void Chill::NodeEditor::launch()
 
     // shutdown UI
     SimpleUI::shutdown();
-
 
   }
   catch (Fatal& e) {
@@ -277,13 +294,14 @@ void Chill::NodeEditor::launch()
 void Chill::NodeEditor::launchIcesl() {
 #ifdef WIN32
   // CreateProcess init
-  const char* icesl_path = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe";
+  const char* icesl_path = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe"; // TODO: get icesl Path form PATH or registry key
   std::string icesl_params = "--remote " + iceSLTempExportPath;
 
-  PROCESS_INFORMATION ProcessInfo;
   STARTUPINFO StartupInfo;
   ZeroMemory(&StartupInfo, sizeof(StartupInfo));
   StartupInfo.cb = sizeof StartupInfo;
+
+  ZeroMemory(&g_icesl_p_info, sizeof(g_icesl_p_info));
 
   // create the process
   auto icesl_process = CreateProcess(icesl_path, // @lpApplicationName - application name / path 
@@ -295,22 +313,20 @@ void Chill::NodeEditor::launchIcesl() {
           NULL, // @lpEnvironment - environment
           NULL, // @lpCurrentDirectory - current directory
           &StartupInfo, // @lpStartupInfo -startup info
-          &ProcessInfo); // @lpProcessInformation - process info
+          &g_icesl_p_info); // @lpProcessInformation - process info
 
   if(icesl_process)
   {
     // watch the process
-    WaitForSingleObject(ProcessInfo.hProcess, 1000);
+    WaitForSingleObject(g_icesl_p_info.hProcess, 1000);
     // getting the hwnd
-    g_icesl_pid = ProcessInfo.dwProcessId;
-
-    EnumWindows(EnumWindowsFromPid, g_icesl_pid);
+    EnumWindows(EnumWindowsFromPid, g_icesl_p_info.dwProcessId);
   }
   else
   {
     // process creation failed
     std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
-    //std::cerr << Console::yellow << GetLastError() << Console::gray << std::endl;
+    std::cerr << Console::red << "ErrorCode: " << GetLastError() << Console::gray << std::endl;
 
     g_icesl_hwnd = NULL;
   }
@@ -320,28 +336,25 @@ void Chill::NodeEditor::launchIcesl() {
 //-------------------------------------------------------
 void Chill::NodeEditor::closeIcesl() {
 #ifdef WIN32
-  try
-  {
-    // gettings back Icesl's handle
-    HANDLE icesl_handle = OpenProcess(PROCESS_ALL_ACCESS, TRUE, g_icesl_pid);
-
-    // closing the process
-    LPDWORD icesl_ThError = NULL, icesl_PrError = NULL;
-    TerminateThread(icesl_handle, GetExitCodeThread(icesl_handle, icesl_ThError));
-    TerminateProcess(icesl_handle, GetExitCodeProcess(icesl_handle, icesl_PrError));
-
-    // releasing the handles
-    CloseHandle(icesl_handle);
-    //CloseHandle(icesl_handle);
-
-    std::cerr << Console::red << GetLastError << Console::gray << std::endl;
-    std::cerr << Console::yellow << "icesl_ThError: " << icesl_ThError << Console::gray << std::endl;
-    std::cerr << Console::yellow << "icesl_PrError: " << icesl_PrError << Console::gray << std::endl;
+  if (g_icesl_p_info.hProcess == NULL) {
+    std::cerr << Console::red << "Icesl Handle not found. Please colose Icesl manually." << Console::gray << std::endl;
   }
-  catch (Fatal& e)
-  {
-    std::cerr << Console::red << e.message() << Console::gray << std::endl;
+  else {
+    // close all windows with icesl's pid
+    EnumWindows((WNDENUMPROC)TerminateAppEnum, (LPARAM)g_icesl_p_info.dwProcessId);
+
+    // check if handle still responds, else handle is killed
+    if (WaitForSingleObject(g_icesl_p_info.hProcess, 1000) != WAIT_OBJECT_0) {
+      TerminateProcess(g_icesl_p_info.hProcess,0);
+      std::cerr << Console::yellow << "Trying to force close Icesl." << Console::gray << std::endl;
+    }
+    else {
+      std::cerr << Console::yellow << "Icesl was successfully closed." << Console::gray << std::endl;
+    }
+
+    CloseHandle(g_icesl_p_info.hProcess);
   }
+
 #endif
 }
 
