@@ -35,8 +35,6 @@ HWND g_chill_hwnd = NULL;
 HWND g_icesl_hwnd = NULL;
 
 PROCESS_INFORMATION g_icesl_p_info;
-#include "aclapi.h"
-#include "sddl.h"
 #endif
 
 Chill::NodeEditor *Chill::NodeEditor::s_instance = nullptr;
