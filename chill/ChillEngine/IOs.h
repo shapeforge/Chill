@@ -472,6 +472,7 @@ namespace Chill {
   {
   public:
     std::string m_value;
+    std::string m_filter;
     bool m_alt;
 
     PathInput() {
@@ -487,9 +488,10 @@ namespace Chill {
     };
 
     template <typename ...>
-    PathInput(std::string _value = false, bool _alt = false, ...) : PathInput() {
-      m_value = _value;
-      m_alt = _alt;
+    PathInput(std::string _value = false, bool _alt = false, std::string _filter = "", ...) : PathInput() {
+      m_value  = _value;
+      m_alt    = _alt;
+      m_filter = _filter;
     };
 
     template <typename ...>
@@ -497,15 +499,18 @@ namespace Chill {
     {
       size_t s = _params.size();
 
-      m_value = s >= 1 ? _params[0] : "";
-      m_alt = s >= 2 ? _params[1] == "true" : false;
+      m_value  = s >= 1 ? _params[0] : "";
+      m_alt    = s >= 2 ? _params[1] == "true" : false;
+      m_filter = s >= 3 ? _params[2] : "";
 
       std::regex quote("(^[\'\"]|[\'\"]$)");
       std::string unquoted;
 
       regex_replace(std::back_inserter(unquoted), m_value.begin(), m_value.end(), quote, "$2");
-
       m_value = unquoted;
+
+      regex_replace(std::back_inserter(unquoted), m_filter.begin(), m_filter.end(), quote, "$2");
+      m_filter = unquoted;
     };
 
     bool drawTweak();
