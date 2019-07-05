@@ -26,6 +26,9 @@ namespace Chill
     static void Chill::NodeEditor::launchIcesl();
     static void Chill::NodeEditor::closeIcesl();
 
+    static void Chill::NodeEditor::saveSettings();
+    static void Chill::NodeEditor::loadSettings();
+
   public:
     static void Chill::NodeEditor::launch();      
 
@@ -71,7 +74,9 @@ namespace Chill
     static void mainMousePressed(uint _x, uint _y, uint _button, uint _flags);
 
   public:
-    static inline std::string NodeFolder();
+    static inline std::string ChillFolder();
+    static inline std::string NodesFolder();
+    static inline void SetIceslPath();
 
     void exportIceSL(std::string& filename_);
 

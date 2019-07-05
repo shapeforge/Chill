@@ -23,8 +23,13 @@ bool g_auto_save = true;
 bool g_auto_export = true;
 bool g_auto_icesl = true;
 
-std::string iceSLExportPath = "";
-std::string iceSLTempExportPath = fs::temp_directory_path().string() + std::to_string(std::time(0)) + ".lua";
+std::string g_iceslPath;
+
+std::string g_graphPath = "";
+std::string g_iceSLExportPath = "";
+std::string g_iceSLTempExportPath = fs::temp_directory_path().string() + std::to_string(std::time(0)) + ".lua";
+
+std::string g_settingsFileName = "chill-settings.txt";
 
 const int default_width  = 800;
 const int default_height = 600;
@@ -40,10 +45,56 @@ PROCESS_INFORMATION g_icesl_p_info;
 Chill::NodeEditor *Chill::NodeEditor::s_instance = nullptr;
 
 //-------------------------------------------------------
+void Chill::NodeEditor::saveSettings()
+{
+  // save current settings
+  std::string filename(ChillFolder());
+  filename += g_settingsFileName;
+
+  // remove space from icesl path for storage in txt file
+  std::string cleanedIceslPath = g_iceslPath; 
+  std::replace(cleanedIceslPath.begin(), cleanedIceslPath.end(), ' ', '#');
+
+  std::ofstream f(filename);
+  f << "icesl_path " << cleanedIceslPath << std::endl;
+  f << "auto_save " << g_auto_save << std::endl;
+  f << "auto_export " << g_auto_export << std::endl;
+  f << "auto_launch_icesl " << g_auto_icesl << std::endl;
+  f.close();
+}
+
+//-------------------------------------------------------
+void Chill::NodeEditor::loadSettings()
+{
+  std::string filename = ChillFolder() + g_settingsFileName;
+  if (LibSL::System::File::exists(filename.c_str())) {
+    std::ifstream f(filename);
+    while (!f.eof()) {
+      std::string setting, value, raw;
+      f >> setting >> value;
+      if (setting == "icesl_path") {
+        std::replace(value.begin(), value.end(), '#', ' ');
+        g_iceslPath = value;
+      }
+      if (setting == "auto_save") {
+        g_auto_save = (std::stoi(value) ? true : false);
+      }
+      if (setting == "auto_export") {
+        g_auto_export = (std::stoi(value) ? true : false);
+      }
+      if (setting == "auto_launch_icesl") {
+        g_auto_icesl = (std::stoi(value) ? true : false);
+      }
+    }
+    f.close();
+  }
+}
+
+//-------------------------------------------------------
 static void setDefaultAppsPos() {
   int screen_width, screen_height, desktop_width, desktop_height = 0;
 
-  // get screnn / desktop dimmensions
+  // get screen / desktop dimmensions
   Chill::NodeEditor::getScreenRes(screen_width, screen_height);
   Chill::NodeEditor::getDesktopScreenRes(desktop_width, desktop_height);
 
@@ -79,13 +130,41 @@ static void moveIceSLWindowAlongChill() {
 }
 
 //-------------------------------------------------------
- std::string Chill::NodeEditor::NodeFolder() {
+std::string Chill::NodeEditor::ChillFolder() {
 #ifdef WIN32
-   return getenv("AppData") + std::string("/Chill/nodes");
+  return getenv("AppData") + std::string("\\Chill\\");
 #elif __linux__
-   return getenv("HOME") + std::string("/Chill/nodes");
+  return getenv("HOME") + std::string("/Chill/");
 #endif
 }
+
+//-------------------------------------------------------
+ std::string Chill::NodeEditor::NodesFolder() {
+#ifdef WIN32
+   return getenv("AppData") + std::string("\\Chill\\chill-nodes");
+#elif __linux__
+   return getenv("HOME") + std::string("/Chill/chill-nodes");
+#endif
+}
+
+ //-------------------------------------------------------
+void Chill::NodeEditor::SetIceslPath() {
+   std::string defPath;
+   if (g_iceslPath.empty()) {
+#ifdef WIN32
+     defPath = getenv("PROGRAMFILES");
+     g_iceslPath = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe";
+#elif __linux__
+     std::string defPath = getenv("HOME");
+     g_iceslPath = getenv("HOME") + std::string("/icesl/bin/IceSL-slicer");
+#endif
+   }
+   if (!LibSL::System::File::exists(g_iceslPath.c_str())) {
+     std::cerr << Console::red << "icesl not found" << Console::gray << std::endl;
+     g_iceslPath = openFileDialog(OFD_FILTER_NONE).c_str();
+     std::cerr << Console::yellow << "g_iceslPath: " << g_iceslPath << Console::gray << std::endl;
+   }
+ }
 
 //-------------------------------------------------------
 Chill::NodeEditor::NodeEditor(){
@@ -235,6 +314,10 @@ void Chill::NodeEditor::launch()
 {
   Chill::NodeEditor *nodeEditor = Chill::NodeEditor::Instance();
 
+  loadSettings();
+  SetIceslPath();
+   
+
   try {
     // create window
     SimpleUI::init(default_width, default_height, "Chill, the node-based editor");
@@ -260,21 +343,22 @@ void Chill::NodeEditor::launch()
       // get app handler
       g_chill_hwnd = SimpleUI::getHWND();
 #endif
-
       // launching Icesl
       launchIcesl();
 
       // place apps in default pos
       setDefaultAppsPos();
     }
+
     // main loop
     SimpleUI::loop();
 
     if (g_auto_icesl) {
       // closing Icesl
-      //closeIcesl();
       std::atexit(closeIcesl);
     }
+
+    saveSettings();
 
     // clean up
     SimpleUI::terminateImGui();
@@ -292,8 +376,8 @@ void Chill::NodeEditor::launch()
 void Chill::NodeEditor::launchIcesl() {
 #ifdef WIN32
   // CreateProcess init
-  const char* icesl_path = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe"; // TODO: get icesl Path form PATH or registry key
-  std::string icesl_params = "--remote " + iceSLTempExportPath;
+  const char* icesl_path = g_iceslPath.c_str();
+  std::string icesl_params = "--remote " + g_iceSLTempExportPath;
 
   STARTUPINFO StartupInfo;
   ZeroMemory(&StartupInfo, sizeof(StartupInfo));
@@ -335,7 +419,7 @@ void Chill::NodeEditor::launchIcesl() {
 void Chill::NodeEditor::closeIcesl() {
 #ifdef WIN32
   if (g_icesl_p_info.hProcess == NULL) {
-    std::cerr << Console::red << "Icesl Handle not found. Please colose Icesl manually." << Console::gray << std::endl;
+    std::cerr << Console::red << "Icesl Handle not found. Please close Icesl manually." << Console::gray << std::endl;
   }
   else {
     // close all windows with icesl's pid
@@ -349,10 +433,8 @@ void Chill::NodeEditor::closeIcesl() {
     else {
       std::cerr << Console::yellow << "Icesl was successfully closed." << Console::gray << std::endl;
     }
-
     CloseHandle(g_icesl_p_info.hProcess);
   }
-
 #endif
 }
 
@@ -485,6 +567,7 @@ namespace Chill
             setMainGraph(new ProcessingGraph());
             getMainGraph()->save(file);
             file.close();
+            g_graphPath = fullpath;
           }
         }
         if (ImGui::MenuItem("Load graph")) {
@@ -493,6 +576,7 @@ namespace Chill
             GraphSaver *test = new GraphSaver();
             test->execute(fullpath.c_str());
             delete test;
+            g_graphPath = fullpath;
           }
         }
         if (ImGui::MenuItem("Save graph", "Ctrl+S")) {
@@ -503,6 +587,7 @@ namespace Chill
             file.open(fullpath);
             getMainGraph()->save(file);
             file.close();
+            g_graphPath = fullpath;
           }
         }
         if (ImGui::MenuItem("Save current graph", "Ctrl+Shift+S")) {
@@ -526,8 +611,8 @@ namespace Chill
 
         if (ImGui::MenuItem("Export to IceSL lua")) {
           std::string graph_filename = getMainGraph()->name() + ".lua";
-          iceSLExportPath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_LUA);
-          exportIceSL(iceSLExportPath);
+          g_iceSLExportPath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_LUA);
+          exportIceSL(g_iceSLExportPath);
         }
         ImGui::EndMenu();
       }
@@ -640,14 +725,23 @@ namespace Chill
     for (AutoPtr<Processor> processor : m_graphs.top()->processors()) {
       if (processor->isDirty()) {
         dirty = true;
+        break;
       }
     }
 
     if (dirty) {
+      if (g_auto_export) {
 #ifdef WIN32
-      exportIceSL(iceSLTempExportPath);
+        exportIceSL(g_iceSLTempExportPath);
 #endif
-      exportIceSL(iceSLExportPath);
+        exportIceSL(g_iceSLExportPath);
+      }
+      
+      if (g_auto_save) {
+        std::ofstream file;
+        file.open(g_graphPath);
+        m_graphs.top()->save(file);
+      }
 
       dirty = false;
     }
@@ -1150,7 +1244,7 @@ namespace Chill
 
   void listLuaFileInDir(std::vector<std::string>& files)
   {
-    listFiles(NodeEditor::NodeFolder().c_str(), files);
+    listFiles(NodeEditor::NodesFolder().c_str(), files);
   }
 
   void listLuaFileInDir(std::vector<std::string>& files, std::string directory)
@@ -1197,7 +1291,7 @@ namespace Chill
   //-------------------------------------------------------
   std::string relativePath(std::string& path)
   {
-    int nfsize = (int)NodeEditor::NodeFolder().size();
+    int nfsize = (int)NodeEditor::NodesFolder().size();
     if (path[nfsize + 1] == Resources::separator()) nfsize++;
     std::string name = path.substr(nfsize);
     return name;
@@ -1205,7 +1299,7 @@ namespace Chill
 
   void addNodeMenu(ImVec2 pos) {
     NodeEditor* n_e = NodeEditor::Instance();
-    std::string node = recursiveFileSelecter(NodeEditor::NodeFolder());
+    std::string node = recursiveFileSelecter(NodeEditor::NodesFolder());
     if (!node.empty()) {
       AutoPtr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>(relativePath(node));
       proc->setPosition(pos);
