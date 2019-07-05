@@ -1,6 +1,8 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(ChillLauncher)
 
+include(UseCXX17)
+
 ADD_EXECUTABLE( ChillLauncher
   launcher.cpp
   ../../ressources/main.rc

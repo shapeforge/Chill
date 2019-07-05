@@ -16,7 +16,11 @@
 #include <GL/glut.h>
 #endif
 
+#ifdef WIN32
 namespace fs = std::experimental::filesystem;
+#else
+namespace fs = std::filesystem;
+#endif
 
 LIBSL_WIN32_FIX
 
@@ -575,6 +579,8 @@ namespace Chill
 
       ImVec2 size(100, 20);
 
+#if WIN32
+      //TODO _Get_container is not standard
       for (auto graph : m_graphs._Get_container()) {
         std::string text = "";
         for (int j = 0; j < i; j++)
@@ -598,6 +604,7 @@ namespace Chill
 
         i++;
       }
+#endif
     }
 
     ImGui::NewLine();

@@ -95,7 +95,7 @@ namespace Chill {
     Processor::~Processor();
   }
 
-  void ProcessingGraph::remove(AutoPtr<Processor>& _processor) {
+  void ProcessingGraph::remove(AutoPtr<Processor> _processor) {
     // disconnect
     if (_processor->owner() == this) {
       for (AutoPtr<ProcessorInput> input : _processor->inputs()) {
@@ -115,11 +115,11 @@ namespace Chill {
     //_processor.~AutoPtr();
   }
 
-  void ProcessingGraph::remove(AutoPtr<VisualComment>& _comment) {
+  void ProcessingGraph::remove(AutoPtr<VisualComment> _comment) {
     m_comments.erase(std::remove(m_comments.begin(), m_comments.end(), _comment), m_comments.end());
   }
 
-  void ProcessingGraph::remove(AutoPtr<SelectableUI>& _select) {
+  void ProcessingGraph::remove(AutoPtr<SelectableUI> _select) {
     AutoPtr<Processor> proc = AutoPtr<Processor>(_select);
     if (!proc.isNull()) {
       remove(proc);
@@ -130,7 +130,8 @@ namespace Chill {
     }
   }
 
-  bool ProcessingGraph::connect(const AutoPtr<Processor>& from, const std::string output_name, const AutoPtr<Processor>& to, const std::string input_name)
+  bool ProcessingGraph::connect(AutoPtr<Processor> from, const std::string output_name,
+                                AutoPtr<Processor> to,   const std::string input_name)
   {
     // check if the processors exists
     if (from.isNull() || to.isNull()) {
@@ -143,7 +144,7 @@ namespace Chill {
     return connect(output, input);
   }
 
-  bool ProcessingGraph::connect(AutoPtr<ProcessorOutput>& from, AutoPtr<ProcessorInput>& to)
+  bool ProcessingGraph::connect(AutoPtr<ProcessorOutput> from, AutoPtr<ProcessorInput> to)
   {
     // check if the processors i/o exists
     if (from.isNull() || to.isNull()) {
@@ -156,7 +157,7 @@ namespace Chill {
     }
 
     // check if input already connected
-    if (!to->m_link == NULL) {
+    if (!to->m_link.isNull()) {
       disconnect(to);
     }
 
@@ -171,7 +172,7 @@ namespace Chill {
     return true;
   }
 
-  void ProcessingGraph::disconnect(AutoPtr<ProcessorInput>& to) {
+  void ProcessingGraph::disconnect(AutoPtr<ProcessorInput> to) {
     if (to.isNull()) return;
 
     AutoPtr<ProcessorOutput> from = to->m_link;
@@ -182,7 +183,7 @@ namespace Chill {
     to->m_link = AutoPtr<ProcessorOutput>(NULL);
   }
 
-  void ProcessingGraph::disconnect(AutoPtr<ProcessorOutput>& from) {
+  void ProcessingGraph::disconnect(AutoPtr<ProcessorOutput> from) {
     if (from.isNull()) return;
 
     for (AutoPtr<ProcessorInput> to : from->m_links) {
@@ -297,7 +298,7 @@ namespace Chill {
     return innerGraph;
   }
 
-  void ProcessingGraph::expandGraph(AutoPtr<ProcessingGraph>& collapsed, ImVec2 position) {
+  void ProcessingGraph::expandGraph(AutoPtr<ProcessingGraph> collapsed, ImVec2 position) {
 
     // Move processors
     for (AutoPtr<Processor> processor : collapsed->m_processors) {

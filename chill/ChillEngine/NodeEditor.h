@@ -18,21 +18,21 @@ namespace Chill
     NodeEditor();
     ~NodeEditor() {}
 
-    NodeEditor & operator= (const NodeEditor&) {};
-    NodeEditor(const NodeEditor&) {};
+    NodeEditor & operator= (const NodeEditor&) = delete;
+    NodeEditor(const NodeEditor&) = delete;
 
     static NodeEditor *s_instance;
 
     // Get current screen size
-    static void Chill::NodeEditor::getScreenRes(int& width, int& height);
+    static void getScreenRes(int& width, int& height);
     // Get current desktop size (without taskbar for windows)
-    static void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height);
+    static void getDesktopScreenRes(int& width, int& height);
 
-    static void Chill::NodeEditor::launchIcesl();
-    static void Chill::NodeEditor::closeIcesl();
+    static void launchIcesl();
+    static void closeIcesl();
 
   public:
-    static void Chill::NodeEditor::launch();        
+    static void launch();
 
     static NodeEditor *Instance() {
       if (!s_instance)

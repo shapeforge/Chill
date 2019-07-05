@@ -1,6 +1,8 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(ChillEngine)
 
+include(UseCXX17)
+
 ADD_LIBRARY( ChillEngine STATIC
 	Processor.h
 	ProcessingGraph.h
@@ -34,7 +36,8 @@ ADD_LIBRARY( ChillEngine STATIC
   )
 
 TARGET_LINK_LIBRARIES(ChillEngine
-	lua
+        tinyfiledialogs
+        lua
 	luabind
 	LibSL
 	LibSL_gl
