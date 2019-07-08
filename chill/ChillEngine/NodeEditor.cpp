@@ -19,516 +19,6 @@ namespace fs = std::experimental::filesystem;
 
 LIBSL_WIN32_FIX
 
-bool g_auto_save = true;
-bool g_auto_export = true;
-bool g_auto_icesl = true;
-
-std::string g_iceslPath;
-
-std::string g_graphPath = "";
-std::string g_iceSLExportPath = "";
-std::string g_iceSLTempExportPath = fs::temp_directory_path().string() + std::to_string(std::time(0)) + ".lua";
-
-std::string g_settingsFileName = "chill-settings.txt";
-
-const int default_width  = 800;
-const int default_height = 600;
-
-#ifdef WIN32
-HWND g_chill_hwnd = NULL;
-
-HWND g_icesl_hwnd = NULL;
-
-PROCESS_INFORMATION g_icesl_p_info;
-#endif
-
-Chill::NodeEditor *Chill::NodeEditor::s_instance = nullptr;
-
-//-------------------------------------------------------
-void Chill::NodeEditor::saveSettings()
-{
-  // save current settings
-  std::string filename(ChillFolder());
-  filename += g_settingsFileName;
-
-  // remove space from icesl path for storage in txt file
-  std::string cleanedIceslPath = g_iceslPath; 
-  std::replace(cleanedIceslPath.begin(), cleanedIceslPath.end(), ' ', '#');
-
-  std::ofstream f(filename);
-  f << "icesl_path " << cleanedIceslPath << std::endl;
-  f << "auto_save " << g_auto_save << std::endl;
-  f << "auto_export " << g_auto_export << std::endl;
-  f << "auto_launch_icesl " << g_auto_icesl << std::endl;
-  f.close();
-}
-
-//-------------------------------------------------------
-void Chill::NodeEditor::loadSettings()
-{
-  std::string filename = ChillFolder() + g_settingsFileName;
-  if (LibSL::System::File::exists(filename.c_str())) {
-    std::ifstream f(filename);
-    while (!f.eof()) {
-      std::string setting, value, raw;
-      f >> setting >> value;
-      if (setting == "icesl_path") {
-        std::replace(value.begin(), value.end(), '#', ' ');
-        g_iceslPath = value;
-      }
-      if (setting == "auto_save") {
-        g_auto_save = (std::stoi(value) ? true : false);
-      }
-      if (setting == "auto_export") {
-        g_auto_export = (std::stoi(value) ? true : false);
-      }
-      if (setting == "auto_launch_icesl") {
-        g_auto_icesl = (std::stoi(value) ? true : false);
-      }
-    }
-    f.close();
-  }
-}
-
-//-------------------------------------------------------
-static void setDefaultAppsPos() {
-  int screen_width, screen_height, desktop_width, desktop_height = 0;
-
-  // get screen / desktop dimmensions
-  Chill::NodeEditor::getScreenRes(screen_width, screen_height);
-  Chill::NodeEditor::getDesktopScreenRes(desktop_width, desktop_height);
-
-  int app_width = 2 * (desktop_width / 3);
-  int app_heigth = desktop_height;
-
-  //int app_pos_x = desktop_width - screen_width;
-  //int app_pos_y = desktop_height - screen_height;
-
-  int app_pos_x = -8; // TODO  PB:get a correct offset / resolution calculation
-  int app_pos_y = 0;
-
-  // move to position
-#ifdef WIN32
-  SetWindowPos(g_chill_hwnd, HWND_TOPMOST, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
-
-  // move icesl to the last part of the screen
-  int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
-  SetWindowPos(g_icesl_hwnd, HWND_TOP, app_width - icesl_x_offset, app_pos_y, screen_width - app_width + icesl_x_offset*1.2, app_heigth, SWP_SHOWWINDOW);  
-#endif
-}
-
-//-------------------------------------------------------
-static void moveIceSLWindowAlongChill() {
-#ifdef WIN32
-  // get Chill current size
-  RECT chillRect;
-  GetWindowRect(g_chill_hwnd, &chillRect);
-  int icesl_x_offset = 15; // TODO PB:get a correct offset / resolution calculation
-  // move and resize according to Chill
-  SetWindowPos(g_icesl_hwnd, HWND_NOTOPMOST, chillRect.right - icesl_x_offset, chillRect.top, ((chillRect.right - chillRect.left + 1) / 2) + icesl_x_offset*2, chillRect.bottom - chillRect.top + 1, SWP_NOACTIVATE);
-#endif
-}
-
-//-------------------------------------------------------
-std::string Chill::NodeEditor::ChillFolder() {
-#ifdef WIN32
-  return getenv("AppData") + std::string("\\Chill\\");
-#elif __linux__
-  return getenv("HOME") + std::string("/Chill/");
-#endif
-}
-
-//-------------------------------------------------------
- std::string Chill::NodeEditor::NodesFolder() {
-#ifdef WIN32
-   return getenv("AppData") + std::string("\\Chill\\chill-nodes");
-#elif __linux__
-   return getenv("HOME") + std::string("/Chill/chill-nodes");
-#endif
-}
-
- //-------------------------------------------------------
-void Chill::NodeEditor::SetIceslPath() {
-   std::string defPath;
-   if (g_iceslPath.empty()) {
-#ifdef WIN32
-     defPath = getenv("PROGRAMFILES");
-     g_iceslPath = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe";
-#elif __linux__
-     std::string defPath = getenv("HOME");
-     g_iceslPath = getenv("HOME") + std::string("/icesl/bin/IceSL-slicer");
-#endif
-   }
-   if (!LibSL::System::File::exists(g_iceslPath.c_str())) {
-     std::cerr << Console::red << "icesl not found" << Console::gray << std::endl;
-     g_iceslPath = openFileDialog(OFD_FILTER_NONE).c_str();
-     std::cerr << Console::yellow << "g_iceslPath: " << g_iceslPath << Console::gray << std::endl;
-   }
- }
-
-//-------------------------------------------------------
-Chill::NodeEditor::NodeEditor(){
-  m_graphs.push(new ProcessingGraph());
-}
-
-//-------------------------------------------------------
-void Chill::NodeEditor::mainRender()
-{
-  glClearColor(0.F, 0.F, 0.F, 0.F);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  Instance()->draw();
-
-  ImGui::Render();
-}
-
-//-------------------------------------------------------
-void Chill::NodeEditor::mainOnResize(uint width, uint height) {
-  Instance()->m_size = ImVec2((float)width, (float)height);
-  moveIceSLWindowAlongChill();
-}
-
-//-------------------------------------------------------
-void Chill::NodeEditor::mainKeyPressed(uchar k)
-{
-}
-
-//-------------------------------------------------------
-void Chill::NodeEditor::mainScanCodePressed(uint sc)
-{
-  if (sc == LIBSL_KEY_SHIFT) {
-    ImGui::GetIO().KeyShift = true;
-  }
-  if (sc == LIBSL_KEY_CTRL) {
-    ImGui::GetIO().KeyCtrl = true;
-  }
-}
-
-//-------------------------------------------------------
-void Chill::NodeEditor::mainScanCodeUnpressed(uint sc)
-{
-  if (sc == LIBSL_KEY_SHIFT) {
-    ImGui::GetIO().KeyShift = false;
-  }
-  if (sc == LIBSL_KEY_CTRL) {
-    ImGui::GetIO().KeyCtrl = false;
-  }
-}
-
-//-------------------------------------------------------
-void Chill::NodeEditor::mainMouseMoved(uint x, uint y) {}
-
-//-------------------------------------------------------
-void Chill::NodeEditor::mainMousePressed(uint x, uint y, uint button, uint flags) {}
-
-void Chill::NodeEditor::getScreenRes(int& width, int& height) {
-#ifdef WIN32
-  RECT screen;
-
-  const HWND hScreen = GetDesktopWindow(); // get desktop handler
-  GetWindowRect(hScreen, &screen); // get entire desktop size
-
-  width = screen.right - screen.top;
-  height = screen.bottom - screen.top;
-
-#endif
-
-#ifdef __linux__
-  width = 1920;
-  height = 1080;
-#endif
-}
-
-//-------------------------------------------------------
-void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height) {
-#ifdef WIN32
-  RECT desktop;
-
-  // get desktop size WITHOUT task bar
-  SystemParametersInfoA(SPI_GETWORKAREA, NULL, &desktop, NULL);
-
-  width = desktop.right;
-  height = desktop.bottom;
-
-#endif
-
-#ifdef __linux__
-  width = 1920;
-  height = 1080;
-#endif
-}
-
-//-------------------------------------------------------
-#ifdef WIN32
-BOOL CALLBACK EnumWindowsFromPid(HWND hwnd, LPARAM lParam)
-{
-  DWORD pID;
-  GetWindowThreadProcessId(hwnd, &pID);
-  if (pID == lParam)
-  {
-    g_icesl_hwnd = hwnd;
-    return FALSE;
-  }
-  return TRUE;
-}
-
-BOOL CALLBACK TerminateAppEnum(HWND hwnd, LPARAM lParam)
-{
-  DWORD pID;
-  GetWindowThreadProcessId(hwnd, &pID);
-
-  if (pID == (DWORD)lParam)
-  {
-    PostMessage(hwnd, WM_CLOSE, 0, 0);
-  }
-
-  return TRUE;
-}
-
-LRESULT CALLBACK custom_wndProc(
-  _In_ HWND   hwnd,
-  _In_ UINT   uMsg,
-  _In_ WPARAM wParam,
-  _In_ LPARAM lParam)
-{
-  switch (uMsg) {
-  case WM_MOVE:
-    moveIceSLWindowAlongChill();
-
-    // get window placement / style
-    WINDOWPLACEMENT wPlacement;    
-    GetWindowPlacement(g_chill_hwnd, &wPlacement);
-
-    if (wPlacement.showCmd == SW_MAXIMIZE) {
-      // set default pos
-      setDefaultAppsPos();
-    }
-    break;
-  }
-  return 0;
-}
-#endif
-
-//-------------------------------------------------------
-void Chill::NodeEditor::launch()
-{
-  Chill::NodeEditor *nodeEditor = Chill::NodeEditor::Instance();
-
-  loadSettings();
-  SetIceslPath();
-   
-
-  try {
-    // create window
-    SimpleUI::init(default_width, default_height, "Chill, the node-based editor");
-
-    // attach functions
-    SimpleUI::onRender             = NodeEditor::mainRender;
-    SimpleUI::onKeyPressed         = NodeEditor::mainKeyPressed;
-    SimpleUI::onScanCodePressed    = NodeEditor::mainScanCodePressed;
-    SimpleUI::onScanCodeUnpressed  = NodeEditor::mainScanCodeUnpressed;
-    SimpleUI::onMouseButtonPressed = NodeEditor::mainMousePressed;
-    SimpleUI::onMouseMotion        = NodeEditor::mainMouseMoved;
-    SimpleUI::onReshape            = NodeEditor::mainOnResize;
-
-    // imgui
-    SimpleUI::bindImGui();
-    SimpleUI::initImGui();
-    SimpleUI::onReshape(default_width, default_height);
-
-    if (g_auto_icesl) {
-#ifdef WIN32
-      SimpleUI::setCustomCallbackMsgProc(custom_wndProc);
-
-      // get app handler
-      g_chill_hwnd = SimpleUI::getHWND();
-#endif
-      // launching Icesl
-      launchIcesl();
-
-      // place apps in default pos
-      setDefaultAppsPos();
-    }
-
-    // main loop
-    SimpleUI::loop();
-
-    if (g_auto_icesl) {
-      // closing Icesl
-      std::atexit(closeIcesl);
-    }
-
-    saveSettings();
-
-    // clean up
-    SimpleUI::terminateImGui();
-
-    // shutdown UI
-    SimpleUI::shutdown();
-
-  }
-  catch (Fatal& e) {
-    std::cerr << Console::red << e.message() << Console::gray << std::endl;
-  }
-}
-
-//-------------------------------------------------------
-void Chill::NodeEditor::launchIcesl() {
-#ifdef WIN32
-  // CreateProcess init
-  const char* icesl_path = g_iceslPath.c_str();
-  std::string icesl_params = "--remote " + g_iceSLTempExportPath;
-
-  STARTUPINFO StartupInfo;
-  ZeroMemory(&StartupInfo, sizeof(StartupInfo));
-  StartupInfo.cb = sizeof StartupInfo;
-
-  ZeroMemory(&g_icesl_p_info, sizeof(g_icesl_p_info));
-
-  // create the process
-  auto icesl_process = CreateProcess(icesl_path, // @lpApplicationName - application name / path 
-          LPSTR(icesl_params.c_str()), // @lpCommandLine - command line for the application
-          NULL, // @lpProcessAttributes - SECURITY_ATTRIBUTES for the process
-          NULL, // @lpThreadAttributes - SECURITY_ATTRIBUTES for the thread
-          FALSE, // @bInheritHandles - inherit handles ?
-          CREATE_NEW_CONSOLE, // @dwCreationFlags - process creation flags
-          NULL, // @lpEnvironment - environment
-          NULL, // @lpCurrentDirectory - current directory
-          &StartupInfo, // @lpStartupInfo -startup info
-          &g_icesl_p_info); // @lpProcessInformation - process info
-
-  if(icesl_process)
-  {
-    // watch the process
-    WaitForSingleObject(g_icesl_p_info.hProcess, 1000);
-    // getting the hwnd
-    EnumWindows(EnumWindowsFromPid, g_icesl_p_info.dwProcessId);
-  }
-  else
-  {
-    // process creation failed
-    std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
-    std::cerr << Console::red << "ErrorCode: " << GetLastError() << Console::gray << std::endl;
-
-    g_icesl_hwnd = NULL;
-  }
-#endif
-}
-
-//-------------------------------------------------------
-void Chill::NodeEditor::closeIcesl() {
-#ifdef WIN32
-  if (g_icesl_p_info.hProcess == NULL) {
-    std::cerr << Console::red << "Icesl Handle not found. Please close Icesl manually." << Console::gray << std::endl;
-  }
-  else {
-    // close all windows with icesl's pid
-    EnumWindows((WNDENUMPROC)TerminateAppEnum, (LPARAM)g_icesl_p_info.dwProcessId);
-
-    // check if handle still responds, else handle is killed
-    if (WaitForSingleObject(g_icesl_p_info.hProcess, 1000) != WAIT_OBJECT_0) {
-      TerminateProcess(g_icesl_p_info.hProcess,0);
-      std::cerr << Console::yellow << "Trying to force close Icesl." << Console::gray << std::endl;
-    }
-    else {
-      std::cerr << Console::yellow << "Icesl was successfully closed." << Console::gray << std::endl;
-    }
-    CloseHandle(g_icesl_p_info.hProcess);
-  }
-#endif
-}
-
-//-------------------------------------------------------
-void Chill::NodeEditor::exportIceSL(std::string& filename) {
-  if (!filename.empty()) {
-    std::ofstream file;
-    file.open(filename);
-
-    // TODO: CLEAN THIS !!!
-
-    file <<
-      "enable_variable_cache = false" << std::endl <<
-      std::endl <<
-      "local _G0 = {}       --swap environnement(swap variables between scripts)" << std::endl <<
-      "local _Gcurrent = {} --environment local to the script : _Gc includes _G0" << std::endl <<
-      "local __dirty = {}   --table of all dirty nodes" << std::endl <<
-      "__input = {}         --table of all input values" << std::endl <<
-      "" << std::endl <<
-      "setmetatable(_G0, { __index = _G })" << std::endl <<
-      "" << std::endl <<
-      "function setNodeId(id)" << std::endl <<
-      "  setfenv(1, _G0)" << std::endl <<
-      "  __currentNodeId = id" << std::endl <<
-      "  setfenv(1, _Gcurrent)" << std::endl <<
-      "end" << std::endl <<
-      "" << std::endl <<
-      "function input(name, type, ...)" << std::endl <<
-      "  return __input[name][1]" << std::endl <<
-      "end" << std::endl <<
-      "" << std::endl <<
-      "function getNodeId(name)" << std::endl <<
-      "  return __input[name][2]" << std::endl <<
-      "end" << std::endl <<
-      "function output(name, type, val)" << std::endl <<
-      "  setfenv(1, _G0)" << std::endl <<
-      "  if (isDirty({ __currentNodeId })) then" << std::endl <<
-      "    _G[name..__currentNodeId] = val" << std::endl <<
-      "  end" << std::endl <<
-      "  setfenv(1, _Gcurrent)" << std::endl <<
-      "end" << std::endl <<
-      "" << std::endl <<
-      "function setDirty(node)" << std::endl <<
-      "  __dirty[node] = true" << std::endl <<
-      "end" << std::endl <<
-      "" << std::endl <<
-      "function isDirty(nodes)" << std::endl <<
-      "  if first_exec then" << std::endl <<
-      "    return true" << std::endl <<
-      "  end" << std::endl <<
-      "    " << std::endl <<
-      "  if #nodes == 0 then" << std::endl <<
-      "    return false" << std::endl <<
-      "  else" << std::endl <<
-      "    local node = table.remove(nodes, 1)" << std::endl <<
-      "    if node == NIL then node = nil end" << std::endl <<
-      "    return __dirty[node] or isDirty(nodes)" << std::endl <<
-      "  end" << std::endl <<
-      "end" << std::endl <<
-      "" << std::endl <<
-      "if first_exec == nil then" << std::endl <<
-      "  first_exec = true" << std::endl <<
-      "else" << std::endl <<
-      "  first_exec = false" << std::endl <<
-      "end" << std::endl <<
-      "" << std::endl <<
-      "emit(Void)" << std::endl<<
-      "------------------------------------------------------" << std::endl;
-
-
-
-    getMainGraph()->iceSL(file);
-    file.close();
-  }
-}
-
-
-
-//-------------------------------------------------------
-bool Chill::NodeEditor::draw()
-{
-  drawMenuBar();
-
-  ImGui::SetNextWindowPos(ImVec2(0, 20));
-  ImGui::SetNextWindowSize(ImVec2(200, m_size.y));
-  drawLeftMenu();
-
-  ImGui::SetNextWindowPos(ImVec2(200, 20));
-  ImGui::SetNextWindowSize(m_size);
-  drawGraph();
-
-  return true;
-}
-
 namespace Chill
 {
   void zoom();
@@ -548,6 +38,516 @@ namespace Chill
   bool   m_show_grid = true;
 
   Style style;
+
+  bool g_auto_save = true;
+  bool g_auto_export = true;
+  bool g_auto_icesl = true;
+
+  std::string g_iceslPath;
+
+  std::string g_graphPath = "";
+  std::string g_iceSLExportPath = "";
+  std::string g_iceSLTempExportPath = fs::temp_directory_path().string() + std::to_string(std::time(0)) + ".lua";
+
+  std::string g_settingsFileName = "chill-settings.txt";
+
+  const int default_width = 800;
+  const int default_height = 600;
+
+#ifdef WIN32
+  HWND g_chill_hwnd = NULL;
+
+  HWND g_icesl_hwnd = NULL;
+
+  PROCESS_INFORMATION g_icesl_p_info;
+#endif
+
+  NodeEditor *NodeEditor::s_instance = nullptr;
+
+  //-------------------------------------------------------
+  void NodeEditor::saveSettings()
+  {
+    // save current settings
+    std::string filename(ChillFolder());
+    filename += g_settingsFileName;
+
+    // remove space from icesl path for storage in txt file
+    std::string cleanedIceslPath = g_iceslPath;
+    std::replace(cleanedIceslPath.begin(), cleanedIceslPath.end(), ' ', '#');
+
+    std::ofstream f(filename);
+    f << "icesl_path " << cleanedIceslPath << std::endl;
+    f << "auto_save " << g_auto_save << std::endl;
+    f << "auto_export " << g_auto_export << std::endl;
+    f << "auto_launch_icesl " << g_auto_icesl << std::endl;
+    f.close();
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::loadSettings()
+  {
+    std::string filename = ChillFolder() + g_settingsFileName;
+    if (LibSL::System::File::exists(filename.c_str())) {
+      std::ifstream f(filename);
+      while (!f.eof()) {
+        std::string setting, value, raw;
+        f >> setting >> value;
+        if (setting == "icesl_path") {
+          std::replace(value.begin(), value.end(), '#', ' ');
+          g_iceslPath = value;
+        }
+        if (setting == "auto_save") {
+          g_auto_save = (std::stoi(value) ? true : false);
+        }
+        if (setting == "auto_export") {
+          g_auto_export = (std::stoi(value) ? true : false);
+        }
+        if (setting == "auto_launch_icesl") {
+          g_auto_icesl = (std::stoi(value) ? true : false);
+        }
+      }
+      f.close();
+    }
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::setDefaultAppsPos() {
+    int screen_width, screen_height, desktop_width, desktop_height = 0;
+
+    // get screen / desktop dimmensions
+    getScreenRes(screen_width, screen_height);
+    getDesktopScreenRes(desktop_width, desktop_height);
+
+    int app_width = 2 * (desktop_width / 3);
+    int app_heigth = desktop_height;
+
+    //int app_pos_x = desktop_width - screen_width;
+    //int app_pos_y = desktop_height - screen_height;
+
+    int app_pos_x = -8; // TODO  PB:get a correct offset / resolution calculation
+    int app_pos_y = 0;
+
+    // move to position
+#ifdef WIN32
+    SetWindowPos(g_chill_hwnd, HWND_TOPMOST, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
+
+    // move icesl to the last part of the screen
+    int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
+    SetWindowPos(g_icesl_hwnd, HWND_TOP, app_width - icesl_x_offset, app_pos_y, screen_width - app_width + icesl_x_offset * 1.2, app_heigth, SWP_SHOWWINDOW);
+#endif
+  }
+
+  //-------------------------------------------------------
+  static void moveIceSLWindowAlongChill() {
+#ifdef WIN32
+    // get Chill current size
+    RECT chillRect;
+    GetWindowRect(g_chill_hwnd, &chillRect);
+    int icesl_x_offset = 15; // TODO PB:get a correct offset / resolution calculation
+    // move and resize according to Chill
+    SetWindowPos(g_icesl_hwnd, HWND_NOTOPMOST, chillRect.right - icesl_x_offset, chillRect.top, ((chillRect.right - chillRect.left + 1) / 2) + icesl_x_offset * 2, chillRect.bottom - chillRect.top + 1, SWP_NOACTIVATE);
+#endif
+  }
+
+  //-------------------------------------------------------
+  std::string NodeEditor::ChillFolder() {
+#ifdef WIN32
+    return getenv("AppData") + std::string("\\Chill\\");
+#elif __linux__
+    return getenv("HOME") + std::string("/Chill/");
+#endif
+  }
+
+  //-------------------------------------------------------
+  std::string NodeEditor::NodesFolder() {
+#ifdef WIN32
+    return getenv("AppData") + std::string("\\Chill\\chill-nodes");
+#elif __linux__
+    return getenv("HOME") + std::string("/Chill/chill-nodes");
+#endif
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::SetIceslPath() {
+    std::string defPath;
+    if (g_iceslPath.empty()) {
+#ifdef WIN32
+      defPath = getenv("PROGRAMFILES");
+      g_iceslPath = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe";
+#elif __linux__
+      std::string defPath = getenv("HOME");
+      g_iceslPath = getenv("HOME") + std::string("/icesl/bin/IceSL-slicer");
+#endif
+    }
+    if (!LibSL::System::File::exists(g_iceslPath.c_str())) {
+      std::cerr << Console::red << "icesl not found" << Console::gray << std::endl;
+      g_iceslPath = openFileDialog(OFD_FILTER_NONE).c_str();
+      std::cerr << Console::yellow << "g_iceslPath: " << g_iceslPath << Console::gray << std::endl;
+    }
+  }
+
+  //-------------------------------------------------------
+  NodeEditor::NodeEditor() {
+    m_graphs.push(new ProcessingGraph());
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::mainRender()
+  {
+    glClearColor(0.F, 0.F, 0.F, 0.F);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    Instance()->draw();
+
+    ImGui::Render();
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::mainOnResize(uint width, uint height) {
+    Instance()->m_size = ImVec2((float)width, (float)height);
+    moveIceSLWindowAlongChill();
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::mainKeyPressed(uchar k)
+  {
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::mainScanCodePressed(uint sc)
+  {
+    if (sc == LIBSL_KEY_SHIFT) {
+      ImGui::GetIO().KeyShift = true;
+    }
+    if (sc == LIBSL_KEY_CTRL) {
+      ImGui::GetIO().KeyCtrl = true;
+    }
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::mainScanCodeUnpressed(uint sc)
+  {
+    if (sc == LIBSL_KEY_SHIFT) {
+      ImGui::GetIO().KeyShift = false;
+    }
+    if (sc == LIBSL_KEY_CTRL) {
+      ImGui::GetIO().KeyCtrl = false;
+    }
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::mainMouseMoved(uint x, uint y) {}
+
+  //-------------------------------------------------------
+  void NodeEditor::mainMousePressed(uint x, uint y, uint button, uint flags) {}
+
+  void NodeEditor::getScreenRes(int& width, int& height) {
+#ifdef WIN32
+    RECT screen;
+
+    const HWND hScreen = GetDesktopWindow(); // get desktop handler
+    GetWindowRect(hScreen, &screen); // get entire desktop size
+
+    width = screen.right - screen.top;
+    height = screen.bottom - screen.top;
+
+#endif
+
+#ifdef __linux__
+    width = 1920;
+    height = 1080;
+#endif
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::getDesktopScreenRes(int& width, int& height) {
+#ifdef WIN32
+    RECT desktop;
+
+    // get desktop size WITHOUT task bar
+    SystemParametersInfoA(SPI_GETWORKAREA, NULL, &desktop, NULL);
+
+    width = desktop.right;
+    height = desktop.bottom;
+
+#endif
+
+#ifdef __linux__
+    width = 1920;
+    height = 1080;
+#endif
+  }
+
+  //-------------------------------------------------------
+#ifdef WIN32
+  BOOL CALLBACK EnumWindowsFromPid(HWND hwnd, LPARAM lParam)
+  {
+    DWORD pID;
+    GetWindowThreadProcessId(hwnd, &pID);
+    if (pID == lParam)
+    {
+      g_icesl_hwnd = hwnd;
+      return FALSE;
+    }
+    return TRUE;
+  }
+
+  BOOL CALLBACK TerminateAppEnum(HWND hwnd, LPARAM lParam)
+  {
+    DWORD pID;
+    GetWindowThreadProcessId(hwnd, &pID);
+
+    if (pID == (DWORD)lParam)
+    {
+      PostMessage(hwnd, WM_CLOSE, 0, 0);
+    }
+
+    return TRUE;
+  }
+
+  LRESULT CALLBACK custom_wndProc(
+    _In_ HWND   hwnd,
+    _In_ UINT   uMsg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam)
+  {
+    switch (uMsg) {
+    case WM_MOVE:
+      moveIceSLWindowAlongChill();
+
+      // get window placement / style
+      WINDOWPLACEMENT wPlacement;
+      GetWindowPlacement(g_chill_hwnd, &wPlacement);
+
+      if (wPlacement.showCmd == SW_MAXIMIZE) {
+        // set default pos
+        NodeEditor::setDefaultAppsPos();
+      }
+      break;
+    }
+    return 0;
+  }
+#endif
+
+  //-------------------------------------------------------
+  void NodeEditor::launch()
+  {
+    NodeEditor *nodeEditor = NodeEditor::Instance();
+
+    loadSettings();
+    SetIceslPath();
+
+
+    try {
+      // create window
+      SimpleUI::init(default_width, default_height, "Chill, the node-based editor");
+
+      // attach functions
+      SimpleUI::onRender = NodeEditor::mainRender;
+      SimpleUI::onKeyPressed = NodeEditor::mainKeyPressed;
+      SimpleUI::onScanCodePressed = NodeEditor::mainScanCodePressed;
+      SimpleUI::onScanCodeUnpressed = NodeEditor::mainScanCodeUnpressed;
+      SimpleUI::onMouseButtonPressed = NodeEditor::mainMousePressed;
+      SimpleUI::onMouseMotion = NodeEditor::mainMouseMoved;
+      SimpleUI::onReshape = NodeEditor::mainOnResize;
+
+      // imgui
+      SimpleUI::bindImGui();
+      SimpleUI::initImGui();
+      SimpleUI::onReshape(default_width, default_height);
+
+      if (g_auto_icesl) {
+#ifdef WIN32
+        SimpleUI::setCustomCallbackMsgProc(custom_wndProc);
+
+        // get app handler
+        g_chill_hwnd = SimpleUI::getHWND();
+#endif
+        // launching Icesl
+        launchIcesl();
+
+        // place apps in default pos
+        setDefaultAppsPos();
+      }
+
+      // main loop
+      SimpleUI::loop();
+
+      if (g_auto_icesl) {
+        // closing Icesl
+        std::atexit(closeIcesl);
+      }
+
+      saveSettings();
+
+      // clean up
+      SimpleUI::terminateImGui();
+
+      // shutdown UI
+      SimpleUI::shutdown();
+
+    }
+    catch (Fatal& e) {
+      std::cerr << Console::red << e.message() << Console::gray << std::endl;
+    }
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::launchIcesl() {
+#ifdef WIN32
+    // CreateProcess init
+    const char* icesl_path = g_iceslPath.c_str();
+    std::string icesl_params = "--remote " + g_iceSLTempExportPath;
+
+    STARTUPINFO StartupInfo;
+    ZeroMemory(&StartupInfo, sizeof(StartupInfo));
+    StartupInfo.cb = sizeof StartupInfo;
+
+    ZeroMemory(&g_icesl_p_info, sizeof(g_icesl_p_info));
+
+    // create the process
+    auto icesl_process = CreateProcess(icesl_path, // @lpApplicationName - application name / path 
+      LPSTR(icesl_params.c_str()), // @lpCommandLine - command line for the application
+      NULL, // @lpProcessAttributes - SECURITY_ATTRIBUTES for the process
+      NULL, // @lpThreadAttributes - SECURITY_ATTRIBUTES for the thread
+      FALSE, // @bInheritHandles - inherit handles ?
+      CREATE_NEW_CONSOLE, // @dwCreationFlags - process creation flags
+      NULL, // @lpEnvironment - environment
+      NULL, // @lpCurrentDirectory - current directory
+      &StartupInfo, // @lpStartupInfo -startup info
+      &g_icesl_p_info); // @lpProcessInformation - process info
+
+    if (icesl_process)
+    {
+      // watch the process
+      WaitForSingleObject(g_icesl_p_info.hProcess, 1000);
+      // getting the hwnd
+      EnumWindows(EnumWindowsFromPid, g_icesl_p_info.dwProcessId);
+    }
+    else
+    {
+      // process creation failed
+      std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
+      std::cerr << Console::red << "ErrorCode: " << GetLastError() << Console::gray << std::endl;
+
+      g_icesl_hwnd = NULL;
+    }
+#endif
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::closeIcesl() {
+#ifdef WIN32
+    if (g_icesl_p_info.hProcess == NULL) {
+      std::cerr << Console::red << "Icesl Handle not found. Please close Icesl manually." << Console::gray << std::endl;
+    }
+    else {
+      // close all windows with icesl's pid
+      EnumWindows((WNDENUMPROC)TerminateAppEnum, (LPARAM)g_icesl_p_info.dwProcessId);
+
+      // check if handle still responds, else handle is killed
+      if (WaitForSingleObject(g_icesl_p_info.hProcess, 1000) != WAIT_OBJECT_0) {
+        TerminateProcess(g_icesl_p_info.hProcess, 0);
+        std::cerr << Console::yellow << "Trying to force close Icesl." << Console::gray << std::endl;
+      }
+      else {
+        std::cerr << Console::yellow << "Icesl was successfully closed." << Console::gray << std::endl;
+      }
+      CloseHandle(g_icesl_p_info.hProcess);
+    }
+#endif
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::exportIceSL(std::string& filename) {
+    if (!filename.empty()) {
+      std::ofstream file;
+      file.open(filename);
+
+      // TODO: CLEAN THIS !!!
+
+      file <<
+        "enable_variable_cache = false" << std::endl <<
+        std::endl <<
+        "local _G0 = {}       --swap environnement(swap variables between scripts)" << std::endl <<
+        "local _Gcurrent = {} --environment local to the script : _Gc includes _G0" << std::endl <<
+        "local __dirty = {}   --table of all dirty nodes" << std::endl <<
+        "__input = {}         --table of all input values" << std::endl <<
+        "" << std::endl <<
+        "setmetatable(_G0, { __index = _G })" << std::endl <<
+        "" << std::endl <<
+        "function setNodeId(id)" << std::endl <<
+        "  setfenv(1, _G0)" << std::endl <<
+        "  __currentNodeId = id" << std::endl <<
+        "  setfenv(1, _Gcurrent)" << std::endl <<
+        "end" << std::endl <<
+        "" << std::endl <<
+        "function input(name, type, ...)" << std::endl <<
+        "  return __input[name][1]" << std::endl <<
+        "end" << std::endl <<
+        "" << std::endl <<
+        "function getNodeId(name)" << std::endl <<
+        "  return __input[name][2]" << std::endl <<
+        "end" << std::endl <<
+        "function output(name, type, val)" << std::endl <<
+        "  setfenv(1, _G0)" << std::endl <<
+        "  if (isDirty({ __currentNodeId })) then" << std::endl <<
+        "    _G[name..__currentNodeId] = val" << std::endl <<
+        "  end" << std::endl <<
+        "  setfenv(1, _Gcurrent)" << std::endl <<
+        "end" << std::endl <<
+        "" << std::endl <<
+        "function setDirty(node)" << std::endl <<
+        "  __dirty[node] = true" << std::endl <<
+        "end" << std::endl <<
+        "" << std::endl <<
+        "function isDirty(nodes)" << std::endl <<
+        "  if first_exec then" << std::endl <<
+        "    return true" << std::endl <<
+        "  end" << std::endl <<
+        "    " << std::endl <<
+        "  if #nodes == 0 then" << std::endl <<
+        "    return false" << std::endl <<
+        "  else" << std::endl <<
+        "    local node = table.remove(nodes, 1)" << std::endl <<
+        "    if node == NIL then node = nil end" << std::endl <<
+        "    return __dirty[node] or isDirty(nodes)" << std::endl <<
+        "  end" << std::endl <<
+        "end" << std::endl <<
+        "" << std::endl <<
+        "if first_exec == nil then" << std::endl <<
+        "  first_exec = true" << std::endl <<
+        "else" << std::endl <<
+        "  first_exec = false" << std::endl <<
+        "end" << std::endl <<
+        "" << std::endl <<
+        "emit(Void)" << std::endl <<
+        "------------------------------------------------------" << std::endl;
+
+
+
+      getMainGraph()->iceSL(file);
+      file.close();
+    }
+  }
+
+
+
+  //-------------------------------------------------------
+  bool NodeEditor::draw()
+  {
+    drawMenuBar();
+
+    ImGui::SetNextWindowPos(ImVec2(0, 20));
+    ImGui::SetNextWindowSize(ImVec2(200, m_size.y));
+    drawLeftMenu();
+
+    ImGui::SetNextWindowPos(ImVec2(200, 20));
+    ImGui::SetNextWindowSize(m_size);
+    drawGraph();
+
+    return true;
+  }
 
   //-------------------------------------------------------
   void NodeEditor::drawMenuBar()

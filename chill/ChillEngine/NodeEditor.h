@@ -21,35 +21,27 @@ namespace Chill
     NodeEditor & operator= (const NodeEditor&) {};
     NodeEditor(const NodeEditor&) {};
 
+    std::stack<Chill::ProcessingGraph*> m_graphs;
+
+    AutoPtr<ProcessorInput>  m_selected_input;
+    AutoPtr<ProcessorOutput> m_selected_output;
+
     static NodeEditor *s_instance;
 
-    static void Chill::NodeEditor::launchIcesl();
-    static void Chill::NodeEditor::closeIcesl();
+    // export the graph to a .lua file for IceSL
+    void exportIceSL(std::string& filename_);
 
-    static void Chill::NodeEditor::saveSettings();
-    static void Chill::NodeEditor::loadSettings();
+    static void launchIcesl();
+    static void closeIcesl();
 
-  public:
-    static void Chill::NodeEditor::launch();      
+    static void saveSettings();
+    static void loadSettings();
 
     // Get current screen size
     static void Chill::NodeEditor::getScreenRes(int& width, int& height);
     // Get current desktop size (without taskbar for windows)
     static void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height);
 
-    static NodeEditor *Instance() {
-      if (!s_instance)
-        s_instance = new NodeEditor;
-      return s_instance;
-    }
-
-  private:
-    std::stack<Chill::ProcessingGraph*> m_graphs;
-
-    AutoPtr<ProcessorInput>  m_selected_input;
-    AutoPtr<ProcessorOutput> m_selected_output;
-
-  public:
     /**
      *  Called at each frame
      */
@@ -62,7 +54,6 @@ namespace Chill
      */
     static void mainOnResize(uint _width, uint _height);
 
-
     /**
      *  Called when a key is pressed
      *  @param k the typed character
@@ -73,17 +64,25 @@ namespace Chill
     static void mainMouseMoved(uint _x, uint _y);
     static void mainMousePressed(uint _x, uint _y, uint _button, uint _flags);
 
-  public:
-    static inline std::string ChillFolder();
-    static inline std::string NodesFolder();
-    static inline void SetIceslPath();
-
-    void exportIceSL(std::string& filename_);
-
     bool draw();
     void drawMenuBar();
     void drawLeftMenu();
     void drawGraph();
+
+  public:
+    static NodeEditor *Instance() {
+      if (!s_instance)
+        s_instance = new NodeEditor;
+      return s_instance;
+    }
+
+    static void Chill::NodeEditor::launch();  
+
+    static void setDefaultAppsPos();
+
+    static inline std::string ChillFolder();
+    static inline std::string NodesFolder();
+    static inline void SetIceslPath();
 
     ProcessingGraph* getCurrentGraph() {
       return m_graphs.top();
@@ -104,14 +103,14 @@ namespace Chill
     }
 
     void setMainGraph(ProcessingGraph* _graph) {
-      while(! m_graphs.empty()) m_graphs.pop();
+      while (!m_graphs.empty()) m_graphs.pop();
       m_graphs.push(_graph);
     }
 
     void setSelectedInput(AutoPtr<ProcessorInput> _input) {
       m_selected_input = _input;
 
-      if (! m_selected_output.isNull()) {
+      if (!m_selected_output.isNull()) {
         if (m_selected_output->owner() == m_selected_input->owner()) {
           return;
         }
@@ -141,5 +140,6 @@ namespace Chill
     AutoPtr<ProcessorOutput> getSelectedOutput() {
       return m_selected_output;
     }
+
   };
 };
