@@ -4,15 +4,15 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Mo
 
 if (EMSCRIPTEN)
 
-  SET(CMAKE_EXE_LINKER_FLAGS "-s TOTAL_MEMORY=128000000")
+  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s TOTAL_MEMORY=128000000")
 
 else (EMSCRIPTEN)
 
   # only on Linux boxes (must appear at beginning of CMakeLists.txt file)
-  SET(CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
+  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--copy-dt-needed-entries")
   IF (WIN32)
     # only on Windows boxes (must appear at beginning of CMakeLists.txt file)
-    SET(CMAKE_EXE_LINKER_FLAGS "/LARGEADDRESSAWARE")
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
   ENDIF()
 endif (EMSCRIPTEN)
 
