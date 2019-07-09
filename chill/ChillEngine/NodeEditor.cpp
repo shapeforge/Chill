@@ -7,62 +7,15 @@
 #include "Resources.h"
 #include "VisualComment.h"
 
-#include <iostream>
-#include <fstream>
-#include <filesystem>
-
 #ifdef USE_GLUT
 #include <GL/glut.h>
 #endif
-
-namespace fs = std::experimental::filesystem;
 
 LIBSL_WIN32_FIX
 
 namespace Chill
 {
-  void zoom();
-  void drawGrid();
-  void menus();
-
-  void selectProcessors();
-
-  ImVec2 m_offset    = ImVec2(0, 0);
-
-  bool   m_graph_menu = false;
-  bool   m_node_menu  = false;
-
-  bool   m_dragging  = false;
-  bool   m_selecting = false;
-  bool   m_visible   = true;
-  bool   m_show_grid = true;
-
-  Style style;
-
-  bool g_auto_save = true;
-  bool g_auto_export = true;
-  bool g_auto_icesl = true;
-
-  std::string g_iceslPath;
-
-  std::string g_graphPath = "";
-  std::string g_iceSLExportPath = "";
-  std::string g_iceSLTempExportPath = fs::temp_directory_path().string() + std::to_string(std::time(0)) + ".lua";
-
-  std::string g_settingsFileName = "chill-settings.txt";
-
-  const int default_width = 800;
-  const int default_height = 600;
-
-#ifdef WIN32
-  HWND g_chill_hwnd = NULL;
-
-  HWND g_icesl_hwnd = NULL;
-
-  PROCESS_INFORMATION g_icesl_p_info;
-#endif
-
-  NodeEditor *NodeEditor::s_instance = nullptr;
+  NodeEditor* NodeEditor::s_instance = nullptr;
 
   //-------------------------------------------------------
   void NodeEditor::saveSettings()
@@ -138,7 +91,7 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  static void moveIceSLWindowAlongChill() {
+  void NodeEditor::moveIceSLWindowAlongChill() {
 #ifdef WIN32
     // get Chill current size
     RECT chillRect;
@@ -205,7 +158,7 @@ namespace Chill
   //-------------------------------------------------------
   void NodeEditor::mainOnResize(uint width, uint height) {
     Instance()->m_size = ImVec2((float)width, (float)height);
-    moveIceSLWindowAlongChill();
+    s_instance->moveIceSLWindowAlongChill();
   }
 
   //-------------------------------------------------------
@@ -286,7 +239,7 @@ namespace Chill
     GetWindowThreadProcessId(hwnd, &pID);
     if (pID == lParam)
     {
-      g_icesl_hwnd = hwnd;
+      NodeEditor::Instance()->g_icesl_hwnd = hwnd;
       return FALSE;
     }
     return TRUE;
@@ -313,15 +266,15 @@ namespace Chill
   {
     switch (uMsg) {
     case WM_MOVE:
-      moveIceSLWindowAlongChill();
+      NodeEditor::Instance()->moveIceSLWindowAlongChill();
 
       // get window placement / style
       WINDOWPLACEMENT wPlacement;
-      GetWindowPlacement(g_chill_hwnd, &wPlacement);
+      GetWindowPlacement(NodeEditor::Instance()->g_chill_hwnd, &wPlacement);
 
       if (wPlacement.showCmd == SW_MAXIMIZE) {
         // set default pos
-        NodeEditor::setDefaultAppsPos();
+        NodeEditor::Instance()->setDefaultAppsPos();
       }
       break;
     }
@@ -334,13 +287,13 @@ namespace Chill
   {
     NodeEditor *nodeEditor = NodeEditor::Instance();
 
-    loadSettings();
-    SetIceslPath();
+    s_instance->loadSettings();
+    s_instance->SetIceslPath();
 
 
     try {
       // create window
-      SimpleUI::init(default_width, default_height, "Chill, the node-based editor");
+      SimpleUI::init(s_instance->default_width, s_instance->default_height, "Chill, the node-based editor");
 
       // attach functions
       SimpleUI::onRender = NodeEditor::mainRender;
@@ -354,31 +307,31 @@ namespace Chill
       // imgui
       SimpleUI::bindImGui();
       SimpleUI::initImGui();
-      SimpleUI::onReshape(default_width, default_height);
+      SimpleUI::onReshape(s_instance->default_width, s_instance->default_height);
 
-      if (g_auto_icesl) {
+      if (s_instance->g_auto_icesl) {
 #ifdef WIN32
         SimpleUI::setCustomCallbackMsgProc(custom_wndProc);
 
         // get app handler
-        g_chill_hwnd = SimpleUI::getHWND();
+        s_instance->g_chill_hwnd = SimpleUI::getHWND();
 #endif
         // launching Icesl
         launchIcesl();
 
         // place apps in default pos
-        setDefaultAppsPos();
+        s_instance->setDefaultAppsPos();
       }
 
       // main loop
       SimpleUI::loop();
 
-      if (g_auto_icesl) {
+      if (s_instance->g_auto_icesl) {
         // closing Icesl
         std::atexit(closeIcesl);
       }
 
-      saveSettings();
+      s_instance->saveSettings();
 
       // clean up
       SimpleUI::terminateImGui();
@@ -396,14 +349,14 @@ namespace Chill
   void NodeEditor::launchIcesl() {
 #ifdef WIN32
     // CreateProcess init
-    const char* icesl_path = g_iceslPath.c_str();
-    std::string icesl_params = "--remote " + g_iceSLTempExportPath;
+    const char* icesl_path = s_instance->g_iceslPath.c_str();
+    std::string icesl_params = "--remote " + s_instance->g_iceSLTempExportPath;
 
     STARTUPINFO StartupInfo;
     ZeroMemory(&StartupInfo, sizeof(StartupInfo));
     StartupInfo.cb = sizeof StartupInfo;
 
-    ZeroMemory(&g_icesl_p_info, sizeof(g_icesl_p_info));
+    ZeroMemory(&s_instance->g_icesl_p_info, sizeof(s_instance->g_icesl_p_info));
 
     // create the process
     auto icesl_process = CreateProcess(icesl_path, // @lpApplicationName - application name / path 
@@ -415,14 +368,14 @@ namespace Chill
       NULL, // @lpEnvironment - environment
       NULL, // @lpCurrentDirectory - current directory
       &StartupInfo, // @lpStartupInfo -startup info
-      &g_icesl_p_info); // @lpProcessInformation - process info
+      &s_instance->g_icesl_p_info); // @lpProcessInformation - process info
 
     if (icesl_process)
     {
       // watch the process
-      WaitForSingleObject(g_icesl_p_info.hProcess, 1000);
+      WaitForSingleObject(s_instance->g_icesl_p_info.hProcess, 1000);
       // getting the hwnd
-      EnumWindows(EnumWindowsFromPid, g_icesl_p_info.dwProcessId);
+      EnumWindows(EnumWindowsFromPid, s_instance->g_icesl_p_info.dwProcessId);
     }
     else
     {
@@ -430,7 +383,7 @@ namespace Chill
       std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
       std::cerr << Console::red << "ErrorCode: " << GetLastError() << Console::gray << std::endl;
 
-      g_icesl_hwnd = NULL;
+      s_instance->g_icesl_hwnd = NULL;
     }
 #endif
   }
@@ -438,22 +391,22 @@ namespace Chill
   //-------------------------------------------------------
   void NodeEditor::closeIcesl() {
 #ifdef WIN32
-    if (g_icesl_p_info.hProcess == NULL) {
+    if (s_instance->g_icesl_p_info.hProcess == NULL) {
       std::cerr << Console::red << "Icesl Handle not found. Please close Icesl manually." << Console::gray << std::endl;
     }
     else {
       // close all windows with icesl's pid
-      EnumWindows((WNDENUMPROC)TerminateAppEnum, (LPARAM)g_icesl_p_info.dwProcessId);
+      EnumWindows((WNDENUMPROC)TerminateAppEnum, (LPARAM)s_instance->g_icesl_p_info.dwProcessId);
 
       // check if handle still responds, else handle is killed
-      if (WaitForSingleObject(g_icesl_p_info.hProcess, 1000) != WAIT_OBJECT_0) {
-        TerminateProcess(g_icesl_p_info.hProcess, 0);
+      if (WaitForSingleObject(s_instance->g_icesl_p_info.hProcess, 1000) != WAIT_OBJECT_0) {
+        TerminateProcess(s_instance->g_icesl_p_info.hProcess, 0);
         std::cerr << Console::yellow << "Trying to force close Icesl." << Console::gray << std::endl;
       }
       else {
         std::cerr << Console::yellow << "Icesl was successfully closed." << Console::gray << std::endl;
       }
-      CloseHandle(g_icesl_p_info.hProcess);
+      CloseHandle(s_instance->g_icesl_p_info.hProcess);
     }
 #endif
   }
@@ -1105,8 +1058,8 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void selectProcessors() {
-    m_selecting = true;
+  void NodeEditor::selectProcessors() {
+    NodeEditor::Instance()->m_selecting = true;
 
     NodeEditor* n_e = NodeEditor::Instance();
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -1119,8 +1072,8 @@ namespace Chill
 
     ImGuiIO io = ImGui::GetIO();
 
-    ImVec2 A = (io.MousePos - (w_pos + w_size) / 2.0F) / w_scale - m_offset;
-    ImVec2 B = (io.MouseClickedPos[0] - (w_pos + w_size) / 2.0F) / w_scale - m_offset;
+    ImVec2 A = (io.MousePos - (w_pos + w_size) / 2.0F) / w_scale - NodeEditor::Instance()->m_offset;
+    ImVec2 B = (io.MouseClickedPos[0] - (w_pos + w_size) / 2.0F) / w_scale - NodeEditor::Instance()->m_offset;
 
     if (A.x > B.x) std::swap(A.x, B.x);
     if (A.y > B.y) std::swap(A.y, B.y);
@@ -1129,7 +1082,7 @@ namespace Chill
       draw_list->AddRect(
         io.MouseClickedPos[0],
         io.MousePos,
-        style.processor_selected_color
+        NodeEditor::Instance()->style.processor_selected_color
       );
 
       if (!io.KeysDown[LIBSL_KEY_SHIFT]) {
@@ -1162,19 +1115,19 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void drawGrid() {
+  void NodeEditor::drawGrid() {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    ImVec2 offset = (m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
+    ImVec2 offset = (NodeEditor::Instance()->m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    const ImU32& GRID_COLOR = style.graph_grid_color;
-    const float grid_Line_width = style.graph_grid_line_width;
+    const ImU32& GRID_COLOR = NodeEditor::Instance()->style.graph_grid_color;
+    const float grid_Line_width = NodeEditor::Instance()->style.graph_grid_line_width;
 
     int coeff = window->FontWindowScale >= 0.5F ? 1 : 10;
     int subdiv_levels[] = {
-      style.graph_grid_size * coeff,
-      style.graph_grid_size * coeff * 10};
+      NodeEditor::Instance()->style.graph_grid_size * coeff,
+      NodeEditor::Instance()->style.graph_grid_size * coeff * 10};
 
     for (int subdiv : subdiv_levels) {
       const float& grid_size = window->FontWindowScale * subdiv;
@@ -1196,13 +1149,13 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void zoom() {
+  void NodeEditor::zoom() {
     //NodeEditor* n_e = NodeEditor::Instance();
     //ImDrawList* draw_list = ImGui::GetWindowDrawList();
     //ImDrawList* overlay_draw_list = ImGui::GetOverlayDrawList();
 
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    ImVec2 offset = (m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
+    ImVec2 offset = (NodeEditor::Instance()->m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
     ImGuiIO io = ImGui::GetIO();
 
 
@@ -1223,11 +1176,11 @@ namespace Chill
         // mouse to screen
         ImVec2 m2s = io.MousePos - (window->Pos + window->Size) / 2.F;
         // screen to grid
-        ImVec2 s2g = m2s / old_scale - m_offset;
+        ImVec2 s2g = m2s / old_scale - NodeEditor::Instance()->m_offset;
         // grid to screen
-        ImVec2 g2s = (s2g + m_offset) * new_scale;
+        ImVec2 g2s = (s2g + NodeEditor::Instance()->m_offset) * new_scale;
 
-        m_offset += (m2s - g2s) / new_scale;
+        NodeEditor::Instance()->m_offset += (m2s - g2s) / new_scale;
       }
     }
   }
@@ -1307,7 +1260,7 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void menus() {
+  void NodeEditor::menus() {
     NodeEditor* n_e = NodeEditor::Instance();
 
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -1319,10 +1272,10 @@ namespace Chill
     ImGuiIO io = ImGui::GetIO();
 
     // Draw menus
-    if (m_graph_menu) {
+    if (NodeEditor::Instance()->m_graph_menu) {
       ImGui::OpenPopup("graph_menu");
     }
-    if (m_node_menu) {
+    if (NodeEditor::Instance()->m_node_menu) {
       ImGui::OpenPopup("node_menu");
     }
 
@@ -1332,9 +1285,9 @@ namespace Chill
       // mouse to screen
       ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
       // screen to grid
-      ImVec2 s2g = m2s / w_scale - m_offset;
+      ImVec2 s2g = m2s / w_scale - NodeEditor::Instance()->m_offset;
 
-      m_graph_menu = false;
+      NodeEditor::Instance()->m_graph_menu = false;
 
       if( ImGui::BeginMenu("Add", "SPACE")) {
         addNodeMenu(s2g);
@@ -1369,7 +1322,7 @@ namespace Chill
 
     if (ImGui::BeginPopup("node_menu"))
     {
-      m_node_menu = false;
+      NodeEditor::Instance()->m_node_menu = false;
       if (ImGui::MenuItem("Copy", "CTRL+C")) {
         if (!selected.empty()) {
           buffer = n_e->getCurrentGraph()->copySubset(selected);

@@ -3,6 +3,10 @@
 #include <vector>
 #include <stack>
 
+#include <iostream>
+#include <fstream>
+#include <filesystem>
+
 #include <LibSL/LibSL.h>
 #include <LibSL/LibSL_gl.h>
 
@@ -10,13 +14,14 @@
 #include "Processor.h"
 #include "ProcessingGraph.h"
 
+namespace fs = std::experimental::filesystem;
+
 namespace Chill
 {
   class NodeEditor : public UI
   {
   private:
-    NodeEditor();
-    ~NodeEditor() {}
+    static NodeEditor* s_instance;
 
     NodeEditor & operator= (const NodeEditor&) {};
     NodeEditor(const NodeEditor&) {};
@@ -26,7 +31,10 @@ namespace Chill
     AutoPtr<ProcessorInput>  m_selected_input;
     AutoPtr<ProcessorOutput> m_selected_output;
 
-    static NodeEditor *s_instance;
+    //-------------------------------------------------------
+
+    NodeEditor();
+    ~NodeEditor() {}
 
     // export the graph to a .lua file for IceSL
     void exportIceSL(std::string& filename_);
@@ -34,8 +42,8 @@ namespace Chill
     static void launchIcesl();
     static void closeIcesl();
 
-    static void saveSettings();
-    static void loadSettings();
+    void saveSettings();
+    void loadSettings();
 
     // Get current screen size
     static void Chill::NodeEditor::getScreenRes(int& width, int& height);
@@ -69,8 +77,49 @@ namespace Chill
     void drawLeftMenu();
     void drawGraph();
 
+    void zoom();
+    void drawGrid();
+    void menus();
+
+    void selectProcessors();
+
   public:
-    static NodeEditor *Instance() {
+    const int default_width = 800;
+    const int default_height = 600;
+
+    bool g_auto_save = true;
+    bool g_auto_export = true;
+    bool g_auto_icesl = true;
+
+    std::string g_iceslPath;
+
+    std::string g_graphPath = "";
+    std::string g_iceSLExportPath = "";
+    std::string g_iceSLTempExportPath = fs::temp_directory_path().string() + std::to_string(std::time(0)) + ".lua";
+
+    std::string g_settingsFileName = "chill-settings.txt";
+
+    ImVec2 m_offset = ImVec2(0, 0);
+
+    bool   m_graph_menu = false;
+    bool   m_node_menu = false;
+
+    bool   m_dragging = false;
+    bool   m_selecting = false;
+    bool   m_visible = true;
+    bool   m_show_grid = true;
+
+    Style style;
+
+#ifdef WIN32
+    HWND g_chill_hwnd = NULL;
+    HWND g_icesl_hwnd = NULL;
+    PROCESS_INFORMATION g_icesl_p_info;
+#endif
+
+    //-------------------------------------------------------
+
+    static NodeEditor* Instance() {
       if (!s_instance)
         s_instance = new NodeEditor;
       return s_instance;
@@ -78,11 +127,12 @@ namespace Chill
 
     static void Chill::NodeEditor::launch();  
 
-    static void setDefaultAppsPos();
+    void setDefaultAppsPos();
+    void moveIceSLWindowAlongChill();
 
     static inline std::string ChillFolder();
     static inline std::string NodesFolder();
-    static inline void SetIceslPath();
+    inline void SetIceslPath();
 
     ProcessingGraph* getCurrentGraph() {
       return m_graphs.top();
