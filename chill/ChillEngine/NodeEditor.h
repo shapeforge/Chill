@@ -23,32 +23,22 @@ namespace Chill
   private:
     static NodeEditor* s_instance;
 
-    NodeEditor & operator= (const NodeEditor&) {};
-    NodeEditor(const NodeEditor&) {};
-
     std::stack<Chill::ProcessingGraph*> m_graphs;
 
     AutoPtr<ProcessorInput>  m_selected_input;
     AutoPtr<ProcessorOutput> m_selected_output;
+
+    bool dirty = true;
+    bool text_editing;
+    bool linking;
 
     //-------------------------------------------------------
 
     NodeEditor();
     ~NodeEditor() {}
 
-    // export the graph to a .lua file for IceSL
-    void exportIceSL(std::string& filename_);
-
-    static void launchIcesl();
-    static void closeIcesl();
-
-    void saveSettings();
-    void loadSettings();
-
-    // Get current screen size
-    static void Chill::NodeEditor::getScreenRes(int& width, int& height);
-    // Get current desktop size (without taskbar for windows)
-    static void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height);
+    NodeEditor & operator= (const NodeEditor&) {};
+    NodeEditor(const NodeEditor&) {};
 
     /**
      *  Called at each frame
@@ -82,6 +72,20 @@ namespace Chill
     void menus();
 
     void selectProcessors();
+
+    static void launchIcesl();
+    static void closeIcesl();
+
+    // export the graph to a .lua file for IceSL
+    void exportIceSL(std::string& filename_);
+
+    void saveSettings();
+    void loadSettings();
+
+    // Get current screen size
+    static void Chill::NodeEditor::getScreenRes(int& width, int& height);
+    // Get current desktop size (without taskbar for windows)
+    static void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height);
 
   public:
     const int default_width = 800;
