@@ -10,7 +10,7 @@
 #else
 #define OFD_FILTER_GRAPHS     std::vector<const char*>({"*.graph", "*.lua"})
 #define OFD_FILTER_NODES      std::vector<const char*>({"*.node" , "*.lua"})
-#define OFD_FILTER_NODES      std::vector<const char*>({"*.lua"})
+#define OFD_FILTER_LUA      std::vector<const char*>({"*.lua"})
 #define OFD_FILTER_NONE       std::vector<const char*>({"*.*"})
 #endif
 

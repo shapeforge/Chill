@@ -118,11 +118,11 @@ namespace Chill
      *  Remove an existing processor from the graph.
      *  @param _processor The AutoPtr related to the processor.
      **/
-    void remove(AutoPtr<Processor>& _processor);
+    void remove(AutoPtr<Processor> _processor);
 
-    void remove(AutoPtr<VisualComment>& _comment);
+    void remove(AutoPtr<VisualComment> _comment);
 
-    void remove(AutoPtr<SelectableUI>& _select);
+    void remove(AutoPtr<SelectableUI> _select);
 
     /**
      *  Add a new connection to the graph if, and only if, there is no cycle created.
@@ -131,26 +131,27 @@ namespace Chill
      *  @param _to The destination processor.
      *  @param _input_name The name of the input.
      **/
-    static bool connect(const AutoPtr<Processor>& _from, const std::string _output_name, const AutoPtr<Processor>& _to, const std::string _input_name);
+    static bool connect(AutoPtr<Processor> _from, const std::string _output_name,
+                        AutoPtr<Processor> _to, const std::string _input_name);
     
     /**
      *  Add a new connection to the graph if, and only if, there is no cycle created.
      *  @param _from The processor's output.
      *  @param _to The processor's input.
      **/
-    static bool connect(AutoPtr<ProcessorOutput>& _from, AutoPtr<ProcessorInput>& _to);
+    static bool connect(AutoPtr<ProcessorOutput> _from, AutoPtr<ProcessorInput> _to);
 
     /**
      *  Remove a connection in the graph.
      *  @param _to The processor's input.
      **/
-    static void disconnect(AutoPtr<ProcessorInput>& _to);
+    static void disconnect(AutoPtr<ProcessorInput> _to);
 
     /**
     *  Remove a connection in the graph.
     *  @param _from The processor's output.
     **/
-    static void disconnect(AutoPtr<ProcessorOutput>& _from);
+    static void disconnect(AutoPtr<ProcessorOutput> _from);
 
     /**
      *  Duplicate a set of nodes.
@@ -173,7 +174,7 @@ namespace Chill
      *  @param _graph The graph to expand.
      *  @param _position Where the graph has to expand.
      **/
-    void expandGraph(AutoPtr<ProcessingGraph>& _graph, ImVec2 _position);
+    void expandGraph(AutoPtr<ProcessingGraph> _graph, ImVec2 _position);
 
     static bool areConnected(Processor * _from, Processor * _to);
     
@@ -235,8 +236,14 @@ namespace Chill
 
     ImVec2 getBarycenter() {
       std::vector<AutoPtr<SelectableUI>> list;
-      list.insert(list.end(), m_processors.begin(), m_processors.end());
-      list.insert(list.end(), m_comments.begin(), m_comments.end());
+      for (auto &proc : m_processors) {
+          list.push_back(AutoPtr<SelectableUI>(proc));
+      }
+      for (auto &com : m_comments) {
+          list.push_back(AutoPtr<SelectableUI>(com));
+      }
+//      list.insert(list.end(), m_processors.begin(), m_processors.end());
+//      list.insert(list.end(), m_comments.begin(), m_comments.end());
       return getBarycenter(list);
     }
 

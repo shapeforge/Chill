@@ -186,9 +186,9 @@ namespace Chill
     /**
      *  Make a copy of the processor (deep copy)
      **/
-    virtual AutoPtr<SelectableUI> Processor::clone() {
+    virtual AutoPtr<SelectableUI> clone() {
       return AutoPtr<SelectableUI>(new Processor(*this));
-    };
+    }
 
     /**
      *  Generate the lua code and add it to the stream
@@ -237,7 +237,7 @@ namespace Chill
       return AutoPtr<SelectableUI>(new GroupProcessor(*this));
     }
 
-    virtual bool draw();
+    bool draw() override;
 
     void setInputMode(bool mode_) {
       m_is_input = mode_;
@@ -247,7 +247,7 @@ namespace Chill
       m_is_output = mode_;
     }
 
-    virtual void iceSL(std::ofstream& _stream);
+    void iceSL(std::ofstream& _stream) override;
   };
 
 
@@ -260,10 +260,10 @@ namespace Chill
       return AutoPtr<SelectableUI>(new Multiplexer(*this));
     }
 
-    bool draw();
+    bool draw() override;
 
-    virtual void iceSL(std::ofstream& _stream);
+    void iceSL(std::ofstream& _stream) override;
   };
-};
+}
 
 

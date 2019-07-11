@@ -108,7 +108,6 @@ namespace Chill {
     }
   };
 
-
   /**
    *  InputProcessor class.
    *  Represents a node's input socket.
@@ -124,46 +123,7 @@ namespace Chill {
     virtual ~ProcessorInput() = 0;
 
     template <typename ... Args>
-    static AutoPtr<ProcessorInput> create(std::string _name, IOType::IOType _type, Args&& ... _args) {
-      AutoPtr<ProcessorInput> input;
-      switch (_type) {
-      case IOType::BOOLEAN:
-        input = AutoPtr<ProcessorInput>(new BoolInput(_args...));
-        break;
-      case IOType::INTEGER:
-        input = AutoPtr<ProcessorInput>(new IntInput(_args...));
-        break;
-      case IOType::LIST:
-        input = AutoPtr<ProcessorInput>(new ListInput(_args...));
-        break;
-      case IOType::PATH:
-        input = AutoPtr<ProcessorInput>(new PathInput(_args...));
-        break;
-      case IOType::SCALAR:
-        input = AutoPtr<ProcessorInput>(new ScalarInput(_args...));
-        break;
-      case IOType::SHAPE:
-        input = AutoPtr<ProcessorInput>(new ShapeInput(_args...));
-        break;
-      case IOType::STRING:
-        input = AutoPtr<ProcessorInput>(new StringInput(_args...));
-        break;
-      case IOType::VEC3:
-        input = AutoPtr<ProcessorInput>(new Vec3Input(_args...));
-        break;
-      case IOType::VEC4:
-        input = AutoPtr<ProcessorInput>(new Vec4Input(_args...));
-        break;
-      case IOType::UNDEF:
-      default:
-        input = AutoPtr<ProcessorInput>(new UndefInput());
-        break;
-      }
-      input->setName(_name);
-      input->setType(_type);
-      return input;
-    }
-
+    static AutoPtr<ProcessorInput> create(std::string _name, IOType::IOType _type, Args&& ... _args);
 
     bool draw();
     virtual bool drawTweak() = 0;
@@ -279,7 +239,7 @@ namespace Chill {
     {
       setType (IOType::BOOLEAN);
       setColor(color_bool);
-    };
+    }
 
     AutoPtr<ProcessorOutput> clone() {
       AutoPtr<ProcessorOutput> output = AutoPtr<ProcessorOutput>(new BoolOutput());
@@ -488,7 +448,7 @@ namespace Chill {
     };
 
     template <typename ...>
-    PathInput(std::string _value = false, bool _alt = false, std::string _filter = "", ...) : PathInput() {
+    PathInput(std::string _value = "", bool _alt = false, std::string _filter = "", ...) : PathInput() {
       m_value  = _value;
       m_alt    = _alt;
       m_filter = _filter;
@@ -679,7 +639,7 @@ namespace Chill {
     };
 
     template <typename ...>
-    StringInput(std::string _value = false, bool _alt = false, ...) : StringInput() {
+    StringInput(std::string _value = "", bool _alt = false, ...) : StringInput() {
       m_value = _value;
       m_alt = _alt;
     };
@@ -1024,4 +984,50 @@ public:
   }
 };
 
-};
+// -----------------------------------------------------
+
+template <typename ... Args>
+AutoPtr<ProcessorInput> ProcessorInput::create(std::string _name, IOType::IOType _type, Args&& ... _args)
+{
+  AutoPtr<ProcessorInput> input;
+  switch (_type) {
+  case IOType::BOOLEAN:
+    input = AutoPtr<ProcessorInput>(new BoolInput(_args...));
+    break;
+  case IOType::INTEGER:
+    input = AutoPtr<ProcessorInput>(new IntInput(_args...));
+    break;
+  case IOType::LIST:
+    input = AutoPtr<ProcessorInput>(new ListInput(_args...));
+    break;
+  case IOType::PATH:
+    input = AutoPtr<ProcessorInput>(new PathInput(_args...));
+    break;
+  case IOType::SCALAR:
+    input = AutoPtr<ProcessorInput>(new ScalarInput(_args...));
+    break;
+  case IOType::SHAPE:
+    input = AutoPtr<ProcessorInput>(new ShapeInput(_args...));
+    break;
+  case IOType::STRING:
+    input = AutoPtr<ProcessorInput>(new StringInput(_args...));
+    break;
+  case IOType::VEC3:
+    input = AutoPtr<ProcessorInput>(new Vec3Input(_args...));
+    break;
+  case IOType::VEC4:
+    input = AutoPtr<ProcessorInput>(new Vec4Input(_args...));
+    break;
+  case IOType::UNDEF:
+  default:
+    input = AutoPtr<ProcessorInput>(new UndefInput());
+    break;
+  }
+  input->setName(_name);
+  input->setType(_type);
+  return input;
+}
+
+// -----------------------------------------------------
+
+}

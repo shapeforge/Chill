@@ -11,6 +11,12 @@
 #include <GL/glut.h>
 #endif
 
+#ifdef WIN32
+namespace fs = std::experimental::filesystem;
+#else
+namespace fs = std::filesystem;
+#endif
+
 LIBSL_WIN32_FIX
 
 namespace Chill
@@ -319,13 +325,39 @@ namespace Chill
       ImGuiWindowFlags_NoBringToFrontOnFocus
     );
 
-    ImGui::Text("Graph name:");
-    ImGui::SameLine();
-    strcpy(title, m_graphs.top()->name().c_str());
-    if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), title, 16)) {
-      m_graphs.top()->setName(title);
-    }
 
+    if (ImGui::CollapsingHeader("Graph tree")) {
+      uint i = 1;
+
+      ImVec2 size(100, 20);
+
+#if WIN32
+      //TODO _Get_container is not standard
+      for (auto graph : m_graphs._Get_container()) {
+        std::string text = "";
+        for (int j = 0; j < i; j++)
+          text += " ";
+        text += ">";
+        ImGui::TextDisabled(text.c_str());
+        ImGui::SameLine();
+
+        if (i == m_graphs.size()) {
+          strcpy(title, m_graphs.top()->name().c_str());
+          if (ImGui::InputText(("##graphname" + std::to_string(getUniqueID())).c_str(), title, 32)) {
+            m_graphs.top()->setName(title);
+          }
+        } else {
+          if (ImGui::Button(graph->name().c_str())) {
+            while (m_graphs.size() > i) {
+              m_graphs.pop();
+            }
+          }
+        }
+
+        i++;
+      }
+#endif
+    }
 
     ImGui::NewLine();
     if (selected.size() == 1) {

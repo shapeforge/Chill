@@ -29,12 +29,16 @@ namespace Chill
       m_comment    = "Content";
       m_selected   = false;
       m_edit       = false;
-    };
+    }
 
-    bool draw();
-    virtual AutoPtr<SelectableUI> VisualComment::clone() {
+    virtual ~VisualComment() {}
+
+
+    bool draw() override;
+
+    AutoPtr<SelectableUI> clone() override {
       return AutoPtr<SelectableUI>(new VisualComment(*this));
-    };
+    }
 
     ImVec2 m_title_size;
 

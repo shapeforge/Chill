@@ -1,8 +1,10 @@
 #pragma once
-#include "imgui\imgui.h"
+
+#include "imgui/imgui.h"
 
 
-struct Style {
+struct Style
+{
   #define ui_cyan     ImColor( 73, 193, 194) // ImColor(125, 188, 193)
   #define ui_red      ImColor(147,  55,  51)
   #define ui_grey     ImColor(128, 128, 128)
