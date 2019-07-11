@@ -399,6 +399,8 @@ namespace Chill
       ImGuiWindowFlags_NoBringToFrontOnFocus
     );
 
+    zoom();
+
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImDrawList* overlay_draw_list = ImGui::GetOverlayDrawList();
@@ -613,8 +615,6 @@ namespace Chill
         m_offset += io.MouseDelta / w_scale;
       }
 
-      zoom();
-
       // Keyboard
       if (!text_editing)
       {
@@ -685,7 +685,7 @@ namespace Chill
 
     // Draw the pipes
     float pipe_width = 2.0F * w_scale;
-    int pipe_res = int(25.0F / std::abs(std::log(w_scale / 2.0F)));
+    int pipe_res = int(25.0F / std::abs(std::log(w_scale / 2.5F)));
     for (AutoPtr<Processor> processor : currentGraph->processors()) {
       for (AutoPtr<ProcessorOutput> output : processor->outputs()) {
         for (AutoPtr<ProcessorInput> input : output->m_links) {
@@ -709,9 +709,6 @@ namespace Chill
 
     // Draw new pipe
     if (linking) {
-      float pipe_width = 2.0F * w_scale;
-      int pipe_res = int(25.0F / std::abs(std::log(w_scale / 2.0F)));
-
       ImVec2 A = ImGui::GetMousePos();
       ImVec2 B = ImGui::GetMousePos();
 
@@ -732,39 +729,6 @@ namespace Chill
         pipe_width,
         pipe_res
       );
-    }
-
-    // Draw graph nav
-    ImGui::SetCursorPos(w_pos);
-    uint i = 1;
-
-    ImVec2 pos = w_pos;
-    ImVec2 size(100, 20);
-
-    size *= w_scale;
-
-    for (auto graph : m_graphs._Get_container()) {
-      draw_list->AddRectFilled(pos, pos + size, style.processor_bg_color, 0, 0);
-      if (ImGui::IsMouseHoveringRect(pos, pos + size)) {
-        draw_list->AddRectFilled(pos, pos + size, style.processor_bg_color, 0, 0);
-
-        if (ImGui::IsMouseClicked(0)) {
-          while (m_graphs.size() > i) {
-            m_graphs.pop();
-          }
-        }
-      }
-      else {
-        draw_list->AddRectFilled(pos, pos + size, style.processor_bg_color, 0, 0);
-      }
-
-      ImGui::SetCursorPos(pos - w_pos + style.delta_to_center_text(ImVec2(10, size.y), ">"));
-      ImGui::Text(">");
-      ImGui::SetCursorPos(pos - w_pos + style.delta_to_center_text(size, graph->name().c_str()));
-      ImGui::Text(graph->name().c_str());
-
-      pos.x += size.x;
-      i++;
     }
 
     menus();
