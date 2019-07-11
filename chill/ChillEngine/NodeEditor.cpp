@@ -778,37 +778,26 @@ namespace Chill
 
   //-------------------------------------------------------
   void NodeEditor::zoom() {
-    //NodeEditor* n_e = NodeEditor::Instance();
-    //ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    //ImDrawList* overlay_draw_list = ImGui::GetOverlayDrawList();
-
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    ImVec2 offset = (NodeEditor::Instance()->m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
     ImGuiIO io = ImGui::GetIO();
 
-
     if (true || io.FontAllowUserScaling) {
-
       float old_scale = window->FontWindowScale;
       float new_scale = ImClamp(window->FontWindowScale + io.MouseWheel * 0.1F, 0.3F, 2.0F);
-      float scale = new_scale / window->FontWindowScale;
+      float scale = new_scale / old_scale;
       window->FontWindowScale = new_scale;
 
       const ImVec2 offset = window->Size * (1.F - scale) * (io.MousePos - window->Pos) / window->Size;
-      window->Pos += offset;
-      window->Pos += offset;
-      window->Size *= scale;
-      window->SizeFull *= scale;
 
       if (new_scale != old_scale) {
         // mouse to screen
         ImVec2 m2s = io.MousePos - (window->Pos + window->Size) / 2.F;
         // screen to grid
-        ImVec2 s2g = m2s / old_scale - NodeEditor::Instance()->m_offset;
+        ImVec2 s2g = m2s / old_scale - m_offset;
         // grid to screen
-        ImVec2 g2s = (s2g + NodeEditor::Instance()->m_offset) * new_scale;
+        ImVec2 g2s = (s2g + m_offset) * new_scale;
 
-        NodeEditor::Instance()->m_offset += (m2s - g2s) / new_scale;
+        m_offset += (m2s - g2s) / new_scale;
       }
     }
   }
