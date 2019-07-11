@@ -544,9 +544,6 @@ namespace Chill
                 }
               }
             }
-
-
-
           }
         }
 
@@ -1213,7 +1210,6 @@ namespace Chill
 
     s_instance->loadSettings();
     s_instance->SetIceslPath();
-
 
     try {
       // create window
