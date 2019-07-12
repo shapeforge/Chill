@@ -28,6 +28,10 @@ namespace Chill
     AutoPtr<ProcessorInput>  m_selected_input;
     AutoPtr<ProcessorOutput> m_selected_output;
 
+    std::vector<AutoPtr<SelectableUI>>     hovered;
+    std::vector<AutoPtr<SelectableUI>>     selected;
+    AutoPtr<ProcessingGraph> buffer;
+
     bool dirty = true;
     bool text_editing;
     bool linking;

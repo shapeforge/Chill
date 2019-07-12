@@ -278,7 +278,6 @@ namespace Chill
           }
         }
 
-
         if (ImGui::MenuItem("Export to IceSL lua")) {
           std::string graph_filename = getMainGraph()->name() + ".lua";
           g_iceSLExportPath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_LUA);
@@ -302,12 +301,6 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-
-  std::vector<AutoPtr<SelectableUI>>     hovered;
-  std::vector<AutoPtr<SelectableUI>>     selected;
-  AutoPtr<ProcessingGraph> buffer;
-
-
   void NodeEditor::drawLeftMenu()
   {
     char title[32];
@@ -360,6 +353,7 @@ namespace Chill
     }
 
     ImGui::NewLine();
+
     if (selected.size() == 1) {
       ImGui::Text("Name:");
       strcpy(name, selected[0]->name().c_str());
@@ -770,16 +764,16 @@ namespace Chill
   void NodeEditor::drawGrid() {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    ImVec2 offset = (NodeEditor::Instance()->m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
+    ImVec2 offset = (Instance()->m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    const ImU32& GRID_COLOR = NodeEditor::Instance()->style.graph_grid_color;
-    const float grid_Line_width = NodeEditor::Instance()->style.graph_grid_line_width;
+    const ImU32& GRID_COLOR = Instance()->style.graph_grid_color;
+    const float grid_Line_width = Instance()->style.graph_grid_line_width;
 
     int coeff = window->FontWindowScale >= 0.5F ? 1 : 10;
     int subdiv_levels[] = {
-      NodeEditor::Instance()->style.graph_grid_size * coeff,
-      NodeEditor::Instance()->style.graph_grid_size * coeff * 10 };
+      Instance()->style.graph_grid_size * coeff,
+      Instance()->style.graph_grid_size * coeff * 10 };
 
     for (int subdiv : subdiv_levels) {
       const float& grid_size = window->FontWindowScale * subdiv;
@@ -802,7 +796,7 @@ namespace Chill
 
   //-------------------------------------------------------
   void NodeEditor::menus() {
-    NodeEditor* n_e = NodeEditor::Instance();
+    NodeEditor* n_e = Instance();
 
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
@@ -813,10 +807,10 @@ namespace Chill
     ImGuiIO io = ImGui::GetIO();
 
     // Draw menus
-    if (NodeEditor::Instance()->m_graph_menu) {
+    if (Instance()->m_graph_menu) {
       ImGui::OpenPopup("graph_menu");
     }
-    if (NodeEditor::Instance()->m_node_menu) {
+    if (Instance()->m_node_menu) {
       ImGui::OpenPopup("node_menu");
     }
 
@@ -826,9 +820,9 @@ namespace Chill
       // mouse to screen
       ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
       // screen to grid
-      ImVec2 s2g = m2s / w_scale - NodeEditor::Instance()->m_offset;
+      ImVec2 s2g = m2s / w_scale - Instance()->m_offset;
 
-      NodeEditor::Instance()->m_graph_menu = false;
+      Instance()->m_graph_menu = false;
 
       if (ImGui::BeginMenu("Add", "SPACE")) {
         addNodeMenu(s2g);
@@ -857,13 +851,12 @@ namespace Chill
 
       }
 
-
       ImGui::EndPopup();
     }
 
     if (ImGui::BeginPopup("node_menu"))
     {
-      NodeEditor::Instance()->m_node_menu = false;
+      Instance()->m_node_menu = false;
       if (ImGui::MenuItem("Copy", "CTRL+C")) {
         if (!selected.empty()) {
           buffer = n_e->getCurrentGraph()->copySubset(selected);
@@ -913,9 +906,9 @@ namespace Chill
 
   //-------------------------------------------------------
   void NodeEditor::selectProcessors() {
-    NodeEditor::Instance()->m_selecting = true;
+    Instance()->m_selecting = true;
 
-    NodeEditor* n_e = NodeEditor::Instance();
+    NodeEditor* n_e = Instance();
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -926,8 +919,8 @@ namespace Chill
 
     ImGuiIO io = ImGui::GetIO();
 
-    ImVec2 A = (io.MousePos - (w_pos + w_size) / 2.0F) / w_scale - NodeEditor::Instance()->m_offset;
-    ImVec2 B = (io.MouseClickedPos[0] - (w_pos + w_size) / 2.0F) / w_scale - NodeEditor::Instance()->m_offset;
+    ImVec2 A = (io.MousePos - (w_pos + w_size) / 2.0F) / w_scale - Instance()->m_offset;
+    ImVec2 B = (io.MouseClickedPos[0] - (w_pos + w_size) / 2.0F) / w_scale - Instance()->m_offset;
 
     if (A.x > B.x) std::swap(A.x, B.x);
     if (A.y > B.y) std::swap(A.y, B.y);
@@ -936,7 +929,7 @@ namespace Chill
       draw_list->AddRect(
         io.MouseClickedPos[0],
         io.MousePos,
-        NodeEditor::Instance()->style.processor_selected_color
+        Instance()->style.processor_selected_color
       );
 
       if (!io.KeysDown[LIBSL_KEY_SHIFT]) {
@@ -1191,7 +1184,7 @@ namespace Chill
   //-------------------------------------------------------
   void NodeEditor::launch()
   {
-    NodeEditor *nodeEditor = NodeEditor::Instance();
+    NodeEditor *nodeEditor = Instance();
 
     s_instance->loadSettings();
     s_instance->SetIceslPath();
