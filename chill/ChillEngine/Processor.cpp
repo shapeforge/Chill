@@ -244,41 +244,52 @@ bool Chill::Processor::draw() {
   }
 
   // DISABLE / EMIT
-  ImGui::SameLine();
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + style.processor_title_height / 4.0F * w_scale);
-  ImU32 color(m_state == DISABLED ? 0XFF0000CC : m_state == DEFAULT ? 0XFFCC7700 : m_state == EMITING ? 0XFF00CC00 : 0XFF888888);
-  ImGui::PushStyleColor(ImGuiCol_Button, color);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
-  ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 255));
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, button_size);
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-  if (ImGui::Button("", ImVec2(button_size, button_size))) {
-    setDirty(true);
-    switch (m_state) {
-    case DISABLED:
-      m_state = DEFAULT;
-      break;
-    case DEFAULT:
-      if (isEmiter())
-        m_state = DISABLED;
-      else
-        m_state = EMITING;
-      break;
-    case EMITING:
-      m_state = DISABLED;
-      break;
-    default:
-      m_state = DEFAULT;
+
+  bool isStateful = false;
+  for (auto output : m_outputs) {
+    if (output->type() == IOType::SHAPE) {
+      isStateful = true;
       break;
     }
   }
-  ImGui::PopStyleVar();
-  ImGui::PopStyleVar();
-  ImGui::PopStyleColor();
-  ImGui::PopStyleColor();
-  ImGui::PopStyleColor();
-  ImGui::PopStyleColor();
+
+  if (isStateful) {
+    ImGui::SameLine();
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + style.processor_title_height / 4.0F * w_scale);
+    ImU32 color(m_state == DISABLED ? 0XFF0000CC : m_state == DEFAULT ? 0XFFCC7700 : m_state == EMITING ? 0XFF00CC00 : 0XFF888888);
+    ImGui::PushStyleColor(ImGuiCol_Button, color);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 255));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, button_size);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
+    if (ImGui::Button("", ImVec2(button_size, button_size))) {
+      setDirty(true);
+      switch (m_state) {
+      case DISABLED:
+        m_state = DEFAULT;
+        break;
+      case DEFAULT:
+        if (isEmiter())
+          m_state = DISABLED;
+        else
+          m_state = EMITING;
+        break;
+      case EMITING:
+        m_state = DISABLED;
+        break;
+      default:
+        m_state = DEFAULT;
+        break;
+      }
+    }
+    ImGui::PopStyleVar();
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
+  }
 
 
   //ImGui::PopID();
