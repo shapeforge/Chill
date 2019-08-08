@@ -1312,28 +1312,45 @@ namespace Chill
   //-------------------------------------------------------
   std::string NodeEditor::NodesFolder() {
 #ifdef WIN32
-    return getenv("AppData") + std::string("\\Chill\\chill-nodes");
+    return ChillFolder() + std::string("chill-nodes");
 #elif __linux__
-    return getenv("HOME") + std::string("/Chill/chill-nodes");
+    return ChillFolder() + std::string("chill-nodes");
 #endif
   }
 
   //-------------------------------------------------------
   void NodeEditor::SetIceslPath() {
-    std::string defPath;
     if (g_iceslPath.empty()) {
 #ifdef WIN32
-      defPath = getenv("PROGRAMFILES");
-      g_iceslPath = "C:\\Program Files\\INRIA\\IceSL\\bin\\IceSL-slicer.exe";
+      g_iceslPath = getenv("PROGRAMFILES") + std::string("\\INRIA\\IceSL\\bin\\IceSL-slicer.exe");
 #elif __linux__
-      std::string defPath = getenv("HOME");
       g_iceslPath = getenv("HOME") + std::string("/icesl/bin/IceSL-slicer");
 #endif
     }
     if (!LibSL::System::File::exists(g_iceslPath.c_str())) {
-      std::cerr << Console::red << "icesl not found" << Console::gray << std::endl;
+      std::cerr << Console::red << "IceSL executable not found. Please specify the location of IceSL's executable." << Console::gray << std::endl;
+
+      const char * modalTitle = "IceSL was not found...";
+      const char * modalText = "Icesl was not found on this computer.\n\nIn order for Chill to work properly, it needs access to IceSL.\n\nPlease specify the location of IceSL's executable on your computer.";
+
+#ifdef WIN32
+      uint modalFlags = MB_OKCANCEL | MB_DEFBUTTON1 | MB_SYSTEMMODAL | MB_ICONINFORMATION;
+
+      int modal = MessageBox(g_chill_hwnd, modalText, modalTitle, modalFlags);
+
+      if (modal == 1) {
+        g_iceslPath = openFileDialog(OFD_FILTER_NONE).c_str();
+        std::cerr << Console::yellow << "IceSL location specified: " << g_iceslPath << Console::gray << std::endl;
+      }
+      else {
+        g_iceslPath = "";
+      }
+
+#elif __linux__
+      // TODO Linux modal window
       g_iceslPath = openFileDialog(OFD_FILTER_NONE).c_str();
-      std::cerr << Console::yellow << "g_iceslPath: " << g_iceslPath << Console::gray << std::endl;
+      std::cerr << Console::yellow << "IceSL location specified: " << g_iceslPath << Console::gray << std::endl;
+#endif
     }
   }
 
