@@ -49,6 +49,8 @@ namespace Chill
      */
     static void mainRender();
 
+    static void setIcon();
+
     /**
      *  Called on resize
      *  @param width the new width

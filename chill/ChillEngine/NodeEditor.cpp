@@ -162,6 +162,24 @@ namespace Chill
     Instance()->draw();
 
     ImGui::Render();
+
+    setIcon();
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::setIcon()
+  {
+    static bool icon_changed = false;
+    if (!icon_changed) {
+#ifdef WIN32
+      HWND hWND = SimpleUI::getHWND();
+      HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(16001));
+      SendMessage(hWND, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+      SendMessage(hWND, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+#endif
+      icon_changed = true;
+    }
+    // TODO: linux icon load
   }
 
   //-------------------------------------------------------
@@ -1262,7 +1280,7 @@ namespace Chill
 
     // move to position
 #ifdef WIN32
-    SetWindowPos(g_chill_hwnd, HWND_TOPMOST, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
+    SetWindowPos(g_chill_hwnd, HWND_TOP, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
 
     // move icesl to the last part of the screen
     int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
