@@ -1302,20 +1302,24 @@ namespace Chill
 
   //-------------------------------------------------------
   std::string NodeEditor::ChillFolder() {
+    std::string chillFolder;
 #ifdef WIN32
-    return getenv("AppData") + std::string("\\Chill\\");
+    chillFolder = getenv("AppData") + std::string("\\Chill\\");
 #elif __linux__
-    return getenv("HOME") + std::string("/Chill/");
+    chillFolder = getenv("HOME") + std::string("/Chill/");
 #endif
+    return  chillFolder;
   }
 
   //-------------------------------------------------------
   std::string NodeEditor::NodesFolder() {
+    std::string nodesFolder;
 #ifdef WIN32
-    return ChillFolder() + std::string("chill-nodes");
+    nodesFolder = ChillFolder() + std::string("chill-nodes");
 #elif __linux__
-    return ChillFolder() + std::string("chill-nodes");
+    nodesFolder = ChillFolder() + std::string("chill-nodes");
 #endif
+    return nodesFolder;
   }
 
   //-------------------------------------------------------
