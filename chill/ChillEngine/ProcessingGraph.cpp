@@ -130,69 +130,7 @@ namespace Chill {
     }
   }
 
-  bool ProcessingGraph::connect(AutoPtr<Processor> from, const std::string output_name,
-                                AutoPtr<Processor> to,   const std::string input_name)
-  {
-    // check if the processors exists
-    if (from.isNull() || to.isNull()) {
-      return false;
-    }
 
-    AutoPtr<ProcessorOutput> output = from->output(output_name);
-    AutoPtr<ProcessorInput> input = to->input(input_name);
-
-    return connect(output, input);
-  }
-
-  bool ProcessingGraph::connect(AutoPtr<ProcessorOutput> from, AutoPtr<ProcessorInput> to)
-  {
-    // check if the processors i/o exists
-    if (from.isNull() || to.isNull()) {
-      return false;
-    }
-
-    // check if the processors comes from the same graph
-    if (from->owner()->owner() != to->owner()->owner()) {
-      return false;
-    }
-
-    // check if input already connected
-    if (!to->m_link.isNull()) {
-      disconnect(to);
-    }
-
-    // if the new pipe create a cycle
-    if (areConnected(to->owner(), from->owner())) {
-      return false;
-    }
-
-    to->m_link = from;
-    from->m_links.push_back(to);
-
-    return true;
-  }
-
-  void ProcessingGraph::disconnect(AutoPtr<ProcessorInput> to) {
-    if (to.isNull()) return;
-
-    AutoPtr<ProcessorOutput> from = to->m_link;
-    if (!from.isNull()) {
-      from->m_links.erase(std::remove(from->m_links.begin(), from->m_links.end(), to), from->m_links.end());
-    }
-
-    to->m_link = AutoPtr<ProcessorOutput>(NULL);
-  }
-
-  void ProcessingGraph::disconnect(AutoPtr<ProcessorOutput> from) {
-    if (from.isNull()) return;
-
-    for (AutoPtr<ProcessorInput> to : from->m_links) {
-      if (!to.isNull()) {
-        to->m_link = AutoPtr<ProcessorOutput>(NULL);
-      }
-    }
-    from->m_links.clear();
-  }
 
 
   AutoPtr<ProcessingGraph> ProcessingGraph::collapseSubset(const std::vector<AutoPtr<SelectableUI>>& subset)
@@ -385,29 +323,6 @@ namespace Chill {
     }
 
     return graph;
-  }
-
-  bool ProcessingGraph::areConnected(Processor * from, Processor * to)
-  {
-    // Raw pointers, because m_owner is a raw pointer
-    std::queue<Processor*> toCheck;
-    toCheck.push(to);
-
-    while (!toCheck.empty()) {
-      Processor* current = toCheck.front();
-      toCheck.pop();
-
-      if (current == from) {
-        return true;
-      }
-      for (AutoPtr<ProcessorInput> input : current->inputs()) {
-        if (!input->m_link.isNull()) {
-          AutoPtr<ProcessorOutput> output = input->m_link;
-          toCheck.push(output->owner());
-        }
-      }
-    }
-    return false;
   }
 
   void ProcessingGraph::save(std::ofstream& _stream) {

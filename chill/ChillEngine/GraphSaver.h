@@ -22,9 +22,9 @@ namespace Chill
       registerBindings(m_LuaState);
     }
     
-    void execute(const char* _path);
+    void execute(const char* path);
 
-    void registerBindings(lua_State *_L);
+    void registerBindings(lua_State *L);
   };
 
 }

@@ -1,14 +1,10 @@
 /** @file */
 #pragma once
 
-// Processor.h
-namespace Chill {
-  class Processor;
-};
+#include <regex>
 
 #include "Processor.h"
 #include "IOTypes.h"
-#include <regex>
 
 
 // COLOR BLIND FRIENDLY PALETTE
@@ -43,32 +39,32 @@ namespace Chill {
       return m_owner;
     }
 
-    void setOwner(Processor * _owner) {
-      m_owner = _owner;
+    void setOwner(Processor * owner) {
+      m_owner = owner;
     }
 
     inline const char * name() {
       return m_name.c_str();
     }
 
-    void setName(std::string _name) {
-      m_name = _name;
+    void setName(std::string name) {
+      m_name = name;
     }
 
     inline const IOType::IOType type() {
       return m_type;
     }
 
-    void setType(IOType::IOType _type) {
-      m_type = _type;
+    void setType(IOType::IOType type) {
+      m_type = type;
     }
 
     inline ImU32 color() {
       return m_color;
     }
 
-    void setColor(ImU32 _color) {
-      m_color = _color;
+    void setColor(ImU32 color) {
+      m_color = color;
     }
   };
 
@@ -95,7 +91,7 @@ namespace Chill {
   public:
     ~ProcessorOutput();
 
-    static AutoPtr<ProcessorOutput> create(std::string _name, IOType::IOType _type, bool _emitable);
+    static AutoPtr<ProcessorOutput> create(const std::string& name, IOType::IOType type, bool emitable);
 
     bool draw();
     virtual AutoPtr<ProcessorOutput> clone() = 0;
@@ -120,10 +116,10 @@ namespace Chill {
     AutoPtr<ProcessorOutput> m_link;
 
   public:
-    virtual ~ProcessorInput() = 0;
+    ~ProcessorInput();
 
     template <typename ... Args>
-    static AutoPtr<ProcessorInput> create(std::string _name, IOType::IOType _type, Args&& ... _args);
+    static AutoPtr<ProcessorInput> create(const std::string& _name, IOType::IOType _type, Args&& ... _args);
 
     bool draw();
     virtual bool drawTweak() = 0;
@@ -375,7 +371,7 @@ namespace Chill {
     template <typename ...>
     ListInput(int _value, std::vector<std::string>& _params) : ListInput()
     {
-      size_t s = _params.size();
+      int s = (int)_params.size();
 
       m_value = s >= 1 ? std::stoi(_params[0]) : 0;
       m_min = 0;
@@ -987,7 +983,7 @@ public:
 // -----------------------------------------------------
 
 template <typename ... Args>
-AutoPtr<ProcessorInput> ProcessorInput::create(std::string _name, IOType::IOType _type, Args&& ... _args)
+AutoPtr<ProcessorInput> ProcessorInput::create(const std::string& _name, IOType::IOType _type, Args&& ... _args)
 {
   AutoPtr<ProcessorInput> input;
   switch (_type) {

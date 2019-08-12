@@ -97,7 +97,7 @@ namespace Chill
     /**
      *  Get the list of inputs.
      *  @return The list of inputs.
-     */
+     **/
     const std::vector<AutoPtr<ProcessorInput>> inputs() {
       return m_inputs;
     }
@@ -105,7 +105,7 @@ namespace Chill
     /**
      *  Get the list of outputs.
      *  @return The list of outputs.
-     */
+     **/
     std::vector<AutoPtr<ProcessorOutput>> outputs() {
       return m_outputs;
     }
@@ -114,21 +114,21 @@ namespace Chill
      *  Get an input by name.
      *  @param _name The input name.
      *  @return The input pointer if exists else a null pointer.
-     */
+     **/
     AutoPtr<ProcessorInput> input(std::string _name);
 
     /**
      *  Get an output by name.
      *  @param _name The output name.
      *  @return The output pointer if exists else a null pointer.
-     */
+     **/
     AutoPtr<ProcessorOutput> output(std::string _name);
 
     /**
     *  Add a new input to the processor.
     *  @param _input The input.
     *  @return A pointer to the new input.
-    */
+    **/
     virtual AutoPtr<ProcessorInput> addInput(AutoPtr<ProcessorInput> _input);
 
     /**
@@ -137,7 +137,7 @@ namespace Chill
      *  @param _type The input type.
      *  @param _args All additionnal arguments
      *  @return A pointer to the new input.
-     */
+     **/
     template <typename ... Args>
     AutoPtr<ProcessorInput> addInput(std::string _name, IOType::IOType _type, Args&& ... _args);
 
@@ -177,6 +177,42 @@ namespace Chill
       std::replace(m_outputs.begin(), m_outputs.end(), output(_outputName), _output);
     }
 
+    /**
+     *  Add a new connection to the graph if, and only if, there is no cycle created.
+     *  @param _from The origin processor.
+     *  @param _output_name The name of the output.
+     *  @param _to The destination processor.
+     *  @param _input_name The name of the input.
+     **/
+    static bool connect(AutoPtr<Processor> _from, const std::string _output_name,
+      AutoPtr<Processor> _to, const std::string _input_name);
+
+    /**
+     *  Add a new connection to the graph if, and only if, there is no cycle created.
+     *  @param _from The processor's output.
+     *  @param _to The processor's input.
+     **/
+    static bool connect(AutoPtr<ProcessorOutput> _from, AutoPtr<ProcessorInput> _to);
+
+    /**
+     *  Remove a connection in the graph.
+     *  @param _to The processor's input.
+     **/
+    static void disconnect(AutoPtr<ProcessorInput> _to);
+
+    /**
+     *  Remove a connection in the graph.
+     *  @param _from The processor's output.
+     **/
+    static void disconnect(AutoPtr<ProcessorOutput> _from);
+
+    /**
+     *  Check if two processors are connected.
+     *  @param _from The first processor.
+     *  @param _to The second processor.
+     *  @return true if they are connected.
+     **/
+    static bool areConnected(Processor * _from, Processor * _to);
 
     /**
      *  Draw the processor
@@ -184,15 +220,15 @@ namespace Chill
     virtual bool draw();
 
     /**
-     *  Make a copy of the processor (deep copy)
+     *  Make a copy of the processor (deep copy).
      **/
     virtual AutoPtr<SelectableUI> clone() {
       return AutoPtr<SelectableUI>(new Processor(*this));
     }
 
     /**
-     *  Generate the lua code and add it to the stream
-     *  @param _stream The output stream
+     *  Generate the lua code and add it to the stream.
+     *  @param _stream The output stream.
      **/
     virtual void save(std::ofstream& _stream);
 
@@ -208,7 +244,7 @@ namespace Chill
 
     /**
      * @return true if affects any output (shape or slicing parameter)
-     */
+     **/
     virtual bool isEmiter();
 
 

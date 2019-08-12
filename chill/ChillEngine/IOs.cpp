@@ -6,9 +6,8 @@
 namespace Chill {
   ProcessorOutput::~ProcessorOutput() {
     for (AutoPtr<ProcessorInput> input : m_links)
-      NodeEditor::Instance()->getCurrentGraph()->disconnect(input);
+      Processor::disconnect(input);
     m_links.clear();
-
   };
   
   bool ProcessorOutput::draw() {
@@ -72,9 +71,9 @@ namespace Chill {
     return false;
   }
 
-  AutoPtr<ProcessorOutput> ProcessorOutput::create(std::string name_, IOType::IOType type_ = IOType::UNDEF, bool _emitable = false) {
+  AutoPtr<ProcessorOutput> ProcessorOutput::create(const std::string& _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false) {
     AutoPtr<ProcessorOutput> output;
-    switch (type_) {
+    switch (_type) {
     case IOType::BOOLEAN:
       output = AutoPtr<ProcessorOutput>(new BoolOutput());
       break;
@@ -100,13 +99,14 @@ namespace Chill {
       output = AutoPtr<ProcessorOutput>(new Vec4Output());
       break;
     case IOType::UNDEF:
-      // Do nothing
+      output = AutoPtr<ProcessorOutput>(new UndefOutput());
+      break;
     default:
       output = AutoPtr<ProcessorOutput>(new UndefOutput());
       break;
     }
-    output->setName(name_);
-    output->setType(type_);
+    output->setName(_name);
+    output->setType(_type);
     output->setEmitable(_emitable);
     return output;
   }
@@ -115,7 +115,7 @@ namespace Chill {
 
 namespace Chill {
   ProcessorInput::~ProcessorInput() {
-    NodeEditor::Instance()->getCurrentGraph()->disconnect(m_link);
+    Processor::disconnect(m_link);
   };
 
   bool ProcessorInput::draw() {
@@ -128,7 +128,6 @@ namespace Chill {
     float full_radius = (style.socket_radius + style.socket_border_width) * w_scale;
 
     ImVec2 pos = ImGui::GetCursorPos();
-    ImVec2 text_size = ImGui::CalcTextSize(name());
 
     ImGui::SetCursorPos(ImVec2(pos.x - full_radius, pos.y));
     setPosition(ImVec2(pos.x, pos.y + full_radius));
@@ -151,11 +150,11 @@ namespace Chill {
     }
     ImGui::PopStyleColor();
 
-
     // Drag and Drop Target
     if (ImGui::BeginDragDropTarget())
     {
-      if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_pipe_output")) {
+      if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_pipe_output"))
+      {
         active = true;
       }
       ImGui::EndDragDropTarget();
@@ -186,7 +185,7 @@ namespace Chill {
       else {
         // move the actual link
         NodeEditor::Instance()->setSelectedOutput(m_link->owner()->output(m_link->name()));
-        NodeEditor::Instance()->getCurrentGraph()->disconnect(owner()->input(name()));
+        Processor::disconnect(owner()->input(name()));
       }
     }
 
@@ -306,8 +305,9 @@ bool Chill::PathInput::drawTweak()
   std::string label = "##" + name_str;
   std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".3f";
 
-  char string[512];
-  strcpy(string, m_value.c_str());
+  const size_t path_max_size = 512;
+  char string[path_max_size];
+  strncpy_s(string, m_value.c_str(), path_max_size);
 
   std::string before = m_value;
   bool value_changed = false;
@@ -382,8 +382,9 @@ bool Chill::StringInput::drawTweak()
   std::string label = "##" + name_str;
   std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".3f";
 
-  char string[512];
-  strcpy(string, m_value.c_str());
+  const size_t path_max_size = 512;
+  char string[path_max_size];
+  strncpy_s(string, m_value.c_str(), path_max_size);
 
   std::string before = m_value;
   bool value_changed = false;

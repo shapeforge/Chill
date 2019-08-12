@@ -101,6 +101,94 @@ namespace Chill {
     m_outputs.erase(remove(m_outputs.begin(), m_outputs.end(), output), m_outputs.end());
   }
 
+
+  bool Processor::connect(AutoPtr<Processor> from, const std::string output_name,
+    AutoPtr<Processor> to, const std::string input_name)
+  {
+    // check if the processors exists
+    if (from.isNull() || to.isNull()) {
+      return false;
+    }
+
+    AutoPtr<ProcessorOutput> output = from->output(output_name);
+    AutoPtr<ProcessorInput>  input  = to->input(input_name);
+
+    return connect(output, input);
+  }
+
+  bool Processor::connect(AutoPtr<ProcessorOutput> from, AutoPtr<ProcessorInput> to)
+  {
+    // check if the processors i/o exists
+    if (from.isNull() || to.isNull()) {
+      return false;
+    }
+
+    // check if the processors comes from the same graph
+    if (from->owner()->owner() != to->owner()->owner()) {
+      return false;
+    }
+
+    // check if input already connected
+    if (!to->m_link.isNull()) {
+      disconnect(to);
+    }
+
+    // if the new pipe create a cycle
+    if (areConnected(to->owner(), from->owner())) {
+      return false;
+    }
+
+    to->m_link = from;
+    from->m_links.push_back(to);
+
+    return true;
+  }
+
+  void Processor::disconnect(AutoPtr<ProcessorInput> to) {
+    if (to.isNull()) return;
+
+    AutoPtr<ProcessorOutput> from = to->m_link;
+    if (!from.isNull()) {
+      from->m_links.erase(std::remove(from->m_links.begin(), from->m_links.end(), to), from->m_links.end());
+    }
+
+    to->m_link = AutoPtr<ProcessorOutput>(NULL);
+  }
+
+  void Processor::disconnect(AutoPtr<ProcessorOutput> from) {
+    if (from.isNull()) return;
+
+    for (AutoPtr<ProcessorInput> to : from->m_links) {
+      if (!to.isNull()) {
+        to->m_link = AutoPtr<ProcessorOutput>(NULL);
+      }
+    }
+    from->m_links.clear();
+  }
+
+  bool Processor::areConnected(Processor * from, Processor * to)
+  {
+    // Raw pointers, because m_owner is a raw pointer
+    std::queue<Processor*> toCheck;
+    toCheck.push(to);
+
+    while (!toCheck.empty()) {
+      Processor* current = toCheck.front();
+      toCheck.pop();
+
+      if (current == from) {
+        return true;
+      }
+      for (AutoPtr<ProcessorInput> input : current->inputs()) {
+        if (!input->m_link.isNull()) {
+          AutoPtr<ProcessorOutput> output = input->m_link;
+          toCheck.push(output->owner());
+        }
+      }
+    }
+    return false;
+  }
+
   void Processor::save(std::ofstream& stream) {
     ImVec4 color4vec = ImGui::ColorConvertU32ToFloat4(color());
     stream << "p_" << getUniqueID() << " = Processor({" <<

@@ -103,12 +103,16 @@ namespace Chill
       m_comments.push_back(_visualComment);
     }
 
-    void add(AutoPtr<SelectableUI>& _select) {
-      AutoPtr<Processor> proc = AutoPtr<Processor>(_select);
+    /**
+     *  Add an existing object to the graph.
+     *  @param _object The AutoPtr related to the object.
+     **/
+    void add(AutoPtr<SelectableUI>& _object) {
+      AutoPtr<Processor> proc = AutoPtr<Processor>(_object);
       if (!proc.isNull()) {
         addProcessor(proc);
       }
-      AutoPtr<VisualComment> com = AutoPtr<VisualComment>(_select);
+      AutoPtr<VisualComment> com = AutoPtr<VisualComment>(_object);
       if (!com.isNull()) {
         addComment(com);
       }
@@ -120,38 +124,17 @@ namespace Chill
      **/
     void remove(AutoPtr<Processor> _processor);
 
+    /**
+     *  Remove an existing comment from the graph.
+     *  @param _comment The AutoPtr related to the comment.
+     **/
     void remove(AutoPtr<VisualComment> _comment);
 
-    void remove(AutoPtr<SelectableUI> _select);
-
     /**
-     *  Add a new connection to the graph if, and only if, there is no cycle created.
-     *  @param _from The origin processor.
-     *  @param _output_name The name of the output.
-     *  @param _to The destination processor.
-     *  @param _input_name The name of the input.
+     *  Remove an existing _object from the graph.
+     *  @param _object The AutoPtr related to the object.
      **/
-    static bool connect(AutoPtr<Processor> _from, const std::string _output_name,
-                        AutoPtr<Processor> _to, const std::string _input_name);
-    
-    /**
-     *  Add a new connection to the graph if, and only if, there is no cycle created.
-     *  @param _from The processor's output.
-     *  @param _to The processor's input.
-     **/
-    static bool connect(AutoPtr<ProcessorOutput> _from, AutoPtr<ProcessorInput> _to);
-
-    /**
-     *  Remove a connection in the graph.
-     *  @param _to The processor's input.
-     **/
-    static void disconnect(AutoPtr<ProcessorInput> _to);
-
-    /**
-    *  Remove a connection in the graph.
-    *  @param _from The processor's output.
-    **/
-    static void disconnect(AutoPtr<ProcessorOutput> _from);
+    void remove(AutoPtr<SelectableUI> _object);
 
     /**
      *  Duplicate a set of nodes.
@@ -175,8 +158,6 @@ namespace Chill
      *  @param _position Where the graph has to expand.
      **/
     void expandGraph(AutoPtr<ProcessingGraph> _graph, ImVec2 _position);
-
-    static bool areConnected(Processor * _from, Processor * _to);
     
     void addProxy(AutoPtr<ProcessorOutput> _proxy_o, AutoPtr<ProcessorInput> _proxy_i)
     {

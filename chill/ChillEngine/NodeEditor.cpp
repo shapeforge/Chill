@@ -24,53 +24,53 @@ namespace Chill
   NodeEditor* NodeEditor::s_instance = nullptr;
 
   //-------------------------------------------------------
-  void listFolderinDir(std::vector<std::string>& files, std::string folder)
+  void listFolderinDir(std::vector<std::string>& _files, const std::string& _dir)
   {
-    for (fs::directory_iterator itr(folder); itr != fs::directory_iterator(); ++itr)
+    for (fs::directory_iterator itr(_dir); itr != fs::directory_iterator(); ++itr)
     {
       fs::path file = itr->path();
-      if (is_directory(file))files.push_back(file.filename().generic_string());
+      if (is_directory(file))_files.push_back(file.filename().generic_string());
     }
   }
 
-  void listLuaFileInDir(std::vector<std::string>& files)
+  void listLuaFileInDir(std::vector<std::string>& _files)
   {
-    listFiles(NodeEditor::NodesFolder().c_str(), files);
+    listFiles(NodeEditor::NodesFolder().c_str(), _files);
   }
 
-  void listLuaFileInDir(std::vector<std::string>& files, std::string directory)
+  void listLuaFileInDir(std::vector<std::string>& _files, const std::string& _dir)
   {
-    for (fs::directory_iterator itr(directory); itr != fs::directory_iterator(); ++itr)
+    for (fs::directory_iterator itr(_dir); itr != fs::directory_iterator(); ++itr)
     {
       fs::path file = itr->path();
       if (!is_directory(file) && strcmp(extractExtension(file.filename().generic_string()).c_str(), "lua") == 0) {
-        files.push_back(file.filename().generic_string());
+        _files.push_back(file.filename().generic_string());
       }
     }
   }
 
   //---------------------------------------------------
-  std::string recursiveFileSelecter(std::string current_dir)
+  std::string recursiveFileSelecter(const std::string& _current_dir)
   {
     std::vector<std::string> files;
-    listLuaFileInDir(files, current_dir);
+    listLuaFileInDir(files, _current_dir);
     std::vector<std::string> directories;
     std::string nameDir = "";
-    listFolderinDir(directories, current_dir);
+    listFolderinDir(directories, _current_dir);
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 1.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7F, 0.7F, 1.0F, 1.0F));
     ForIndex(i, directories.size()) {
       if (ImGui::BeginMenu(directories[i].c_str())) {
-        nameDir = recursiveFileSelecter(Resources::toPath(current_dir, directories[i]));
+        nameDir = recursiveFileSelecter(Resources::toPath(_current_dir, directories[i]));
         ImGui::EndMenu();
       }
     }
     ImGui::PopStyleColor();
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1., 1., 1.0, 1));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0F, 1.0F, 1.0F, 1.0F));
     ForIndex(i, files.size()) {
       if (ImGui::MenuItem(removeExtensionFromFileName(files[i]).c_str())) {
-        nameDir = Resources::toPath(current_dir, files[i]);
+        nameDir = Resources::toPath(_current_dir, files[i]);
       }
     }
     ImGui::PopStyleColor();
@@ -79,21 +79,21 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  std::string relativePath(std::string& path)
+  std::string relativePath(const std::string& _path)
   {
     int nfsize = (int)NodeEditor::NodesFolder().size();
-    if (path[nfsize + 1] == '/') nfsize++;
-    std::string name = path.substr(nfsize);
+    if (_path[nfsize + 1] == '/') nfsize++;
+    std::string name = _path.substr(nfsize);
     return name;
   }
 
   //-------------------------------------------------------
-  void addNodeMenu(ImVec2 pos) {
+  void addNodeMenu(ImVec2 _pos) {
     NodeEditor* n_e = NodeEditor::Instance();
     std::string node = recursiveFileSelecter(NodeEditor::NodesFolder());
     if (!node.empty()) {
       AutoPtr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>(relativePath(node));
-      proc->setPosition(pos);
+      proc->setPosition(_pos);
     }
   }
 
@@ -125,12 +125,12 @@ namespace Chill
   }
 
   LRESULT CALLBACK custom_wndProc(
-    _In_ HWND   hwnd,
-    _In_ UINT   uMsg,
-    _In_ WPARAM wParam,
-    _In_ LPARAM lParam)
+    _In_ HWND   _hwnd,
+    _In_ UINT   _uMsg,
+    _In_ WPARAM _wParam,
+    _In_ LPARAM _lParam)
   {
-    switch (uMsg) {
+    switch (_uMsg) {
     case WM_MOVE:
       NodeEditor::Instance()->moveIceSLWindowAlongChill();
 
@@ -143,6 +143,8 @@ namespace Chill
         NodeEditor::Instance()->setDefaultAppsPos();
       }
       break;
+      default:
+        break;
     }
     return 0;
   }
@@ -189,37 +191,35 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::mainKeyPressed(uchar k)
-  {
-  }
+  void NodeEditor::mainKeyPressed(uchar _k) {}
 
   //-------------------------------------------------------
-  void NodeEditor::mainScanCodePressed(uint sc)
+  void NodeEditor::mainScanCodePressed(uint _sc)
   {
-    if (sc == LIBSL_KEY_SHIFT) {
+    if (_sc == LIBSL_KEY_SHIFT) {
       ImGui::GetIO().KeyShift = true;
     }
-    if (sc == LIBSL_KEY_CTRL) {
+    if (_sc == LIBSL_KEY_CTRL) {
       ImGui::GetIO().KeyCtrl = true;
     }
   }
 
   //-------------------------------------------------------
-  void NodeEditor::mainScanCodeUnpressed(uint sc)
+  void NodeEditor::mainScanCodeUnpressed(uint _sc)
   {
-    if (sc == LIBSL_KEY_SHIFT) {
+    if (_sc == LIBSL_KEY_SHIFT) {
       ImGui::GetIO().KeyShift = false;
     }
-    if (sc == LIBSL_KEY_CTRL) {
+    if (_sc == LIBSL_KEY_CTRL) {
       ImGui::GetIO().KeyCtrl = false;
     }
   }
 
   //-------------------------------------------------------
-  void NodeEditor::mainMouseMoved(uint x, uint y) {}
+  void NodeEditor::mainMouseMoved(uint _x, uint _y) {}
 
   //-------------------------------------------------------
-  void NodeEditor::mainMousePressed(uint x, uint y, uint button, uint flags) {}
+  void NodeEditor::mainMousePressed(uint _x, uint _y, uint _button, uint _flags) {}
 
   //-------------------------------------------------------
   bool NodeEditor::draw()
@@ -346,7 +346,7 @@ namespace Chill
       //TODO _Get_container is not standard
       for (auto graph : m_graphs._Get_container()) {
         std::string text = "";
-        for (int j = 0; j < i; j++)
+        for (uint j = 0; j < i; j++)
           text += " ";
         text += ">";
         ImGui::TextDisabled(text.c_str());

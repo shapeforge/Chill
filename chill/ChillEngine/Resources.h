@@ -13,8 +13,9 @@ class Resources
     // search for resources
     std::vector<std::string> paths;
     paths.push_back("./");
-    paths.push_back(toPath( std::string(LibSL::System::Application::executablePath())));
-    paths.push_back(toPath( std::string(LibSL::System::Application::executablePath()), "..", "..", "icesl-nodes"));
+    paths.push_back(toPath(std::string(LibSL::System::Application::executablePath())));
+    paths.push_back(toPath(std::string(LibSL::System::Application::executablePath()), "..", "icesl-nodes"));
+    paths.push_back(toPath(std::string(LibSL::System::Application::executablePath()), "..", "..", "icesl-nodes"));
 #ifdef WIN32
     paths.push_back(toPath("C:", "Program Files", "INRIA", "IceSL", "bin"));
     paths.push_back(toPath("C:", "Program Files (x86)", "INRIA", "IceSL", "bin"));
