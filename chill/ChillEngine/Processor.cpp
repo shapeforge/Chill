@@ -216,9 +216,6 @@ bool Chill::Processor::draw() {
     }
   }
 
-
-   
-
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 20);
 

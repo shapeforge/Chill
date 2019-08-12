@@ -1,7 +1,7 @@
 #ifndef EMSCRIPTEN
 
 #ifndef WIN32
-#include <tinyfiledialogs.h>
+#include "../../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif
 
 #include <LibSL/LibSL.h>

@@ -1,3 +1,14 @@
 [submodule "LibSL"]
 	path = libs/LibSL
 	url = https://github.com/sylefeb/LibSL
+	branch = master
+
+[submodule "chill-nodes"]
+	path = chill-nodes
+	url = https://github.com/shapeforge/chill-nodes
+	branch = master
+
+[submodule "tinyfiledialogs"]
+	path = libs/tinyfiledialogs
+	url = https://github.com/native-toolkit/tinyfiledialogs
+	branch = master

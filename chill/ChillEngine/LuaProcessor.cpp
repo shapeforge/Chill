@@ -26,7 +26,7 @@ namespace Chill
   LuaProcessor::LuaProcessor(const std::string &_path) {
     std::regex e("\\\\");
     m_nodepath = regex_replace(_path, e, "/$2");
-    m_program  = loadFileIntoString((NodeEditor::NodeFolder() + m_nodepath).c_str());
+    m_program  = loadFileIntoString((NodeEditor::NodesFolder() + m_nodepath).c_str());
 
     setName(removeExtensionFromFileName(extractFileName(m_nodepath)));
     Parse();

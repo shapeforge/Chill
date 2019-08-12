@@ -1,6 +1,8 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(ChillLauncher)
 
+include(UseCXX17)
+
 ADD_EXECUTABLE( ChillLauncher
   launcher.cpp
   ../../ressources/main.rc
@@ -9,6 +11,13 @@ ADD_EXECUTABLE( ChillLauncher
 TARGET_LINK_LIBRARIES( ChillLauncher
   ChillEngine
 )
+
+IF(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  TARGET_LINK_LIBRARIES( ChillLauncher
+    stdc++fs
+#    c++fs c++abi
+  )
+ENDIF()
 
 SET_PROPERTY(TARGET ChillLauncher APPEND PROPERTY
    INTERFACE_INCLUDE_DIRECTORIES

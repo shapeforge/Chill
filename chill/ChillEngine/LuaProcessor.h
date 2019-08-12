@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Processor.h"
+
 namespace Chill
 {
   /**
@@ -19,12 +20,12 @@ namespace Chill
   public:
     LuaProcessor(const std::string &_path);
 
-    virtual AutoPtr<SelectableUI> clone() override {
+    AutoPtr<SelectableUI> clone() override {
       return AutoPtr<SelectableUI>(new LuaProcessor(*this));
     }
 
-    virtual void save(std::ofstream& _stream);
-    virtual void iceSL(std::ofstream& stream);
+    void save(std::ofstream& _stream) override;
+    void iceSL(std::ofstream& stream) override;
 
     void ParseInput();
     void ParseOutput();
@@ -53,14 +54,14 @@ namespace Chill
     *  @param _input The input.
     *  @return A pointer to the new input.
     */
-    virtual AutoPtr<ProcessorInput> addInput(AutoPtr<ProcessorInput> _input);
+    AutoPtr<ProcessorInput> addInput(AutoPtr<ProcessorInput> _input) override;
 
     /**
     *  Add a new output to the processor.
     *  @param _output The output.
     *  @return A pointer to the new output.
     **/
-    virtual AutoPtr<ProcessorOutput> addOutput(AutoPtr<ProcessorOutput> _output);
+    AutoPtr<ProcessorOutput> addOutput(AutoPtr<ProcessorOutput> _output)  override;
 
     /**
     *  Add a new output to the processor.

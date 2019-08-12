@@ -9,12 +9,12 @@ namespace Chill
 }
 
 
-#include <LibSL\LibSL.h>
-#include <LibSL\LibSL_gl.h>
+#include <LibSL/LibSL.h>
+#include <LibSL/LibSL_gl.h>
 
-#include "imgui\imgui.h"
+#include "imgui/imgui.h"
 #define IMGUI_DEFINE_MATH_OPERATORS true
-#include "imgui\imgui_internal.h"
+#include "imgui/imgui_internal.h"
 
 #include "Style.h"
 
@@ -33,6 +33,8 @@ public:
 
 public:
   Style style;
+
+  virtual ~UI() {}
 
   /**
    * Draw the component
@@ -99,6 +101,8 @@ public:
     m_selected = false;
     m_edit = false;
   }
+
+  virtual ~SelectableUI() {}
 
 
   /**
