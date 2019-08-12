@@ -82,7 +82,7 @@ namespace Chill
   std::string relativePath(std::string& path)
   {
     int nfsize = (int)NodeEditor::NodesFolder().size();
-    if (path[nfsize + 1] == Resources::separator()) nfsize++;
+    if (path[nfsize + 1] == '/') nfsize++;
     std::string name = path.substr(nfsize);
     return name;
   }
@@ -290,7 +290,7 @@ namespace Chill
         }
 
         if (!fullpath.empty()) {
-          const size_t last_slash_idx = fullpath.rfind(Resources::separator());
+          const size_t last_slash_idx = fullpath.rfind('/');
           if (std::string::npos != last_slash_idx) {
             //m_nodeFolder = fullpath.substr(0, last_slash_idx) + Resources::separator() + "nodes";
           }
@@ -1304,7 +1304,7 @@ namespace Chill
   std::string NodeEditor::ChillFolder() {
     std::string chillFolder;
 #ifdef WIN32
-    chillFolder = getenv("AppData") + std::string("\\Chill\\");
+    chillFolder = getenv("APPDATA") + std::string("/Chill/");
 #elif __linux__
     chillFolder = getenv("HOME") + std::string("/Chill/");
 #endif
@@ -1326,7 +1326,7 @@ namespace Chill
   void NodeEditor::SetIceslPath() {
     if (g_iceslPath.empty()) {
 #ifdef WIN32
-      g_iceslPath = getenv("PROGRAMFILES") + std::string("\\INRIA\\IceSL\\bin\\IceSL-slicer.exe");
+      g_iceslPath = getenv("PROGRAMFILES") + std::string("/INRIA/IceSL/bin/IceSL-slicer.exe");
 #elif __linux__
       g_iceslPath = getenv("HOME") + std::string("/icesl/bin/IceSL-slicer");
 #endif
@@ -1343,7 +1343,7 @@ namespace Chill
       int modal = MessageBox(g_chill_hwnd, modalText, modalTitle, modalFlags);
 
       if (modal == 1) {
-        g_iceslPath = openFileDialog(OFD_FILTER_NONE).c_str();
+        g_iceslPath = openFileDialog(OFD_FILTER_ALL).c_str();
         std::cerr << Console::yellow << "IceSL location specified: " << g_iceslPath << Console::gray << std::endl;
       }
       else {
@@ -1352,7 +1352,7 @@ namespace Chill
 
 #elif __linux__
       // TODO Linux modal window
-      g_iceslPath = openFileDialog(OFD_FILTER_NONE).c_str();
+      g_iceslPath = openFileDialog(OFD_FILTER_ALL).c_str();
       std::cerr << Console::yellow << "IceSL location specified: " << g_iceslPath << Console::gray << std::endl;
 #endif
     }

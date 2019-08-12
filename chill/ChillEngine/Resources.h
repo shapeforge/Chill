@@ -12,7 +12,7 @@ class Resources
   {
     // search for resources
     std::vector<std::string> paths;
-    paths.push_back("." + separator());
+    paths.push_back("./");
     paths.push_back(toPath( std::string(LibSL::System::Application::executablePath())));
     paths.push_back(toPath( std::string(LibSL::System::Application::executablePath()), "..", "..", "icesl-nodes"));
 #ifdef WIN32
@@ -42,21 +42,12 @@ public:
 
   template<typename... Args>
   static std::string toPath(const std::string& first, Args... args) {
-    return first + separator() + toPath(args...);
+    return first + '/' + toPath(args...);
   }
 
   static const std::string& path() 
   { 
     return getInstance().m_Path;
-  }
-
-  static inline char separator()
-  {
-#if defined _WIN32 || defined __CYGWIN__
-    return '\\';
-#else
-    return '/';
-#endif
   }
 
   static Resources& getInstance()

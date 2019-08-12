@@ -322,12 +322,7 @@ bool Chill::PathInput::drawTweak()
       m_value = string;
     }
     if (ImGui::Button("...##")) {
-#ifdef WIN32
-      std::string fullpath = openFileDialog(m_filter == "" ? OFD_FILTER_GRAPHS : m_filter.c_str());
-#else
-        std::string fullpath = openFileDialog(OFD_FILTER_GRAPHS);
-        // TODO : currently does not support filter !
-#endif
+      std::string fullpath = openFileDialog(OFD_FILTER_GRAPHS);
       if (!fullpath.empty()) {
         std::replace(fullpath.begin(), fullpath.end(), '\\', '/');
         m_value = fullpath.c_str();
