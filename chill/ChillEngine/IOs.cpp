@@ -283,7 +283,7 @@ bool Chill::ListInput::drawTweak()
         *out_text = ((const std::vector<std::string>*)data)->at(idx).c_str();
         return true;
       }, reinterpret_cast<void*> (&m_values),
-      m_values.size());
+        static_cast<int>(m_values.size()));
   } else {
     ImGui::Text(name());
   }

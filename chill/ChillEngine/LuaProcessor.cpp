@@ -5,16 +5,16 @@
 
 #include "NodeEditor.h"
 
-#define REGEX_WSPACES std::string("\\s*")
-#define REGEX_COMMENT std::string("(--\\[\\[[\\s\\S]*?\\]\\]--|--[^\\n]*)")
-#define REGEX_STRING  std::string("[\\\"\\\']([\\S\\s]*?)[\\\"\\\']")
-#define REGEX_INT     std::string("(-?\\d+)")
-#define REGEX_SCALAR  std::string("(-?(?:\\d*[.]\\d+|\\d+[.]\\d*)(?:[Ee][+-]?\\d+)?)")
-#define REGEX_NUMBER  std::string("(?:" + REGEX_SCALAR  + "|" + REGEX_INT + ")")
-#define REGEX_BOOL    std::string("(true|false)")
-#define REGEX_NAMED   std::string("^(?:\\s)*([a-zA-Z_][\\w_]*)\\s*=\\s*")
-#define REGEX_TABLE   std::string("\\{(?:(,?\\s*(?:" + REGEX_NAMED + "|)(?:" + REGEX_STRING + "|" + REGEX_NUMBER + "|" + REGEX_BOOL + ")\\s*?)*)\\}")
-#define REGEX_PARAM   std::string("(?:" + REGEX_STRING + "|" + REGEX_NUMBER + "|" + REGEX_BOOL + "|" + REGEX_TABLE + ")")
+const std::string REGEX_WSPACES = "\\s*";
+const std::string REGEX_COMMENT = "(--\\[\\[[\\s\\S]*?\\]\\]--|--[^\\n]*)";
+const std::string REGEX_STRING  = "[\\\"\\\']([\\S\\s]*?)[\\\"\\\']";
+const std::string REGEX_INT     = "(-?\\d+)";
+const std::string REGEX_SCALAR  = "(-?(?:\\d*[.]\\d+|\\d+[.]\\d*)(?:[Ee][+-]?\\d+)?)";
+const std::string REGEX_NUMBER  = "(?:" + REGEX_SCALAR + "|" + REGEX_INT + ")";
+const std::string REGEX_BOOL    = "(true|false)";
+const std::string REGEX_NAMED   = "^(?:\\s)*([a-zA-Z_][\\w_]*)\\s*=\\s*";
+const std::string REGEX_TABLE   = "\\{(?:(,?\\s*(?:" + REGEX_NAMED + "|)(?:" + REGEX_STRING + "|" + REGEX_NUMBER + "|" + REGEX_BOOL + ")\\s*?)*)\\}";
+const std::string REGEX_PARAM   = "(?:" + REGEX_STRING + "|" + REGEX_NUMBER + "|" + REGEX_BOOL + "|" + REGEX_TABLE + ")";
 
 namespace Chill
 {
@@ -217,5 +217,4 @@ setDirty(__currentNodeId)\n";
     }
     return _output;
   }
-
 }

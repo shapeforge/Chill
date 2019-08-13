@@ -143,8 +143,8 @@ namespace Chill
         NodeEditor::Instance()->setDefaultAppsPos();
       }
       break;
-      default:
-        break;
+    default:
+      break;
     }
     return 0;
   }
@@ -185,13 +185,17 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::mainOnResize(uint width, uint height) {
+  void NodeEditor::mainOnResize(uint width, uint height)
+  {
     Instance()->m_size = ImVec2((float)width, (float)height);
     s_instance->moveIceSLWindowAlongChill();
   }
 
   //-------------------------------------------------------
-  void NodeEditor::mainKeyPressed(uchar _k) {}
+  void NodeEditor::mainKeyPressed(uchar _k)
+  {
+    // Nothing for now
+  }
 
   //-------------------------------------------------------
   void NodeEditor::mainScanCodePressed(uint _sc)
@@ -216,10 +220,16 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::mainMouseMoved(uint _x, uint _y) {}
+  void NodeEditor::mainMouseMoved(uint _x, uint _y)
+  {
+    // Nothing for now
+  }
 
   //-------------------------------------------------------
-  void NodeEditor::mainMousePressed(uint _x, uint _y, uint _button, uint _flags) {}
+  void NodeEditor::mainMousePressed(uint _x, uint _y, uint _button, uint _flags)
+  {
+    // Nothing for now
+  }
 
   //-------------------------------------------------------
   bool NodeEditor::draw()
@@ -289,13 +299,6 @@ namespace Chill
           }
         }
 
-        if (!fullpath.empty()) {
-          const size_t last_slash_idx = fullpath.rfind('/');
-          if (std::string::npos != last_slash_idx) {
-            //m_nodeFolder = fullpath.substr(0, last_slash_idx) + Resources::separator() + "nodes";
-          }
-        }
-
         if (ImGui::MenuItem("Export to IceSL lua")) {
           std::string graph_filename = getMainGraph()->name() + ".lua";
           g_iceSLExportPath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_LUA);
@@ -353,7 +356,7 @@ namespace Chill
         ImGui::SameLine();
 
         if (i == m_graphs.size()) {
-          strcpy(title, m_graphs.top()->name().c_str());
+          strncpy_s(title, m_graphs.top()->name().c_str(), 32);
           if (ImGui::InputText(("##graphname" + std::to_string(getUniqueID())).c_str(), title, 32)) {
             m_graphs.top()->setName(title);
           }
@@ -374,7 +377,7 @@ namespace Chill
 
     if (selected.size() == 1) {
       ImGui::Text("Name:");
-      strcpy(name, selected[0]->name().c_str());
+      strncpy_s(name, selected[0]->name().c_str(), 32);
       if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), name, 16)) {
         m_graphs.top()->setName(name);
       }
@@ -609,15 +612,15 @@ namespace Chill
       // Move selected processors
       if (m_dragging) {
         if (!io.KeysDown[LIBSL_KEY_CTRL]) {
-          for (AutoPtr<SelectableUI> selected : selected) {
-            selected->translate(io.MouseDelta / w_scale);
+          for (AutoPtr<SelectableUI> object : selected) {
+            object->translate(io.MouseDelta / w_scale);
           }
         }
         else {
-          for (AutoPtr<SelectableUI> selected : selected) {
-            AutoPtr<VisualComment> com(selected);
+          for (AutoPtr<SelectableUI> object : selected) {
+            AutoPtr<VisualComment> com(object);
             if (!com.isNull())
-              selected->m_size += io.MouseDelta / w_scale;
+              object->m_size += io.MouseDelta / w_scale;
           }
         }
       }
@@ -731,7 +734,7 @@ namespace Chill
         B = w_pos + m_selected_output->getPosition();
       }
 
-      ImVec2 bezier(100.0f * w_scale, 0);
+      ImVec2 bezier(100.0F * w_scale, 0);
       ImGui::GetWindowDrawList()->AddBezierCurve(
         A,
         A - bezier,
@@ -794,19 +797,25 @@ namespace Chill
       Instance()->style.graph_grid_size * coeff * 10 };
 
     for (int subdiv : subdiv_levels) {
-      const float& grid_size = window->FontWindowScale * subdiv;
+      int grid_size  = static_cast<int>(window->FontWindowScale * subdiv);
+      int win_size_x = static_cast<int>(window->Size.x);
+      int win_size_y = static_cast<int>(window->Size.y);
+      int win_pos_x  = static_cast<int>(window->Pos.x);
+      int win_pos_y  = static_cast<int>(window->Pos.y);
+      int offset_x   = static_cast<int>(offset.x);
+      int offset_y   = static_cast<int>(offset.y);
 
       // Vertical lines
-      for (float x = fmodf(offset.x, grid_size); x < window->Size.x; x += grid_size) {
-        ImVec2 p1 = ImVec2(x + window->Pos.x, window->Pos.y);
-        ImVec2 p2 = ImVec2(x + window->Pos.x, window->Size.y + window->Pos.y);
+      for (int x = offset_x % grid_size; x < win_size_x; x += grid_size) {
+        ImVec2 p1 = ImVec2(x + win_pos_x, win_pos_y);
+        ImVec2 p2 = ImVec2(x + win_pos_x, win_size_y + win_pos_y);
         draw_list->AddLine(p1, p2, GRID_COLOR, grid_Line_width);
       }
 
       // Horizontal lines
-      for (float y = fmodf(offset.y, grid_size); y < window->Size.y; y += grid_size) {
-        ImVec2 p1 = ImVec2(window->Pos.x, y + window->Pos.y);
-        ImVec2 p2 = ImVec2(window->Size.x + window->Pos.x, y + window->Pos.y);
+      for (int y = offset_y % grid_size; y < win_size_y; y += grid_size) {
+        ImVec2 p1 = ImVec2(win_pos_x, y + win_pos_y);
+        ImVec2 p2 = ImVec2(win_size_x + win_pos_x, y + win_pos_y);
         draw_list->AddLine(p1, p2, GRID_COLOR, grid_Line_width);
       }
     }
@@ -818,9 +827,6 @@ namespace Chill
 
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    ImVec2 w_pos = window->Pos;
-    ImVec2 w_size = window->Size;
-    float w_scale = window->FontWindowScale;
 
     ImGuiIO io = ImGui::GetIO();
 
@@ -835,6 +841,11 @@ namespace Chill
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16, 16));
     if (ImGui::BeginPopup("graph_menu"))
     {
+
+      ImVec2 w_pos = window->Pos;
+      ImVec2 w_size = window->Size;
+      float w_scale = window->FontWindowScale;
+
       // mouse to screen
       ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
       // screen to grid
@@ -865,36 +876,27 @@ namespace Chill
         n_e->getCurrentGraph()->addComment(com);
       }
 
-      if (ImGui::MenuItem("Nothing")) {
-
-      }
-
       ImGui::EndPopup();
     }
 
     if (ImGui::BeginPopup("node_menu"))
     {
       Instance()->m_node_menu = false;
-      if (ImGui::MenuItem("Copy", "CTRL+C")) {
-        if (!selected.empty()) {
-          buffer = n_e->getCurrentGraph()->copySubset(selected);
-        }
+      if (ImGui::MenuItem("Copy", "CTRL+C"))
+      {
+        buffer = n_e->getCurrentGraph()->copySubset(selected);
       }
-      if (ImGui::MenuItem("Group")) {
-        if (!selected.empty()) {
-          n_e->getCurrentGraph()->collapseSubset(selected);
-        }
+      if (ImGui::MenuItem("Group"))
+      {
+        n_e->getCurrentGraph()->collapseSubset(selected);
       }
       if (ImGui::MenuItem("Ungroup")) {
-        if (!selected.empty()) {
-          for (AutoPtr<SelectableUI> proc : selected) {
-            if (typeid(*proc.raw()) == typeid(ProcessingGraph)) {
-              n_e->getCurrentGraph()->expandGraph(AutoPtr<ProcessingGraph>(proc), proc->getPosition());
-            }
+        for (AutoPtr<SelectableUI> proc : selected) {
+          if (typeid(*proc.raw()) == typeid(ProcessingGraph)) {
+            n_e->getCurrentGraph()->expandGraph(AutoPtr<ProcessingGraph>(proc), proc->getPosition());
           }
         }
       }
-
       if (ImGui::MenuItem("Delete")) {
         for (AutoPtr<SelectableUI> item : selected) {
           n_e->getCurrentGraph()->remove(item);
@@ -906,17 +908,14 @@ namespace Chill
           if (!proc.isNull()) {
             for (AutoPtr<ProcessorInput> input : proc->inputs())
             {
-              n_e->getCurrentGraph()->disconnect(input);
+              Processor::disconnect(input);
             }
             for (AutoPtr<ProcessorOutput> output : proc->outputs()) {
-              for (AutoPtr<ProcessorInput> input : output->m_links) {
-                n_e->getCurrentGraph()->disconnect(input);
-              }
+              Processor::disconnect(output);
             }
           }
         }
       }
-      if (ImGui::MenuItem("Nothing")) {}
       ImGui::EndPopup();
     }
     ImGui::PopStyleVar();
@@ -957,23 +956,21 @@ namespace Chill
         selected.clear();
       }
 
+      auto isInside = [](ImVec2 min, ImVec2 max, ImVec2& A, ImVec2& B) {
+        return !(min.x < A.x || B.x < max.x || min.y < A.y || B.y < max.y);
+      };
+
       for (AutoPtr<Processor> procui : n_e->getCurrentGraph()->processors()) {
         ImVec2 pos_min = procui->getPosition();
         ImVec2 pos_max = pos_min + procui->m_size;
-
-        if (pos_min.x < A.x || B.x < pos_max.x) continue;
-        if (pos_min.y < A.y || B.y < pos_max.y) continue;
-        procui->m_selected = true;
+        procui->m_selected = isInside(pos_min, pos_max, A, B);
         selected.push_back(AutoPtr<SelectableUI>(procui));
       }
 
       for (AutoPtr<VisualComment> comui : n_e->getCurrentGraph()->comments()) {
         ImVec2 pos_min = comui->getPosition();
         ImVec2 pos_max = pos_min + comui->m_size;
-
-        if (pos_min.x < A.x || B.x < pos_max.x) continue;
-        if (pos_min.y < A.y || B.y < pos_max.y) continue;
-        comui->m_selected = true;
+        comui->m_selected = isInside(pos_min, pos_max, A, B);
         selected.push_back(AutoPtr<SelectableUI>(comui));
       }
     }

@@ -17,11 +17,11 @@ static ImColor color_vec4  (255, 255, 109);
 static ImColor color_vec3  (219, 209, 0  );
 
 
-
-namespace Chill {
+namespace Chill
+{
   class ProcessorInput;
   class ProcessorOutput;
-
+  
   class IO : public UI
   {
   private:
@@ -371,7 +371,7 @@ namespace Chill {
     template <typename ...>
     ListInput(int _value, std::vector<std::string>& _params) : ListInput()
     {
-      int s = (int)_params.size();
+      int s = static_cast<int(_params.size());
 
       m_value = s >= 1 ? std::stoi(_params[0]) : 0;
       m_min = 0;
@@ -383,12 +383,12 @@ namespace Chill {
     template <typename ...>
     ListInput(std::vector<std::string>& _params) : ListInput()
     {
-      size_t s = _params.size();
+      int s = static_cast<int(_params.size());
 
       m_values = _params;
-      m_value = 0;
-      m_min   = 0;
-      m_max   = s;
+      m_value  = 0;
+      m_min    = 0;
+      m_max    = s;
       
       m_value = std::min(m_max, std::max(m_min, m_value));
     };
