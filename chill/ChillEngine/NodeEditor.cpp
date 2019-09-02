@@ -190,7 +190,6 @@ namespace Chill
   //-------------------------------------------------------
   void NodeEditor::mainKeyPressed(uchar /*_k*/)
   {
-    // Nothing for now
   }
 
   //-------------------------------------------------------
@@ -653,18 +652,22 @@ namespace Chill
       }
       
       if (!selected.empty()) {
-        if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c'] && io.KeysDownDuration['c'] == 0) {
+        if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c' - 96] && io.KeysDownDuration['c' - 96] == 0) {
           buffer = getCurrentGraph()->copySubset(selected);
         }
       }
+
+
       if (!buffer.isNull()) {
-        if (ImGui::MenuItem("Paste", "CTRL+V")) {
+        if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['v' - 96] && io.KeysDownDuration['v' - 96] == 0) {
           // mouse to screen
           ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
           // screen to grid
           ImVec2 s2g = m2s / w_scale - m_offset;
+
+          AutoPtr<SelectableUI> copy_buff = buffer->clone();
           getCurrentGraph()->expandGraph(buffer, s2g);
-          buffer = AutoPtr<ProcessingGraph>(NULL);
+          buffer = AutoPtr<ProcessingGraph>(copy_buff);
         }
       }
       if (io.KeysDown[LIBSL_KEY_DELETE]) {
@@ -869,8 +872,14 @@ namespace Chill
 
       if (!buffer.isNull()) {
         if (ImGui::MenuItem("Paste", "CTRL+V")) {
-          n_e->getCurrentGraph()->expandGraph(buffer, s2g);
-          buffer = AutoPtr<ProcessingGraph>(NULL);
+          // mouse to screen
+          ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
+          // screen to grid
+          ImVec2 s2g = m2s / w_scale - m_offset;
+
+          AutoPtr<SelectableUI> copy_buff = buffer->clone();
+          getCurrentGraph()->expandGraph(buffer, s2g);
+          buffer = AutoPtr<ProcessingGraph>(copy_buff);
         }
       }
 
@@ -1016,6 +1025,9 @@ namespace Chill
       WaitForSingleObject(s_instance->g_icesl_p_info.hProcess, 1000);
       // getting the hwnd
       EnumWindows(EnumWindowsFromPid, s_instance->g_icesl_p_info.dwProcessId);
+      if (Instance()->g_auto_export) {
+        Instance()->exportIceSL(Instance()->g_iceSLTempExportPath);
+      }
     }
     else
     {

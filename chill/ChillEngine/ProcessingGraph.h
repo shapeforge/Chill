@@ -142,7 +142,7 @@ namespace Chill
      *  @param _subset The list of processors to duplicate.
      *  @return A new graph which contains all those processors.
      **/
-    AutoPtr<ProcessingGraph> copySubset(const std::vector<AutoPtr<SelectableUI>>& _subset);
+    AutoPtr<ProcessingGraph> copySubset(std::vector<AutoPtr<SelectableUI>>& _subset);
 
     /**
      *  Move all the processors inside a new graph.
