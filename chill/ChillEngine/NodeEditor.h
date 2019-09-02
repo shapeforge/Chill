@@ -32,7 +32,6 @@ namespace Chill
     std::vector<AutoPtr<SelectableUI>>     selected;
     AutoPtr<ProcessingGraph> buffer;
 
-    bool dirty = true;
     bool text_editing;
     bool linking;
 

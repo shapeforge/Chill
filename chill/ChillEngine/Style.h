@@ -58,6 +58,8 @@ struct Style
   ImU32 pipe_color;
   ImU32 pipe_selected_color;
   ImU32 pipe_error_color;
+  
+  float pipe_line_width;
 
   Style()
   {
@@ -98,6 +100,8 @@ struct Style
     pipe_color          = ui_cyan;
     pipe_selected_color = ui_orange;
     pipe_error_color    = ImColor(255, 55, 51);
+
+    pipe_line_width = 6.0F;
   };
 
 

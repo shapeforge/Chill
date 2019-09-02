@@ -125,13 +125,12 @@ namespace Chill
   }
 
   LRESULT CALLBACK custom_wndProc(
-    _In_ HWND   _hwnd,
+    _In_ HWND   /*_hwnd*/,
     _In_ UINT   _uMsg,
-    _In_ WPARAM _wParam,
-    _In_ LPARAM _lParam)
+    _In_ WPARAM /*_wParam*/,
+    _In_ LPARAM /*_lParam*/)
   {
-    switch (_uMsg) {
-    case WM_MOVE:
+    if (_uMsg == WM_MOVE) {
       NodeEditor::Instance()->moveIceSLWindowAlongChill();
 
       // get window placement / style
@@ -142,9 +141,6 @@ namespace Chill
         // set default pos
         NodeEditor::Instance()->setDefaultAppsPos();
       }
-      break;
-    default:
-      break;
     }
     return 0;
   }
@@ -192,7 +188,7 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::mainKeyPressed(uchar _k)
+  void NodeEditor::mainKeyPressed(uchar /*_k*/)
   {
     // Nothing for now
   }
@@ -220,13 +216,13 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::mainMouseMoved(uint _x, uint _y)
+  void NodeEditor::mainMouseMoved(uint /*_x*/, uint /*_y*/)
   {
     // Nothing for now
   }
 
   //-------------------------------------------------------
-  void NodeEditor::mainMousePressed(uint _x, uint _y, uint _button, uint _flags)
+  void NodeEditor::mainMousePressed(uint /*_x*/, uint /*_y*/, uint /*_button*/, uint /*_flags*/)
   {
     // Nothing for now
   }
@@ -349,7 +345,7 @@ namespace Chill
       //TODO _Get_container is not standard
       for (auto graph : m_graphs._Get_container()) {
         std::string text = "";
-        for (uint j = 0; j < i; j++)
+        for (uint j = 0; j < i; ++j)
           text += " ";
         text += ">";
         ImGui::TextDisabled(text.c_str());
@@ -367,27 +363,29 @@ namespace Chill
             }
           }
         }
-
-        i++;
+        ++i;
       }
 #endif
     }
 
     ImGui::NewLine();
 
-    if (selected.size() == 1) {
+    for ( auto object : selected) {
       ImGui::Text("Name:");
-      strncpy_s(name, selected[0]->name().c_str(), 32);
-      if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), name, 16)) {
-        m_graphs.top()->setName(name);
+      strncpy_s(name, object->name().c_str(), 32);
+      if (ImGui::InputText(("##name" + std::to_string(object->getUniqueID())).c_str(), name, 32)) {
+        object->setName(name);
       }
 
+      ImGui::Text("Color:");
       ImGuiColorEditFlags flags = ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_AlphaBar;
-      ImVec4 col = ImGui::ColorConvertU32ToFloat4(selected[0]->color());
+      ImVec4 col = ImGui::ColorConvertU32ToFloat4(object->color());
       float color[4] = { col.x, col.y , col.z , col.w };
-      if (ImGui::ColorPicker4("Color", color, flags)) {
-        selected[0]->setColor(ImGui::ColorConvertFloat4ToU32(ImVec4(color[0], color[1], color[2], color[3])));
+      if (ImGui::ColorPicker4(("##color" + std::to_string(object->getUniqueID())).c_str(), color, flags)) {
+        object->setColor(ImGui::ColorConvertFloat4ToU32(ImVec4(color[0], color[1], color[2], color[3])));
       }
+
+      ImGui::NewLine();
     }
 
     ImGui::End();
@@ -399,7 +397,7 @@ namespace Chill
     linking = !m_selected_input.isNull() || !m_selected_output.isNull();
 
     ImGui::PushStyleColor(ImGuiCol_WindowBg, style.graph_bg_color);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0F);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
     ImGui::Begin("Graph", &m_visible,
@@ -417,41 +415,36 @@ namespace Chill
     zoom();
 
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    ImDrawList* overlay_draw_list = ImGui::GetOverlayDrawList();
+    ImGuiIO      io     = ImGui::GetIO();
 
-    ImVec2 w_pos = window->Pos;
+    ImVec2 w_pos  = window->Pos;
     ImVec2 w_size = window->Size;
     float w_scale = window->FontWindowScale;
 
     ImVec2 offset = (m_offset * w_scale + (w_size - w_pos) / 2.0F);
 
-    ImGuiIO io = ImGui::GetIO();
+    
 
     for (AutoPtr<Processor> processor : m_graphs.top()->processors()) {
       if (processor->isDirty()) {
-        dirty = true;
+        if (g_auto_export) {
+#ifdef WIN32
+          exportIceSL(g_iceSLTempExportPath);
+#endif
+          exportIceSL(g_iceSLExportPath);
+        }
+
+        if (g_auto_save) {
+          std::ofstream file;
+          file.open(g_graphPath);
+          m_graphs.top()->save(file);
+        }
         break;
       }
     }
 
-    if (dirty) {
-      if (g_auto_export) {
-#ifdef WIN32
-        exportIceSL(g_iceSLTempExportPath);
-#endif
-        exportIceSL(g_iceSLExportPath);
-      }
-
-      if (g_auto_save) {
-        std::ofstream file;
-        file.open(g_graphPath);
-        m_graphs.top()->save(file);
-      }
-      dirty = false;
-    }
-
     if (ImGui::IsWindowHovered()) {
+      // clear data
       hovered.clear();
       selected.clear();
       text_editing = false;
@@ -495,18 +488,6 @@ namespace Chill
           text_editing = true;
         }
       }
-
-      /*
-      if (selected_processors.empty()) {
-        for (AutoPtr<VisualComment> comment : m_graphs.top()->comments()) {
-          ImVec2 size = comment->m_size * comment->m_scale;
-          ImVec2 min_pos = offset + win_pos + comment->m_position * m_scale;
-          ImVec2 max_pos = min_pos + size;
-          if (ImGui::IsMouseHoveringRect(min_pos, max_pos)) {
-            hovered_comments.push_back(comment);
-          }
-        }
-      }*/
 
       // LEFT CLICK
       if (linking) {
@@ -609,6 +590,20 @@ namespace Chill
         }
       } // ! RIGHT CLICK
 
+      { // MOUSE WHEEL
+        if (io.MouseWheel > 0 && w_scale == 2.0F && !hovered.empty()) {
+          for (AutoPtr<SelectableUI> object : hovered) {
+            AutoPtr<ProcessingGraph> pg(object);
+            if (!pg.isNull()) {
+              m_graphs.push(pg.raw());
+              w_scale = 0.1F;
+              window->FontWindowScale = 0.1F;
+              break;
+            }
+          }
+        }
+      } // ! MOUSE WHEEL
+
       // Move selected processors
       if (m_dragging) {
         if (!io.KeysDown[LIBSL_KEY_CTRL]) {
@@ -656,15 +651,19 @@ namespace Chill
           this->getCurrentGraph()->addComment(com);
         }
       }
-
-      if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c'] && io.KeysDownDuration['c'] == 0) {
-        if (!selected.empty()) {
+      
+      if (!selected.empty()) {
+        if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c'] && io.KeysDownDuration['c'] == 0) {
           buffer = getCurrentGraph()->copySubset(selected);
         }
       }
       if (!buffer.isNull()) {
         if (ImGui::MenuItem("Paste", "CTRL+V")) {
-          //getCurrentGraph()->expandGraph(buffer, s2g);
+          // mouse to screen
+          ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
+          // screen to grid
+          ImVec2 s2g = m2s / w_scale - m_offset;
+          getCurrentGraph()->expandGraph(buffer, s2g);
           buffer = AutoPtr<ProcessingGraph>(NULL);
         }
       }
@@ -699,22 +698,23 @@ namespace Chill
     }
 
     // Draw the pipes
-    float pipe_width = 2.0F * w_scale;
-    int pipe_res = int(25.0F / std::abs(std::log(w_scale / 2.5F)));
+    float pipe_width = style.pipe_line_width * w_scale;
+    int pipe_res = 15;
     for (AutoPtr<Processor> processor : currentGraph->processors()) {
       for (AutoPtr<ProcessorOutput> output : processor->outputs()) {
         for (AutoPtr<ProcessorInput> input : output->m_links) {
           ImVec2 A = input->getPosition() + w_pos;
           ImVec2 B = output->getPosition() + w_pos;
 
-          ImVec2 bezier(abs(A.x - B.x) / 2.0F * w_scale, 0.0F);
+          ImVec2 bezier((abs(A.x - B.x) / 2.0F) * w_scale, 0.0F);
 
           ImGui::GetWindowDrawList()->AddBezierCurve(
             A,
             A - bezier,
             B + bezier,
             B,
-            processor->color(),
+            //processor->color(),
+            input->color(),
             pipe_width,
             pipe_res
           );
@@ -729,9 +729,11 @@ namespace Chill
 
       if (!m_selected_input.isNull()) {
         A = w_pos + m_selected_input->getPosition();
+        A -= ImVec2(pipe_width / 4.F, 0);
       }
       else if (!m_selected_output.isNull()) {
         B = w_pos + m_selected_output->getPosition();
+        B += ImVec2(pipe_width / 4.F, 0);
       }
 
       ImVec2 bezier(100.0F * w_scale, 0);
@@ -744,6 +746,9 @@ namespace Chill
         pipe_width,
         pipe_res
       );
+
+      ImGui::GetWindowDrawList()->AddCircleFilled(A, pipe_width / 2.0F, style.pipe_selected_color);
+      ImGui::GetWindowDrawList()->AddCircleFilled(B, pipe_width / 2.0F, style.pipe_selected_color);
     }
 
     menus();
@@ -762,11 +767,15 @@ namespace Chill
 
     if (true || io.FontAllowUserScaling) {
       float old_scale = window->FontWindowScale;
-      float new_scale = ImClamp(window->FontWindowScale + io.MouseWheel * 0.1F, 0.3F, 2.0F);
+      float new_scale = ImClamp(window->FontWindowScale + io.MouseWheel * 0.25F, 0.1F, 2.0F);
+
+      if (old_scale == 0.1F && io.MouseWheel < 0 && m_graphs.size() > 1) {
+        m_graphs.pop();
+        new_scale = 2.0F;
+      }
+      
       float scale = new_scale / old_scale;
       window->FontWindowScale = new_scale;
-
-      const ImVec2 offset = window->Size * (1.F - scale) * (io.MousePos - window->Pos) / window->Size;
 
       if (new_scale != old_scale) {
         // mouse to screen
@@ -785,39 +794,39 @@ namespace Chill
   void NodeEditor::drawGrid() {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    ImVec2 offset = (Instance()->m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
+    ImVec2 offset = (m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    const ImU32& GRID_COLOR = Instance()->style.graph_grid_color;
-    const float grid_Line_width = Instance()->style.graph_grid_line_width;
+    const ImU32& grid_Color      = style.graph_grid_color;
+    const float& grid_Line_width = style.graph_grid_line_width;
 
-    int coeff = window->FontWindowScale >= 0.5F ? 1 : 10;
-    int subdiv_levels[] = {
-      Instance()->style.graph_grid_size * coeff,
-      Instance()->style.graph_grid_size * coeff * 10 };
+    const int subdiv = window->FontWindowScale >= 1.0F ? 10 : 100;
 
-    for (int subdiv : subdiv_levels) {
-      int grid_size  = static_cast<int>(window->FontWindowScale * subdiv);
-      int win_size_x = static_cast<int>(window->Size.x);
-      int win_size_y = static_cast<int>(window->Size.y);
-      int win_pos_x  = static_cast<int>(window->Pos.x);
-      int win_pos_y  = static_cast<int>(window->Pos.y);
-      int offset_x   = static_cast<int>(offset.x);
-      int offset_y   = static_cast<int>(offset.y);
+    int grid_size  = static_cast<int>(window->FontWindowScale * subdiv);
+    int offset_x   = static_cast<int>(offset.x);
+    int offset_y   = static_cast<int>(offset.y);
 
-      // Vertical lines
-      for (int x = offset_x % grid_size; x < win_size_x; x += grid_size) {
-        ImVec2 p1 = ImVec2(x + win_pos_x, win_pos_y);
-        ImVec2 p2 = ImVec2(x + win_pos_x, win_size_y + win_pos_y);
-        draw_list->AddLine(p1, p2, GRID_COLOR, grid_Line_width);
-      }
+    int i_x = offset_x / grid_size;
+    int i_y = offset_y / grid_size;
 
-      // Horizontal lines
-      for (int y = offset_y % grid_size; y < win_size_y; y += grid_size) {
-        ImVec2 p1 = ImVec2(win_pos_x, y + win_pos_y);
-        ImVec2 p2 = ImVec2(win_size_x + win_pos_x, y + win_pos_y);
-        draw_list->AddLine(p1, p2, GRID_COLOR, grid_Line_width);
-      }
+    // Vertical lines
+    for (int x = offset_x % grid_size; x < window->Size.x; x += grid_size) {
+      ImVec2 x1 = window->Pos + ImVec2(x, 0             );
+      ImVec2 x2 = window->Pos + ImVec2(x, window->Size.y);
+      draw_list->AddLine(x1, x2, grid_Color, grid_Line_width);
+
+      if (i_x % 10 == 0) draw_list->AddLine(x1, x2, grid_Color, grid_Line_width);
+      --i_x;
+    }
+
+    // Horizontal lines
+    for (int y = offset_y % grid_size; y < window->Size.y; y += grid_size) {
+      ImVec2 y1 = window->Pos + ImVec2(0             , y);
+      ImVec2 y2 = window->Pos + ImVec2(window->Size.x, y);
+      draw_list->AddLine(y1, y2, grid_Color, grid_Line_width);
+
+      if (i_y % 10 == 0) draw_list->AddLine(y1, y2, grid_Color, grid_Line_width);
+      --i_y;
     }
   }
 

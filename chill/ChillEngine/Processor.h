@@ -1,6 +1,8 @@
 /** @file */
 #pragma once
 
+
+//-------------------------------------------------------
 // IOs.h
 namespace Chill
 {
@@ -8,12 +10,14 @@ namespace Chill
   class ProcessorOutput;
 };
 
+//-------------------------------------------------------
 // ProcessingGraph.h
 namespace Chill
 {
   class ProcessingGraph;
 }
 
+//-------------------------------------------------------
 namespace Chill
 {
   class Processor;
@@ -21,13 +25,15 @@ namespace Chill
   class GroupProcessor;
 };
 
+//-------------------------------------------------------
+
 #include <LibSL.h>
 
 #include "UI.h"
 #include "IOTypes.h"
 #include "IOs.h"
 
-
+//-------------------------------------------------------
 namespace Chill
 {
   enum ProcessorState {
@@ -43,18 +49,6 @@ namespace Chill
    **/
   class Processor : public SelectableUI
   {
-  private:
-    /** Emit a shape or a slicing parameter */
-    bool                                  m_emit = false;
-    /** List of all inputs. */
-    std::vector<AutoPtr<ProcessorInput>>  m_inputs;
-    /** List of all outputs. */
-    std::vector<AutoPtr<ProcessorOutput>> m_outputs;
-    /** Next nodes have to update themselves. */
-    bool                                  m_dirty = false;
-
-    ProcessorState                        m_state = DEFAULT;
-
   public:
     /**
      *  Instanciate a new Processor.
@@ -227,45 +221,60 @@ namespace Chill
     }
 
     /**
-     *  Generate the lua code and add it to the stream.
+     *  Generate the lua code to recreate this processor and add it to the stream.
      *  @param _stream The output stream.
      **/
     virtual void save(std::ofstream& _stream);
 
+    /**
+     *  Generate the IceSL lua code and add it to the stream.
+     *  @param _stream The output stream.
+     **/
     virtual void iceSL(std::ofstream& _stream);
 
     void setEmiter(bool _emit = true) {
       m_emit = _emit;
     }
 
+    /**
+     * @return true if affects any output (shape or slicing parameter)
+     **/
+    inline bool isEmiter() {
+      return m_emit;
+    }
+
+    inline void setDirty(bool _dirty = true) {
+      m_dirty = _dirty;
+    }
+
+    /**
+     * @return true if it needs to be refreshed
+     **/
+    inline bool isDirty() {
+      return m_dirty;
+    }
+
     ProcessorState getState() {
       return m_state;
     }
 
-    /**
-     * @return true if affects any output (shape or slicing parameter)
-     **/
-    virtual bool isEmiter();
+  private:
+    /** Emit a shape or a slicing parameter */
+    bool                                  m_emit = false;
+    /** List of all inputs. */
+    std::vector<AutoPtr<ProcessorInput>>  m_inputs;
+    /** List of all outputs. */
+    std::vector<AutoPtr<ProcessorOutput>> m_outputs;
+    /** Next nodes have to update themselves. */
+    bool                                  m_dirty = false;
 
-
-    void setDirty(bool _dirty = true) {
-      m_dirty = _dirty;
-    }
-
-    virtual bool isDirty() {
-      return m_dirty;
-    }
+    ProcessorState                        m_state = DEFAULT;
   };
 
-
-
-
+  //-------------------------------------------------------
 
   class GroupProcessor : public Processor
   {
-    bool m_is_input = false;
-    bool m_is_output = false;
-    //GroupProcessor(const GroupProcessor &processor);
   public:
     GroupProcessor();
 
@@ -284,8 +293,13 @@ namespace Chill
     }
 
     void iceSL(std::ofstream& _stream) override;
+
+  protected:
+    bool m_is_input  = false;
+    bool m_is_output = false;
   };
 
+  //-------------------------------------------------------
 
   class Multiplexer : public Processor
   {
@@ -301,5 +315,3 @@ namespace Chill
     void iceSL(std::ofstream& _stream) override;
   };
 }
-
-

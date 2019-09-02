@@ -25,7 +25,7 @@ namespace Chill {
 
     ImGui::Text(name());
 
-    ImGui::SetCursorPos(ImVec2(pos.x - full_radius, pos.y));
+    ImGui::SetCursorPos(ImVec2(pos.x - full_radius + style.processor_border_width * w_scale / 2, pos.y));
     
     setPosition(ImVec2(pos.x, pos.y + full_radius));
 
@@ -129,7 +129,7 @@ namespace Chill {
 
     ImVec2 pos = ImGui::GetCursorPos();
 
-    ImGui::SetCursorPos(ImVec2(pos.x - full_radius, pos.y));
+    ImGui::SetCursorPos(ImVec2(pos.x - full_radius - style.processor_border_width * w_scale / 2, pos.y));
     setPosition(ImVec2(pos.x, pos.y + full_radius));
 
     ImGui::PushStyleColor(ImGuiCol_Text,          color());
@@ -144,6 +144,7 @@ namespace Chill {
     bool active = false;
     
     ImGui::PushID(id);
+    
     ImGui::PushStyleColor(ImGuiCol_Border, 0X00000000);
     if (ImGui::Button("", ImVec2(radius, radius) * 2)) {
       active = true;
@@ -161,17 +162,16 @@ namespace Chill {
     }
 
     // Drag and Drop Source
-      if (ImGui::BeginDragDropSource()) {
-        if (m_link.isNull()) {
-          ImGui::SetDragDropPayload("_pipe_input", NULL, 0, ImGuiCond_Once);
-        }
-        else {
-          ImGui::SetDragDropPayload("_pipe_output", NULL, 0, ImGuiCond_Once);
-        }
-        if (NodeEditor::Instance()->getSelectedOutput().isNull()) {
-          active = true;
-        }
-        ImGui::EndDragDropSource();
+    if (ImGui::BeginDragDropSource()) {
+      if (m_link.isNull()) {
+        ImGui::SetDragDropPayload("_pipe_input", NULL, 0, ImGuiCond_Once);
+      } else {
+        ImGui::SetDragDropPayload("_pipe_output", NULL, 0, ImGuiCond_Once);
+      }
+      if (NodeEditor::Instance()->getSelectedOutput().isNull()) {
+        active = true;
+      }
+      ImGui::EndDragDropSource();
     }
 
     ImGui::PopID();
@@ -276,9 +276,15 @@ bool Chill::ListInput::drawTweak()
   int before = m_value;
   bool value_changed = false;
 
+
+  ImVec2 cursor = ImGui::GetCursorPos();
+  ImGui::Text( (" " + name_str + ":").c_str());
+
+  ImGui::SetCursorPos(cursor + ImVec2(0, 1.5F * ImGui::CalcTextSize(name()).y));
+
   if (m_link.isNull()) {
 
-    ImGui::Combo(name(), &m_value,
+    ImGui::Combo(label.c_str(), &m_value,
       [](void* data, int idx, const char** out_text) {
         *out_text = ((const std::vector<std::string>*)data)->at(idx).c_str();
         return true;
@@ -299,11 +305,9 @@ bool Chill::ListInput::drawTweak()
 bool Chill::PathInput::drawTweak()
 {
   ImGui::SameLine();
-  ImGui::Text(name());
-
   std::string name_str = std::string(name());
   std::string label = "##" + name_str;
-  std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".3f";
+  std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".3g";
 
   const size_t path_max_size = 512;
   char string[path_max_size];
@@ -312,22 +316,34 @@ bool Chill::PathInput::drawTweak()
   std::string before = m_value;
   bool value_changed = false;
 
+  ImVec2 cursor = ImGui::GetCursorPos();
+
+  ImGui::Text((" " + name_str + ":").c_str());
+  cursor += ImVec2(0, 1.5F * ImGui::CalcTextSize(name()).y);
+
+  float item_width = ImGui::CalcItemWidth();
+  ImGui::PushItemWidth(item_width * 3.F / 4.F);
+
   if (m_link.isNull()) {
-    if (m_alt) {
-      value_changed = ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), string, 512);
-    } else {
-      value_changed = ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), string, 512);
-    }
+    ImGui::SetCursorPos(cursor + ImVec2(item_width * 1.F / 4.F, 0));
+    value_changed = ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), string, 512);
     if (value_changed) {
       m_value = string;
     }
-    if (ImGui::Button("...##")) {
-      std::string fullpath = openFileDialog(OFD_FILTER_GRAPHS);
+
+    ImGui::SetCursorPos(cursor);
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(73/255.F, 193/255.F, 194/255.F, 1));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, style.processor_title_color);
+    ImGui::PushItemWidth(item_width * 1.F / 4.F);
+
+    if (ImGui::Button(" ... ##")) {
+      std::string fullpath = openFileDialog(OFD_FILTER_ALL);
       if (!fullpath.empty()) {
         std::replace(fullpath.begin(), fullpath.end(), '\\', '/');
         m_value = fullpath.c_str();
       }
     }
+    ImGui::PopStyleColor(2);
   } else {
     ImGui::Text(name());
   }
@@ -340,7 +356,7 @@ bool Chill::ScalarInput::drawTweak()
   ImGui::SameLine();
   std::string name_str = std::string(name());
   std::string label = "##" + name_str;
-  std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".3f";
+  std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".4g";
  
   float before = m_value;
   bool value_changed = false;

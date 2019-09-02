@@ -16,6 +16,7 @@ static ImColor color_shape (36 , 255, 36 );
 static ImColor color_vec4  (255, 255, 109);
 static ImColor color_vec3  (219, 209, 0  );
 
+// -----------------------------------------------------
 
 namespace Chill
 {
@@ -24,16 +25,6 @@ namespace Chill
   
   class IO : public UI
   {
-  private:
-    /** Parent processor, raw pointer is needed. */
-    Processor *    m_owner;
-    /** Display name. */
-    std::string    m_name;
-    /** Expected data type. */
-    IOType::IOType m_type;
-    /** Display color. */
-    ImU32          m_color;
-
   public:
     inline Processor * owner() {
       return m_owner;
@@ -66,6 +57,16 @@ namespace Chill
     void setColor(ImU32 color) {
       m_color = color;
     }
+
+  private:
+    /** Parent processor, raw pointer is needed. */
+    Processor *    m_owner;
+    /** Display name. */
+    std::string    m_name;
+    /** Expected data type. */
+    IOType::IOType m_type;
+    /** Display color. */
+    ImU32          m_color;
   };
 
   /**
@@ -371,7 +372,7 @@ namespace Chill
     template <typename ...>
     ListInput(int _value, std::vector<std::string>& _params) : ListInput()
     {
-      int s = static_cast<int(_params.size());
+      int s = static_cast<int>(_params.size());
 
       m_value = s >= 1 ? std::stoi(_params[0]) : 0;
       m_min = 0;
@@ -383,7 +384,7 @@ namespace Chill
     template <typename ...>
     ListInput(std::vector<std::string>& _params) : ListInput()
     {
-      int s = static_cast<int(_params.size());
+      int s = static_cast<int>(_params.size());
 
       m_values = _params;
       m_value  = 0;
@@ -511,8 +512,9 @@ namespace Chill
     }
   };
 
+// -----------------------------------------------------
+// IO_SCALAR
 
-  // IO_SCALAR
   class ScalarInput : public ProcessorInput
   {
   public:
@@ -615,7 +617,9 @@ namespace Chill
     }
   };
 
-  // IO_STRING
+// -----------------------------------------------------
+// IO_STRING
+
   class StringInput : public ProcessorInput
   {
   public:
@@ -698,7 +702,9 @@ namespace Chill
     }
   };
 
-  // IO_SHAPE
+// -----------------------------------------------------
+// IO_SHAPE
+
   class ShapeInput : public ProcessorInput
   {
   public:
@@ -755,7 +761,9 @@ namespace Chill
     }
   };
 
-  // IO_VEC4
+// -----------------------------------------------------
+// IO_VEC4
+
 class Vec4Input : public ProcessorInput
 {
 public:
@@ -872,7 +880,9 @@ public:
   }
 };
 
+// -----------------------------------------------------
 // IO_VEC3
+
 class Vec3Input : public ProcessorInput
 {
 public:

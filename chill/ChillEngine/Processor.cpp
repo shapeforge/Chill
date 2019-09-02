@@ -214,11 +214,6 @@ namespace Chill {
   void Processor::iceSL(std::ofstream& stream) {
     
   }
-
-
-  bool Processor::isEmiter() {
-    return m_emit;
-  }
 };
 
 bool Chill::Processor::draw() {
@@ -243,7 +238,7 @@ bool Chill::Processor::draw() {
   if (m_selected || w_scale > 0.5F) {
     draw_list->AddRectFilled(
       min_pos + ImVec2(-5, -5) * w_scale,
-      max_pos + ImVec2(5, 5) * w_scale,
+      max_pos + ImVec2(7, 10) * w_scale,
       m_selected ? style.processor_shadow_selected_color : style.processor_shadow_color,
       rounding_corners + 5.0F, style.processor_rounded_corners);
   }
@@ -265,12 +260,12 @@ bool Chill::Processor::draw() {
 
   float padding = (style.socket_radius + style.socket_border_width + style.ItemSpacing.x) * w_scale;
 
-  ImGui::PushItemWidth(m_size.x * w_scale - padding * 2);
+  ImGui::PushItemWidth(m_size.x * w_scale - padding * 2.F);
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, style.ItemSpacing * w_scale);
 
   ImGui::BeginGroup();
 
-  float button_size = style.processor_title_height / 2.0F * w_scale;
+  float button_size = style.processor_title_height / 1.2F * w_scale;
 
   // draw title
   ImVec2 title_size(style.processor_width, style.processor_title_height);
@@ -280,34 +275,40 @@ bool Chill::Processor::draw() {
     m_color,
     rounding_corners, style.processor_rounded_corners & 3);
 
-  if (!m_edit) {
-    ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_Border,        ImVec4(0, 0, 0, 255));
-    ImGui::PushStyleColor(ImGuiCol_Text,          ImVec4(0, 0, 0, 255));
-    if (ImGui::ButtonEx((name() + "##" + std::to_string(getUniqueID())).c_str(), title_size - ImVec2(2*button_size, 0), ImGuiButtonFlags_PressedOnDoubleClick ))
-      m_edit = true;
-    ImGui::PopStyleColor();
-    ImGui::PopStyleColor();
-    ImGui::PopStyleColor();
-    ImGui::PopStyleColor();
-  }
-  else {
-    char title[32];
-    strcpy(title, name().c_str());
-    if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), title, 32)) {
-      setName(title);
-    }
-    else if (!m_selected) {
-      m_edit = false;
-    }
-  }
+  if (w_scale > 0.7F) {
+    if (!m_edit) {
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
+      ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 255));
+      ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 255));
 
+
+      if (ImGui::ButtonEx((name() + "##" + std::to_string(getUniqueID())).c_str(), title_size - ImVec2(2 * button_size, 0), ImGuiButtonFlags_PressedOnDoubleClick)) {
+        m_edit = true;
+      }
+      ImGui::PopStyleColor();
+      ImGui::PopStyleColor();
+      ImGui::PopStyleColor();
+      ImGui::PopStyleColor();
+    } else {
+      char title[32];
+      strncpy(title, name().c_str(), 32);
+      if (ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), title, 32)) {
+        setName(title);
+      } else if (!m_selected) {
+        m_edit = false;
+      }
+    }
+    
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + padding);
+  } else {
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + title_size[1] + padding);
+  }
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 20);
 
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + padding);
+  
   
   // Drag and Drop Target
   bool value_changed = false;
@@ -337,10 +338,10 @@ bool Chill::Processor::draw() {
       break;
     }
   }
-
-  if (isStateful) {
+  /*
+  if (isStateful || isEmiter()) {
     ImGui::SameLine();
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + style.processor_title_height / 4.0F * w_scale);
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (style.processor_title_height * w_scale - button_size)/2.0F);
     ImU32 color(m_state == DISABLED ? 0XFF0000CC : m_state == DEFAULT ? 0XFFCC7700 : m_state == EMITING ? 0XFF00CC00 : 0XFF888888);
     ImGui::PushStyleColor(ImGuiCol_Button, color);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color);
@@ -375,13 +376,7 @@ bool Chill::Processor::draw() {
     ImGui::PopStyleColor();
     ImGui::PopStyleColor();
   }
-
-
-  //ImGui::PopID();
-
-  //ImGui::PushClipRect(min_pos - border - ImVec2(0.5, 0.5), max_pos + border + ImVec2(0.5, 0.5), true);
-
-  float y = ImGui::GetCursorPosY();
+  */
 
   // draw inputs
   ImGui::BeginGroup();
@@ -394,11 +389,9 @@ bool Chill::Processor::draw() {
   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + size.x);
   ImGui::BeginGroup();
   for (AutoPtr<ProcessorOutput> output : m_outputs) {
-    output->draw();
+    m_dirty |= output->draw();
   }
   ImGui::EndGroup();
-
-  //ImGui::PopClipRect();
   
   ImGui::PopStyleVar();
   ImGui::PopStyleVar();

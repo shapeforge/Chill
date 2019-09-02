@@ -72,6 +72,7 @@ bool Chill::VisualComment::draw() {
     ImGui::PopStyleColor();
     ImGui::PopStyleColor();
     ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
   }
   else {
     char name[32];
@@ -104,6 +105,8 @@ bool Chill::VisualComment::draw() {
   }
 
   ImGui::EndGroup();
+
+  ImGui::PopStyleVar();
 
   return true;
 }
