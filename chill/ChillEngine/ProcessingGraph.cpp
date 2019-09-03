@@ -273,7 +273,7 @@ namespace Chill {
     remove(AutoPtr<Processor>(collapsed));
   }
 
-  AutoPtr<ProcessingGraph> ProcessingGraph::copySubset(const std::vector<AutoPtr<SelectableUI>>& subset)
+  AutoPtr<ProcessingGraph> ProcessingGraph::copySubset(std::vector<AutoPtr<SelectableUI>>& subset)
   {
     AutoPtr<ProcessingGraph> graph = AutoPtr<ProcessingGraph>(new ProcessingGraph());
     
