@@ -90,7 +90,7 @@ struct Style
     processor_rounded_corners       = (1<<3) + (1<<2) + (1<<1) + 1;
 
     // Socket / Tweak
-    socket_radius       = 7.0f;
+    socket_radius       = 10.0f;
     socket_border_width = 0.0f;
     min_io_height       = 50.0f;
 

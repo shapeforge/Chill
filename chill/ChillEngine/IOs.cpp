@@ -23,7 +23,9 @@ namespace Chill {
     ImGui::SetCursorPosX(pos.x - text_size.x - style.ItemSpacing.x * w_scale - full_radius);
     ImGui::SetCursorPosY(pos.y - text_size.y/2 + full_radius);
 
-    ImGui::Text(name());
+    if (w_scale > 0.7F) {
+      ImGui::Text(name());
+    }
 
     ImGui::SetCursorPos(ImVec2(pos.x - full_radius + style.processor_border_width * w_scale / 2, pos.y));
     
@@ -196,7 +198,11 @@ namespace Chill {
     ImGui::PopStyleColor();
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, style.socket_border_width * w_scale);
-    updt |= drawTweak();
+    //updt |= drawTweak();
+    if (w_scale > 0.7F) {
+      ImGui::SameLine();
+      ImGui::Text(name());
+    }
     ImGui::PopStyleVar();
     return updt;
   }

@@ -384,8 +384,19 @@ namespace Chill
       if (ImGui::ColorPicker4(("##color" + std::to_string(object->getUniqueID())).c_str(), color, flags)) {
         object->setColor(ImGui::ColorConvertFloat4ToU32(ImVec4(color[0], color[1], color[2], color[3])));
       }
+      
+      AutoPtr<Processor> proc = AutoPtr<Processor>(object);
+      if (!proc.isNull()) {
+        for (auto input : proc->inputs()) {
+          ImGui::NewLine();
+          if (input->drawTweak()) {
+            proc->setDirty();
+          }
+        }
+      }
 
       ImGui::NewLine();
+      
     }
 
     ImGui::End();
@@ -699,14 +710,14 @@ namespace Chill
 
     // Draw the pipes
     float pipe_width = style.pipe_line_width * w_scale;
-    int pipe_res = 15;
+    int pipe_res = 20 * w_scale;
     for (AutoPtr<Processor> processor : currentGraph->processors()) {
       for (AutoPtr<ProcessorOutput> output : processor->outputs()) {
         for (AutoPtr<ProcessorInput> input : output->m_links) {
-          ImVec2 A = input->getPosition() + w_pos;
-          ImVec2 B = output->getPosition() + w_pos;
+          ImVec2 A = input->getPosition()  + w_pos - ImVec2(pipe_width / 4.F, 0.F);
+          ImVec2 B = output->getPosition() + w_pos + ImVec2(pipe_width / 4.F, 0.F);
 
-          ImVec2 bezier((abs(A.x - B.x) / 2.0F) * w_scale, 0.0F);
+          ImVec2 bezier(100 * w_scale, 0.0F);
 
           ImGui::GetWindowDrawList()->AddBezierCurve(
             A,
@@ -718,6 +729,19 @@ namespace Chill
             pipe_width,
             pipe_res
           );
+
+          ImVec2 center = (A + B) / 2.F;
+          ImVec2 vec = (A*2.F - bezier) - (B*2.F + bezier);
+          ImVec2 norm_vec = (vec / sqrt(vec.x*vec.x + vec.y*vec.y)) * 2.0F*pipe_width;
+
+
+          ImVec2 U = center + norm_vec * 1.41F;
+          std::swap(norm_vec.x, norm_vec.y);
+          ImVec2 V = center + norm_vec;
+          ImVec2 W = center - norm_vec;
+          std::swap(V.x, W.x);
+
+          ImGui::GetWindowDrawList()->AddTriangleFilled(U, V, W, input->color());
         }
       }
     }
@@ -729,14 +753,14 @@ namespace Chill
 
       if (!m_selected_input.isNull()) {
         A = w_pos + m_selected_input->getPosition();
-        A -= ImVec2(pipe_width / 4.F, 0);
+        A -= ImVec2(pipe_width / 4.F, 0.F);
       }
       else if (!m_selected_output.isNull()) {
         B = w_pos + m_selected_output->getPosition();
-        B += ImVec2(pipe_width / 4.F, 0);
+        B += ImVec2(pipe_width / 4.F, 0.F);
       }
 
-      ImVec2 bezier(100.0F * w_scale, 0);
+      ImVec2 bezier(100.0F * w_scale, 0.0F);
       ImGui::GetWindowDrawList()->AddBezierCurve(
         A,
         A - bezier,
