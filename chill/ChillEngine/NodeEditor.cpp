@@ -130,6 +130,9 @@ namespace Chill
     _In_ WPARAM /*_wParam*/,
     _In_ LPARAM /*_lParam*/)
   {
+    // get current monitor hwnd
+    HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->g_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
+
     if (_uMsg == WM_MOVE) {
       NodeEditor::Instance()->moveIceSLWindowAlongChill();
 
@@ -139,7 +142,7 @@ namespace Chill
 
       if (wPlacement.showCmd == SW_MAXIMIZE) {
         // set default pos
-        NodeEditor::Instance()->setDefaultAppsPos();
+        NodeEditor::Instance()->setDefaultAppsPos(hMonitor);
       }
     }
     return 0;
@@ -184,7 +187,7 @@ namespace Chill
   void NodeEditor::mainOnResize(uint width, uint height)
   {
     Instance()->m_size = ImVec2((float)width, (float)height);
-    s_instance->moveIceSLWindowAlongChill();
+    Instance()->moveIceSLWindowAlongChill();
   }
 
   //-------------------------------------------------------
@@ -1223,7 +1226,7 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::getDesktopScreenRes(int& width, int& height) {
+  void NodeEditor::getDesktopRes(int& width, int& height) {
 #ifdef WIN32
     RECT desktop;
 
@@ -1246,12 +1249,12 @@ namespace Chill
   {
     NodeEditor *nodeEditor = Instance();
 
-    s_instance->loadSettings();
-    s_instance->SetIceslPath();
+    Instance()->loadSettings();
+    Instance()->SetIceslPath();
 
     try {
       // create window
-      SimpleUI::init(s_instance->default_width, s_instance->default_height, "Chill, the node-based editor");
+      SimpleUI::init(Instance()->default_width, Instance()->default_height, "Chill, the node-based editor");
 
       // attach functions
       SimpleUI::onRender = NodeEditor::mainRender;
@@ -1265,31 +1268,35 @@ namespace Chill
       // imgui
       SimpleUI::bindImGui();
       SimpleUI::initImGui();
-      SimpleUI::onReshape(s_instance->default_width, s_instance->default_height);
+      SimpleUI::onReshape(Instance()->default_width, Instance()->default_height);
 
-      if (s_instance->g_auto_icesl) {
+      if (Instance()->g_auto_icesl) {
 #ifdef WIN32
         SimpleUI::setCustomCallbackMsgProc(custom_wndProc);
 
         // get app handler
-        s_instance->g_chill_hwnd = SimpleUI::getHWND();
+        Instance()->g_chill_hwnd = SimpleUI::getHWND();
 #endif
         // launching Icesl
         launchIcesl();
 
         // place apps in default pos
-        s_instance->setDefaultAppsPos();
+#ifdef WIN32
+        Instance()->setDefaultAppsPos(NULL);
+#else
+        Instance()->setDefaultAppsPos();
+#endif
       }
 
       // main loop
       SimpleUI::loop();
 
-      if (s_instance->g_auto_icesl) {
+      if (Instance()->g_auto_icesl) {
         // closing Icesl
         std::atexit(closeIcesl);
       }
 
-      s_instance->saveSettings();
+      Instance()->saveSettings();
 
       // clean up
       SimpleUI::terminateImGui();
@@ -1304,31 +1311,52 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::setDefaultAppsPos() {
-    int screen_width, screen_height, desktop_width, desktop_height = 0;
+#ifdef WIN32
+  void NodeEditor::setDefaultAppsPos(HMONITOR hMonitor) {
+    int desktop_width, desktop_height = 0;
 
-    // get screen / desktop dimmensions
-    getScreenRes(screen_width, screen_height);
-    getDesktopScreenRes(desktop_width, desktop_height);
+    // get desktop dimmensions
+    getDesktopRes(desktop_width, desktop_height);
 
+    // set chill dimensions to be 2/3 - 1/3 with icesl
     int app_width = 2 * (desktop_width / 3);
     int app_heigth = desktop_height;
+    int app_x_offset = 8; // TODO  PB:get a correct offset / resolution calculation
 
-    //int app_pos_x = desktop_width - screen_width;
-    //int app_pos_y = desktop_height - screen_height;
+    // get current monitor infos
+    MONITORINFO monitorInfo = {sizeof(MONITORINFO) };
+    GetMonitorInfo(hMonitor, &monitorInfo);;
 
-    int app_pos_x = -8; // TODO  PB:get a correct offset / resolution calculation
-    int app_pos_y = 0;
+    // get center point of current monitor
+    POINT monitor_center;
+    monitor_center.x = monitorInfo.rcMonitor.right / 2;
+    monitor_center.y = monitorInfo.rcMonitor.bottom / 2;
 
-    // move to position
-#ifdef WIN32
-    SetWindowPos(g_chill_hwnd, HWND_TOP, app_pos_x, app_pos_y, app_width, app_heigth, SWP_SHOWWINDOW);
+    //get hwnd for desktop on current monitor
+    HWND hDesktop = WindowFromPoint(monitor_center);
+
+    std::cerr << "left: " << monitorInfo.rcMonitor.left - app_x_offset << " | top: " << monitorInfo.rcMonitor.top << " | app_width: " << app_width << std::endl;
+
+    // move chill to position
+    SetWindowPos(g_chill_hwnd, hDesktop, monitorInfo.rcMonitor.left - app_x_offset, monitorInfo.rcMonitor.top, app_width, app_heigth, SWP_SHOWWINDOW);
 
     // move icesl to the last part of the screen
     int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
-    SetWindowPos(g_icesl_hwnd, HWND_TOP, app_width - icesl_x_offset, app_pos_y, screen_width - app_width + icesl_x_offset * 1.2, app_heigth, SWP_SHOWWINDOW);
-#endif
+    int icesl_xpos = app_width - icesl_x_offset;
+    int icesl_ypos = monitorInfo.rcMonitor.top;
+    int icesl_width = desktop_width - app_width + icesl_x_offset * 1.2;
+
+    SetWindowPos(g_icesl_hwnd, hDesktop, icesl_xpos, icesl_ypos, icesl_width, app_heigth, SWP_SHOWWINDOW);
   }
+
+#else
+  void NodeEditor::setDefaultAppsPos() {
+
+    // TODO linux move chill window
+
+    // TODO linux move icesl window
+  }
+#endif
 
   //-------------------------------------------------------
   void NodeEditor::moveIceSLWindowAlongChill() {
@@ -1338,7 +1366,12 @@ namespace Chill
     GetWindowRect(g_chill_hwnd, &chillRect);
     int icesl_x_offset = 15; // TODO PB:get a correct offset / resolution calculation
     // move and resize according to Chill
-    SetWindowPos(g_icesl_hwnd, HWND_NOTOPMOST, chillRect.right - icesl_x_offset, chillRect.top, ((chillRect.right - chillRect.left + 1) / 2) + icesl_x_offset * 2, chillRect.bottom - chillRect.top + 1, SWP_NOACTIVATE);
+
+    HMONITOR hMonitor = MonitorFromWindow(g_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
+    MONITORINFO monitorInfo = { sizeof(MONITORINFO) };
+    GetMonitorInfo(hMonitor, &monitorInfo);
+
+    SetWindowPos(g_icesl_hwnd, HWND_NOTOPMOST, chillRect.right - icesl_x_offset, chillRect.top, ((chillRect.right - chillRect.left + 1) / 2) + icesl_x_offset * 2, chillRect.bottom - chillRect.top, SWP_NOACTIVATE);
 #endif
   }
 

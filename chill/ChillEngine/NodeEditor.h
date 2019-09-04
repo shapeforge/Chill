@@ -90,7 +90,7 @@ namespace Chill
     // Get current screen size
     static void Chill::NodeEditor::getScreenRes(int& width, int& height);
     // Get current desktop size (without taskbar for windows)
-    static void Chill::NodeEditor::getDesktopScreenRes(int& width, int& height);
+    static void Chill::NodeEditor::getDesktopRes(int& width, int& height);
 
   public:
     const int default_width = 800;
@@ -136,7 +136,12 @@ namespace Chill
 
     static void Chill::NodeEditor::launch();  
 
+#ifdef WIN32
+    void setDefaultAppsPos(HMONITOR hMonitor);
+#else
     void setDefaultAppsPos();
+#endif   
+
     void moveIceSLWindowAlongChill();
 
     static inline std::string ChillFolder();
