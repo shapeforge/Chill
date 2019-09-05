@@ -1025,14 +1025,14 @@ namespace Chill
   void NodeEditor::launchIcesl() {
 #ifdef WIN32
     // CreateProcess init
-    const char* icesl_path = s_instance->g_iceslPath.c_str();
-    std::string icesl_params = "--remote " + s_instance->g_iceSLTempExportPath;
+    const char* icesl_path = Instance()->g_iceslPath.c_str();
+    std::string icesl_params = " " + Instance()->g_iceSLTempExportPath;
 
     STARTUPINFO StartupInfo;
     ZeroMemory(&StartupInfo, sizeof(StartupInfo));
     StartupInfo.cb = sizeof StartupInfo;
 
-    ZeroMemory(&s_instance->g_icesl_p_info, sizeof(s_instance->g_icesl_p_info));
+    ZeroMemory(&Instance()->g_icesl_p_info, sizeof(Instance()->g_icesl_p_info));
 
     // create the process
     auto icesl_process = CreateProcess(icesl_path, // @lpApplicationName - application name / path 
@@ -1044,14 +1044,14 @@ namespace Chill
       NULL, // @lpEnvironment - environment
       NULL, // @lpCurrentDirectory - current directory
       &StartupInfo, // @lpStartupInfo -startup info
-      &s_instance->g_icesl_p_info); // @lpProcessInformation - process info
+      &Instance()->g_icesl_p_info); // @lpProcessInformation - process info
 
     if (icesl_process)
     {
       // watch the process
-      WaitForSingleObject(s_instance->g_icesl_p_info.hProcess, 1000);
+      WaitForSingleObject(Instance()->g_icesl_p_info.hProcess, 1000);
       // getting the hwnd
-      EnumWindows(EnumWindowsFromPid, s_instance->g_icesl_p_info.dwProcessId);
+      EnumWindows(EnumWindowsFromPid, Instance()->g_icesl_p_info.dwProcessId);
       if (Instance()->g_auto_export) {
         Instance()->exportIceSL(Instance()->g_iceSLTempExportPath);
       }
@@ -1062,7 +1062,7 @@ namespace Chill
       std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
       std::cerr << Console::red << "ErrorCode: " << GetLastError() << Console::gray << std::endl;
 
-      s_instance->g_icesl_hwnd = NULL;
+      Instance()->g_icesl_hwnd = NULL;
     }
 #endif
   }
@@ -1251,6 +1251,10 @@ namespace Chill
 
     Instance()->loadSettings();
     Instance()->SetIceslPath();
+    // create the temp file
+    Instance()->exportIceSL(Instance()->g_iceSLTempExportPath);
+
+    std::cerr << Instance()->g_iceSLTempExportPath << std::endl;
 
     try {
       // create window
