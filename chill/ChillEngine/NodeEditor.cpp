@@ -137,9 +137,9 @@ namespace Chill
       NodeEditor::Instance()->moveIceSLWindowAlongChill();
 
       // get window placement / style
-      WINDOWPLACEMENT wPlacement;
+      WINDOWPLACEMENT wPlacement = { sizeof(WINDOWPLACEMENT) };
       GetWindowPlacement(NodeEditor::Instance()->g_chill_hwnd, &wPlacement);
-
+      
       if (wPlacement.showCmd == SW_MAXIMIZE) {
         // set default pos
         NodeEditor::Instance()->setDefaultAppsPos(hMonitor);
@@ -1335,8 +1335,6 @@ namespace Chill
     //get hwnd for desktop on current monitor
     HWND hDesktop = WindowFromPoint(monitor_center);
 
-    std::cerr << "left: " << monitorInfo.rcMonitor.left - app_x_offset << " | top: " << monitorInfo.rcMonitor.top << " | app_width: " << app_width << std::endl;
-
     // move chill to position
     SetWindowPos(g_chill_hwnd, hDesktop, monitorInfo.rcMonitor.left - app_x_offset, monitorInfo.rcMonitor.top, app_width, app_heigth, SWP_SHOWWINDOW);
 
@@ -1346,7 +1344,7 @@ namespace Chill
     int icesl_ypos = monitorInfo.rcMonitor.top;
     int icesl_width = desktop_width - app_width + icesl_x_offset * 1.2;
 
-    SetWindowPos(g_icesl_hwnd, hDesktop, icesl_xpos, icesl_ypos, icesl_width, app_heigth, SWP_SHOWWINDOW);
+    SetWindowPos(g_icesl_hwnd, hDesktop, icesl_xpos, icesl_ypos, icesl_width, app_heigth, SWP_SHOWWINDOW | SWP_NOACTIVATE);
   }
 
 #else
