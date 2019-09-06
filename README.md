@@ -40,19 +40,19 @@ You can now build the project for your IDE of choice using CMAKE, and then compi
 ## How to Use ChiLL?
 Once ChiLL is opened, you can access a menu containing the different node by doing a right-click.
 
-![Nodes Menu](node_menu)
+![Nodes Menu][node_menu]
 
 There you can select an input-node.
 
-![Using an input-node](input_node)
+![Using an input-node][input_node]
 
 You can now select an output-node and link the nodes by creating a link by clicking and dragging the link from the output of the first node to the input of the second node.
 
-![Linking nodes](linking_nodes)
+![Linking nodes][linking_nodes]
 
 At launch, ChiLL will open IceSL to have a preview of the model created by the nodes. You can modify the characteristics of each nodes directly by typing or dragging the value. The modifications can be seens in the live preview of the object rendred in IceSL.
 
-![Live preview with IceSL](live_preview)
+![Live preview with IceSL][live_preview]
 
 Once the graph is conpleted, you can save the graph for later uses, or export a .lua file tailored for IceSL.
 
