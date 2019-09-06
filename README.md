@@ -1,24 +1,24 @@
-#ChiLL, the node-based editor for IceSL
+# ChiLL, the node-based editor for IceSL
 
 ![ChiLL banner][banner]
 
-##What is Chill?
+## What is Chill?
 Chill is a **node-based editor** specially tailored for [**IceSL**, the **Modeler and Slicer**](https://icesl.loria.fr).
 
 Created by members of the team behind IceSL, ChiLL is a tool which aims to provide a **Visual Programming** interface for IceSL.
 
 As IceSL offers the possibility to directly create models using lua scripting, ChiLL will provide a way to create those modeling scripts using an approach based on Visual Programming.
 
-##How to install ChiLL?
-###On Windows
+## How to install ChiLL?
+### On Windows
 For Windows users, ChiLL is available through an **installer** (an .exe or .msi), or by retrieving the source code and **building the project**.
 
-###On Linux
+### On Linux
 For Linux users, ChiLL is only available through retrieving the source code and **building the projet**.
 
 Installers and pre-compiled versions of ChiLL will be provided on future releases.
 
-##How to build ChiLL?
+## How to build ChiLL?
 To build ChiLL, you will need the following components installed on your computer:
 
 * Git
@@ -37,7 +37,7 @@ git clone https://github.com/shapeforge/Chill.git
 
 You can now build the project for your IDE of choice using CMAKE, and then compile.
 
-##How to Use ChiLL?
+## How to Use ChiLL?
 Once ChiLL is opened, you can access a menu containing the different node by doing a right-click.
 
 ![Nodes Menu](node_menu)
@@ -57,20 +57,20 @@ At launch, ChiLL will open IceSL to have a preview of the model created by the n
 Once the graph is conpleted, you can save the graph for later uses, or export a .lua file tailored for IceSL.
 
 
-##How to contibute to ChiLL?
-###New features or reworking the project
+## How to contibute to ChiLL?
+### New features or reworking the project
 Create your own fork of the projet, and submit a [Pull Request](https://github.com/shapeforge/Chill/pulls). 
 >**Note**
 >When contributing using a Pull Request, don't hesitate to be precise on the description of your work, and don't forget to document what you did.
 >It will greatly help use intergrate your changes! 
 
-###Bug reports and feature requests
+### Bug reports and feature requests
 If you have a particular problem, or just an idea for a new feature, please fill an [Issue](https://github.com/shapeforge/Chill/issues), so we can discuss about it.
 >**Note**
 >Don't hesitate to be precise when creating an Issue. For bug reports, please join some scripts/files that create the problem.
 >Using an adapted label on your Issue will greatly help us sorting and process them.
 
-#Credits
+# Credits
 Main developpers:
 
 * Jimmy Etienne [@JuDePom]
