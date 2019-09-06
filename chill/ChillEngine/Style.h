@@ -81,7 +81,7 @@ struct Style
     processor_selected_color        = ui_orange;
     processor_error_color           = ui_red;
     processor_title_color           = ui_darkgrey;
-    processor_shadow_color          = ui_black & 0x55FFFFFF;
+    processor_shadow_color          = ui_black & 0x88FFFFFF;
     processor_shadow_selected_color = ui_orange & 0x88FFFFFF;
     processor_width                 = 220.0f;
     processor_title_height          = 25.0f;
@@ -101,7 +101,7 @@ struct Style
     pipe_selected_color = ui_orange;
     pipe_error_color    = ImColor(255, 55, 51);
 
-    pipe_line_width = 6.0F;
+    pipe_line_width = 8.0F;
   };
 
 

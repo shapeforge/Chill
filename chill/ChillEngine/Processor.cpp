@@ -237,9 +237,9 @@ bool Chill::Processor::draw() {
   // shadow
   if (m_selected || w_scale > 0.5F) {
     draw_list->AddRectFilled(
-      min_pos + ImVec2(-5, -5) * w_scale,
-      max_pos + ImVec2(7, 10) * w_scale,
-      m_selected ? style.processor_shadow_selected_color : style.processor_shadow_color,
+      min_pos + ImVec2(10, 10) * w_scale,
+      max_pos + ImVec2(10, 10) * w_scale,
+      style.processor_shadow_color,
       rounding_corners + 5.0F, style.processor_rounded_corners);
   }
 

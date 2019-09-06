@@ -155,6 +155,7 @@ namespace Chill
   }
 
   //-------------------------------------------------------
+  bool init = true;
   void NodeEditor::mainRender()
   {
     glClearColor(0.F, 0.F, 0.F, 0.F);
@@ -387,6 +388,7 @@ namespace Chill
         object->setColor(ImGui::ColorConvertFloat4ToU32(ImVec4(color[0], color[1], color[2], color[3])));
       }
       
+      /*
       AutoPtr<Processor> proc = AutoPtr<Processor>(object);
       if (!proc.isNull()) {
         for (auto input : proc->inputs()) {
@@ -396,6 +398,7 @@ namespace Chill
           }
         }
       }
+      */
 
       ImGui::NewLine();
       
@@ -641,6 +644,7 @@ namespace Chill
       // Keyboard
       if (!text_editing)
       {
+        /*
         if (io.KeysDown['g'] && io.KeysDownDuration['g'] == 0) {
           if (!selected.empty()) {
             getCurrentGraph()->collapseSubset(selected);
@@ -663,6 +667,7 @@ namespace Chill
           com->setPosition(s2g);
           this->getCurrentGraph()->addComment(com);
         }
+        */
       }
       
       if (!selected.empty()) {
@@ -741,7 +746,7 @@ namespace Chill
           ImVec2 norm_vec = (vec / sqrt(vec.x*vec.x + vec.y*vec.y)) * 2.0F*pipe_width;
 
 
-          ImVec2 U = center + norm_vec * 1.41F;
+          ImVec2 U = center + norm_vec * 2.F;
           std::swap(norm_vec.x, norm_vec.y);
           ImVec2 V = center + norm_vec;
           ImVec2 W = center - norm_vec;
@@ -797,12 +802,19 @@ namespace Chill
 
     if (true || io.FontAllowUserScaling) {
       float old_scale = window->FontWindowScale;
-      float new_scale = ImClamp(window->FontWindowScale + io.MouseWheel * 0.25F, 0.1F, 2.0F);
+      float new_scale = ImClamp(
+        window->FontWindowScale + io.MouseWheel * exp(0.1F/window->FontWindowScale)/5.0F,
+        0.1F,
+        2.0F);
 
+
+      // ToDo : Move this elsewhere !!
       if (old_scale == 0.1F && io.MouseWheel < 0 && m_graphs.size() > 1) {
         m_graphs.pop();
         new_scale = 2.0F;
       }
+
+
       
       float scale = new_scale / old_scale;
       window->FontWindowScale = new_scale;
@@ -892,10 +904,14 @@ namespace Chill
 
       Instance()->m_graph_menu = false;
 
+      /*
       if (ImGui::BeginMenu("Add", "SPACE")) {
+      */
         addNodeMenu(s2g);
+      /*
         ImGui::EndMenu();
       }
+      */
 
       if (!buffer.isNull()) {
         if (ImGui::MenuItem("Paste", "CTRL+V")) {
@@ -909,17 +925,19 @@ namespace Chill
           buffer = AutoPtr<ProcessingGraph>(copy_buff);
         }
       }
-
+      /*
       if (ImGui::MenuItem("Add multiplexer node")) {
         AutoPtr<Multiplexer> proc = n_e->getCurrentGraph()->addProcessor<Multiplexer>();
         proc->setPosition(s2g);
       }
+      
 
       if (ImGui::MenuItem("Comment")) {
         AutoPtr<VisualComment> com(new VisualComment());
         com->setPosition(s2g);
         n_e->getCurrentGraph()->addComment(com);
       }
+      */
 
       ImGui::EndPopup();
     }
@@ -931,6 +949,7 @@ namespace Chill
       {
         buffer = n_e->getCurrentGraph()->copySubset(selected);
       }
+      /*
       if (ImGui::MenuItem("Group"))
       {
         n_e->getCurrentGraph()->collapseSubset(selected);
@@ -942,6 +961,7 @@ namespace Chill
           }
         }
       }
+      */
       if (ImGui::MenuItem("Delete")) {
         for (AutoPtr<SelectableUI> item : selected) {
           n_e->getCurrentGraph()->remove(item);
@@ -1113,6 +1133,8 @@ namespace Chill
         "  __currentNodeId = id" << std::endl <<
         "  setfenv(1, _Gcurrent)" << std::endl <<
         "end" << std::endl <<
+        "" << std::endl <<
+        "function setColor(...) end" << std::endl <<
         "" << std::endl <<
         "function input(name, type, ...)" << std::endl <<
         "  return __input[name][1]" << std::endl <<
