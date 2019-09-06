@@ -88,7 +88,7 @@ External libraries and tools used:
 * [lua5.1](https://www.lua.org/versions.html)
 * [tinyfiledialogs](https://github.com/native-toolkit/tinyfiledialogs)
 
-Special thanks to Sylvain Lefebre [@sylefeb], father of IceSL, and Salim Perchy [@ysperchy], its main developper.
+Special thanks to Sylvain Lefebvre [@sylefeb], father of IceSL, and Salim Perchy [@ysperchy], its main developper.
 
 [//]: # (Ressources)
 [banner]: ressources/images/chill_banner_wide_medium.png
