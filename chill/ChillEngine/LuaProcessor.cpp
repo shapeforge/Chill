@@ -18,9 +18,19 @@ const std::string REGEX_PARAM   = "(?:" + REGEX_STRING + "|" + REGEX_NUMBER + "|
 
 namespace Chill
 {
-  LuaProcessor::LuaProcessor(LuaProcessor &_processor) : LuaProcessor(_processor.m_nodepath){
+  LuaProcessor::LuaProcessor(LuaProcessor &_processor) {
+    m_nodepath = _processor.m_nodepath;
     setName(_processor.name());
     setOwner(_processor.owner());
+    setColor(_processor.color());
+
+    for (auto input : _processor.inputs()) {
+      addInput(input->clone());
+    }
+
+    for (auto output : _processor.outputs()) {
+      addOutput(output->clone());
+    }
   }
 
   LuaProcessor::LuaProcessor(const std::string &_path) {
@@ -96,7 +106,9 @@ setfenv(1, _Gcurrent)    --set it\n\
 
     code += "})) then\n\
 setDirty(__currentNodeId)\n";
-    code += m_program;
+
+
+    code += loadFileIntoString((NodeEditor::NodesFolder() + m_nodepath).c_str());
 
     if (getState() == EMITING) {
       for (auto output : outputs()) {
@@ -182,19 +194,22 @@ setDirty(__currentNodeId)\n";
     try {
       std::string outcome = uncommented;
       std::regex outputEx("emit" + REGEX_WSPACES + "\\(.*\\)");
+      std::regex color("setColor" + REGEX_WSPACES + "\\(\\s*" + REGEX_NUMBER + "\\s*,\\s*" + REGEX_NUMBER + "\\s*,\\s*" + REGEX_NUMBER + "\\s*\\)");
       std::smatch sm;
       if (regex_search(outcome, sm, outputEx)) {
         setEmiter();
+      }
+      if (regex_search(outcome, sm, color)) {
+        setColor(ImColor(
+          atoi(sm[2].str().c_str()),
+          atoi(sm[4].str().c_str()),
+          atoi(sm[6].str().c_str())));
       }
     }
     catch (const std::regex_error& e) {
       std::cout << "regex_error caught: " << e.what() << '\n';
     }
   }
-
-
-
-
 
   AutoPtr<ProcessorInput> LuaProcessor::addInput(AutoPtr<ProcessorInput> _input) {
     _input->setOwner(this);

@@ -180,7 +180,7 @@ namespace Chill {
 
     if (active) {
       updt = true;
-      if (m_link.isNull()) {
+      if (m_link.isNull() || !NodeEditor::Instance()->getSelectedOutput().isNull()) {
         // start a new link
         NodeEditor::Instance()->setSelectedInput(owner()->input(name()));
       }
@@ -198,11 +198,15 @@ namespace Chill {
     ImGui::PopStyleColor();
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, style.socket_border_width * w_scale);
-    //updt |= drawTweak();
+
+
+    
     if (w_scale > 0.7F) {
-      ImGui::SameLine();
-      ImGui::Text(name());
+      updt |= drawTweak();
+      //ImGui::SameLine();
+      //ImGui::Text(name());
     }
+
     ImGui::PopStyleVar();
     return updt;
   }
