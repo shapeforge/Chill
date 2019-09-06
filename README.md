@@ -5,9 +5,9 @@
 ## What is Chill?
 Chill is a **node-based editor** specially tailored for [**IceSL**, the **Modeler and Slicer**](https://icesl.loria.fr).
 
-Created by members of the team behind IceSL, ChiLL is a tool which aims to provide a **Visual Programming** interface for IceSL.
+Created by the members of the team behind IceSL, ChiLL is a tool which aims to provide a **Visual Programming** interface for IceSL.
 
-As IceSL offers the possibility to directly create models using lua scripting, ChiLL will provide a way to create those modeling scripts using an approach based on Visual Programming.
+As IceSL offers the possibility to directly create models using lua scripting, ChiLL will provide a way to create those modeling scripts using an approach based on Visual Programming. No need to code or learn a programming language!
 
 ## How to install ChiLL?
 ### On Windows
@@ -38,7 +38,7 @@ git clone https://github.com/shapeforge/Chill.git
 You can now build the project for your IDE of choice using CMAKE, and then compile.
 
 ## How to Use ChiLL?
-Once ChiLL is opened, you can access a menu containing the different node by doing a right-click.
+Once ChiLL is opened -- and IceSL alongside it -- you can access a menu containing the different node by doing a right-click.
 
 ![Nodes Menu][node_menu]
 
@@ -50,24 +50,23 @@ You can now select an output-node and link the nodes by creating a link by click
 
 ![Linking nodes][linking_nodes]
 
-At launch, ChiLL will open IceSL to have a preview of the model created by the nodes. You can modify the characteristics of each nodes directly by typing or dragging the value. The modifications can be seens in the live preview of the object rendred in IceSL.
+At launch time, ChiLL opens IceSL to produce a real-time preview of the model produced by the nodes. You can modify the parameters of any node interactively by typing or dragging values. The modifications are immediately reflected in the live preview of the object rendred in IceSL.
 
 ![Live preview with IceSL][live_preview]
 
-Once the graph is conpleted, you can save the graph for later uses, or export a .lua file tailored for IceSL.
-
+Once the graph is complete, you can save it for later, or export a .lua file tailored for IceSL.
 
 ## How to contibute to ChiLL?
 ### New features or reworking the project
 Create your own fork of the projet, and submit a [Pull Request](https://github.com/shapeforge/Chill/pulls). 
 >**Note**
->When contributing using a Pull Request, don't hesitate to be precise on the description of your work, and don't forget to document what you did.
->It will greatly help use intergrate your changes! 
+>When contributing using a Pull Request, don't hesitate to be precise in the description of your contribution, and don't forget to document what you did.
+>It will greatly help us intergrate your changes! 
 
 ### Bug reports and feature requests
 If you have a particular problem, or just an idea for a new feature, please fill an [Issue](https://github.com/shapeforge/Chill/issues), so we can discuss about it.
 >**Note**
->Don't hesitate to be precise when creating an Issue. For bug reports, please join some scripts/files that create the problem.
+>Don't hesitate to be precise when creating an Issue. For bug reports, please join some scripts/files that reproduce the problem.
 >Using an adapted label on your Issue will greatly help us sorting and process them.
 
 # Credits
@@ -90,7 +89,6 @@ External libraries and tools used:
 * [tinyfiledialogs](https://github.com/native-toolkit/tinyfiledialogs)
 
 Special thanks to Sylvain Lefebre [@sylefeb], father of IceSL, and Salim Perchy [@ysperchy], its main developper.
-
 
 [//]: # (Ressources)
 [banner]: ressources/images/chill_banner_wide_medium.png
