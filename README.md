@@ -82,7 +82,10 @@ Main developpers:
 * Thibault Tricard [@ThibaultTricard]
 * Cedric Zanni [@czanni]
 
-ChiLL is based on an earlier prototype by Jean Hergel [@jhergel].
+Special thanks to the [main IceSL devs](https://icesl.loria.fr/about/) and in particular Salim Perchy for his help!
+
+ChiLL initial development was supervised by Sylvain Lefebvre [@sylefeb]. 
+It is inspired by an earlier prototype by Jean Hergel [@jhergel]. 
 
 Logos:
 
@@ -95,7 +98,9 @@ External libraries and tools used:
 * [lua5.1](https://www.lua.org/versions.html)
 * [tinyfiledialogs](https://github.com/native-toolkit/tinyfiledialogs)
 
-Special thanks to the [main IceSL devs](https://icesl.loria.fr/about/) for their help! 
+Funding:
+
+ChiLL development was mainly supported by the ERC ShapeForge and Inria.
 
 [//]: # (Ressources)
 [banner]: ressources/images/chill_banner_wide_medium.png
