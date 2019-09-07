@@ -82,6 +82,8 @@ Main developpers:
 * Thibault Tricard [@ThibaultTricard]
 * Cedric Zanni [@czanni]
 
+ChiLL is based on an earlier prototype by Jean Hergel [@jhergel].
+
 Logos:
 
 * Pierre-Alexandre Hugron
