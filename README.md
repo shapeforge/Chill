@@ -63,15 +63,15 @@ Once the graph is complete, you can save it for later, or export a .lua file tai
 
 ## How to contibute to ChiLL?
 ### New features or reworking the project
-Create your own fork of the projet, and submit a [Pull Request](https://github.com/shapeforge/Chill/pulls). 
+Create your own fork of the projet, and submit a [pull request](https://github.com/shapeforge/Chill/pulls). 
 >**Note**
->When contributing using a Pull Request, don't hesitate to be precise in the description of your contribution, and don't forget to document what you did.
+>When contributing using a pull request, don't hesitate to be precise in the description of your contribution, and don't forget to document what you did.
 >It will greatly help us to intergrate your changes! 
 
 ### Bug reports and feature requests
-If you encounter a bug, or have an idea for a new feature, please fill an [Issue](https://github.com/shapeforge/Chill/issues), so we can discuss about it.
+If you encounter a bug, or have an idea for a new feature, please fill an [issue](https://github.com/shapeforge/Chill/issues), so we can discuss about it.
 >**Note**
->Please be as precise as possible when filling an Issue. For bug reports, please join some scripts/files that reproduce the problem.
+>Please be as precise as possible when filling an issue. For bug reports, please join some scripts/files that reproduce the problem.
 >Using a label on your Issue will greatly help us tracking and processing them.
 
 # Credits
@@ -82,14 +82,18 @@ Main developpers:
 * Thibault Tricard [@ThibaultTricard]
 * Cedric Zanni [@czanni]
 
-Special thanks to the [IceSL devs](https://icesl.loria.fr/about/) and in particular Salim Perchy for his help!
+Logos:
+
+* Pierre-Alexandre Hugron
+
+Acknowledgements:
+
+Special thanks to the [IceSL devs](https://icesl.loria.fr/about/) and in particular Salim Perchy [@ysperchy] for his help!
 
 ChiLL initial development was supervised by Sylvain Lefebvre [@sylefeb]. 
 It is inspired by an earlier prototype by Jean Hergel [@jhergel]. 
 
-Logos:
-
-* Pierre-Alexandre Hugron
+Feel free to join us in improving ChiLL!
 
 External libraries and tools used:
 
@@ -100,7 +104,7 @@ External libraries and tools used:
 
 Funding:
 
-ChiLL development was mainly supported by the ERC ShapeForge (StG-2012-307877) and Inria.
+ChiLL initial development was mainly supported by the ERC ShapeForge (StG-2012-307877) and [Inria](https://www.inria.fr/en/).
 
 [//]: # (Ressources)
 [banner]: ressources/images/chill_banner_wide_medium.png
