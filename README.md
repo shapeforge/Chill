@@ -35,6 +35,14 @@ Once the required components installed, you can fetch the source code by cloning
 git clone https://github.com/shapeforge/Chill.git
 ```
 
+Initialize and fetch the submodules dependencies.
+
+```Shell
+git submodule init
+git submodule update
+git submodule foreach git pull origin master
+```
+
 You can now build the project for your IDE of choice using CMAKE, and then compile.
 
 ## How to Use ChiLL?
