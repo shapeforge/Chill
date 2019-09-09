@@ -29,10 +29,10 @@ Installers and pre-compiled versions of ChiLL will be provided in future release
 ## How to build ChiLL?
 To build ChiLL, you will need the following components installed on your computer:
 
-* git
-* CMake
-* C++ 17 standard libraries
-* Any IDE supporting C++ (on windows, Visual Studio is recomended)
+- git
+- CMake
+- C++ 17 standard libraries
+- Any IDE supporting C++ (on windows, Visual Studio is recomended)
 
 Once the required components installed, you can fetch the source code by cloning or dowloading a .zip of the source files.
 
@@ -85,30 +85,31 @@ If you encounter a bug, or have an idea for a new feature, please fill an [issue
 # Credits
 Main developpers:
 
-* Jimmy Etienne [@JuDePom]
-* Pierre Bedell [@Phazon54]
-* Thibault Tricard [@ThibaultTricard]
-* Cedric Zanni [@czanni]
+- Jimmy Etienne [[@JuDePom](https://github.com/JuDePom)] 
+- Pierre Bedell [[@Phazon54](https://github.com/Phazon54)] 
+- Thibault Tricard [[@ThibaultTricard](https://github.com/ThibaultTricard)] 
+- Cedric Zanni [[@czanni](https://github.com/czanni)] 
 
 Logos:
 
-* Pierre-Alexandre Hugron
+- Pierre-Alexandre Hugron
 
 Acknowledgements:
 
-Special thanks to the [IceSL devs](https://icesl.loria.fr/about/) and in particular Salim Perchy [@ysperchy] for his help!
+Special thanks to the [IceSL devs](https://icesl.loria.fr/about/) and in particular Salim Perchy [[@ysperchy](https://github.com/ysperchy)] for his help!
 
-ChiLL initial development was supervised by Sylvain Lefebvre [@sylefeb]. 
-It is inspired by an earlier prototype by Jean Hergel [@jhergel]. 
+ChiLL initial development was supervised by Sylvain Lefebvre [[@sylefeb](https://github.com/sylefeb)]. 
+It is inspired by an earlier prototype by Jean Hergel [[@jhergel](https://github.com/jhergel)]. 
 
 Feel free to join us in improving ChiLL!
 
 External libraries and tools used:
 
-* [dear imgui](https://github.com/ocornut/imgui)
-* [LibSL](https://github.com/sylefeb/LibSL)
-* [lua5.1](https://www.lua.org/versions.html)
-* [tinyfiledialogs](https://github.com/native-toolkit/tinyfiledialogs)
+- [dear imgui](https://github.com/ocornut/imgui)
+- [LibSL](https://github.com/sylefeb/LibSL)
+- [lua5.1](https://www.lua.org/versions.html)
+- [luabind-deboostified]
+- [tinyfiledialogs](https://github.com/native-toolkit/tinyfiledialogs)
 
 Funding:
 
