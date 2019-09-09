@@ -116,8 +116,8 @@ Funding:
 ChiLL initial development was mainly supported by the ERC ShapeForge (StG-2012-307877) and [Inria](https://www.inria.fr/en/).
 
 [//]: # (Ressources)
-[banner]: ressources/images/chill_banner_wide_medium.png
-[node_menu]: ressources/images/gifs/nodemenu.gif
-[input_node]: ressources/images/gifs/inputnode.gif
-[linking_nodes]: ressources/images/gifs/linknode.gif
-[live_preview]: ressources/images/gifs/preview.gif
+[banner]: ressources/images/banner/chill_banner_wide_medium.png
+[node_menu]: ressources/images/howto/nodemenu.gif
+[input_node]: ressources/images/howto/inputnode.gif
+[linking_nodes]: ressources/images/howto/linknode.gif
+[live_preview]: ressources/images/howto/preview.gif
