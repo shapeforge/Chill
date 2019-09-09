@@ -108,7 +108,7 @@ External libraries and tools used:
 - [dear imgui](https://github.com/ocornut/imgui)
 - [LibSL](https://github.com/sylefeb/LibSL)
 - [lua5.1](https://www.lua.org/versions.html)
-- [luabind-deboostified]
+- [luabind-deboostified](https://github.com/decimad/luabind-deboostified)
 - [tinyfiledialogs](https://github.com/native-toolkit/tinyfiledialogs)
 
 Funding:
