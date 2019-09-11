@@ -375,7 +375,7 @@ namespace Chill
 
     for ( auto object : selected) {
       ImGui::Text("Name:");
-      strncpy_s(name, object->name().c_str(), 32);
+      strncpy(name, object->name().c_str(), 32);
       if (ImGui::InputText(("##name" + std::to_string(object->getUniqueID())).c_str(), name, 32)) {
         object->setName(name);
       }
@@ -444,10 +444,8 @@ namespace Chill
     for (AutoPtr<Processor> processor : m_graphs.top()->processors()) {
       if (processor->isDirty()) {
         if (g_auto_export) {
-#ifdef WIN32
           exportIceSL(g_iceSLTempExportPath);
-#endif
-          exportIceSL(g_iceSLExportPath);
+//          exportIceSL(g_iceSLExportPath);
         }
 
         if (g_auto_save) {
@@ -1111,7 +1109,7 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::exportIceSL(std::string& filename) {
+  void NodeEditor::exportIceSL(const std::string& filename) {
     if (!filename.empty()) {
       std::ofstream file;
       file.open(filename);
@@ -1274,7 +1272,7 @@ namespace Chill
     Instance()->loadSettings();
     Instance()->SetIceslPath();
     // create the temp file
-    Instance()->exportIceSL(Instance()->g_iceSLTempExportPath);
+    Instance()->exportIceSL(Instance()->g_iceSLTempExportPath.string());
 
     std::cerr << Instance()->g_iceSLTempExportPath << std::endl;
 

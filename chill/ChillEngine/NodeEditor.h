@@ -14,7 +14,11 @@
 #include "Processor.h"
 #include "ProcessingGraph.h"
 
+#ifdef WIN32
 namespace fs = std::experimental::filesystem;
+#else
+namespace fs = std::filesystem;
+#endif
 
 namespace Chill
 {
@@ -82,15 +86,15 @@ namespace Chill
     static void closeIcesl();
 
     // export the graph to a .lua file for IceSL
-    void exportIceSL(std::string& filename_);
+    void exportIceSL(const std::string &filename_);
 
     void saveSettings();
     void loadSettings();
 
     // Get current screen size
-    static void Chill::NodeEditor::getScreenRes(int& width, int& height);
+    static void getScreenRes(int& width, int& height);
     // Get current desktop size (without taskbar for windows)
-    static void Chill::NodeEditor::getDesktopRes(int& width, int& height);
+    static void getDesktopRes(int& width, int& height);
 
   public:
     const int default_width = 800;
@@ -104,7 +108,7 @@ namespace Chill
 
     std::string g_graphPath = "";
     std::string g_iceSLExportPath = "";
-    std::string g_iceSLTempExportPath = fs::temp_directory_path().string() + std::to_string(std::time(0)) + ".lua";
+    fs::path g_iceSLTempExportPath = fs::temp_directory_path() / (std::to_string(std::time(0)) + ".lua");
 
     std::string g_settingsFileName = "chill-settings.txt";
 
@@ -134,7 +138,7 @@ namespace Chill
       return s_instance;
     }
 
-    static void Chill::NodeEditor::launch();  
+    static void launch();
 
 #ifdef WIN32
     void setDefaultAppsPos(HMONITOR hMonitor);

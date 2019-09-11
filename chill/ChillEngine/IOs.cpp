@@ -321,7 +321,7 @@ bool Chill::PathInput::drawTweak()
 
   const size_t path_max_size = 512;
   char string[path_max_size];
-  strncpy_s(string, m_value.c_str(), path_max_size);
+  strncpy(string, m_value.c_str(), path_max_size);
 
   std::string before = m_value;
   bool value_changed = false;
@@ -410,7 +410,7 @@ bool Chill::StringInput::drawTweak()
 
   const size_t path_max_size = 512;
   char string[path_max_size];
-  strncpy_s(string, m_value.c_str(), path_max_size);
+  strncpy(string, m_value.c_str(), path_max_size);
 
   std::string before = m_value;
   bool value_changed = false;
