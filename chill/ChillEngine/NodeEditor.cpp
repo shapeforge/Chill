@@ -1184,8 +1184,10 @@ namespace Chill
   void NodeEditor::saveSettings()
   {
     // save current settings
-    std::string filename(ChillFolder());
-    filename += g_settingsFileName;
+    std::string filename(ChillFolder() + g_settingsFileName);
+    //filename += g_settingsFileName;
+
+    std::cerr << Console::red << filename << Console::gray << std::endl;
 
     // remove space from icesl path for storage in txt file
     std::string cleanedIceslPath = g_iceslPath;
@@ -1398,34 +1400,61 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  std::string NodeEditor::ChillFolder() {
-#ifdef WIN32
-    fs::path homePath = getenv("APPDATA") + std::string("/Chill/");
-    fs::path homePath = getenv("APPDATA") + std::string("/Chill/");
-#else
-    fs::path homePath = getenv("HOME") + std::string("/Chill/");
-    fs::path homePath = getenv("HOME") + std::string("/Chill/");
-#endif
-    if () {
+  bool NodeEditor::scriptPath(const std::string& name, std::string& _path)
+  {
+    std::string         path;
+    std::vector<std::string> paths;
 
+    paths.push_back(getenv("APPDATA") + std::string("/Chill") + name);
+    paths.push_back(fs::current_path().string() + name);
+    paths.push_back(".." + name);
+    paths.push_back("../.." + name);
+    paths.push_back("../../.." + name);
+    paths.push_back("../../../.." + name);
+    paths.push_back("../../../../Source/Chill" + name); // dev path
+    paths.push_back("../../../Source/Chill" + name); // dev path
+    
+    bool ok = false;
+    ForIndex(p, paths.size()) {
+      path = paths[p];
+      if (fs::exists(path)) {
+        ok = true;
+        break;
+      }
     }
-    else if ( fs::exists(homePath) ) {
-      return homePath.string();
+    if (!ok) {
+      std::cerr << Console::red << "Cannot find path for " << name << Console::gray << std::endl;
+      std::cerr << Console::yellow << "path? : " << path << Console::gray << std::endl;
+      return false;
+    }
+    _path = path;
+    return true;
+  }
+  //-------------------------------------------------------
+  std::string NodeEditor::ChillFolder() {
+    std::string chillFolder;
+    std::string folderName = "";
+
+    if (scriptPath(folderName, chillFolder)) {
+      std::cerr << Console::magenta << chillFolder << Console::gray << std::endl;
+      return chillFolder;
     }
     else {
       return fs::current_path().string();
     }
-    // dev path?
-    // else appdata (win)
-    // else / (zip)
-    return fs::current_path().string();
   }
 
   //-------------------------------------------------------
   std::string NodeEditor::NodesFolder() {
-    //return ChillFolder() + std::string("/chill-nodes");
+    std::string nodesFolder;
+    std::string folderName = "/chill-nodes";
 
-    return getenv("APPDATA") + std::string("/Chill/chill-nodes");
+    if (scriptPath(folderName, nodesFolder)) {
+      return nodesFolder;
+    }
+    else {
+      return fs::current_path().string();
+    }
   }
 
   //-------------------------------------------------------

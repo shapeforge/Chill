@@ -110,7 +110,7 @@ namespace Chill
     std::string g_iceSLExportPath = "";
     fs::path g_iceSLTempExportPath = fs::temp_directory_path() / (std::to_string(std::time(0)) + ".lua");
 
-    std::string g_settingsFileName = "chill-settings.txt";
+    std::string g_settingsFileName = "/chill-settings.txt";
 
     ImVec2 m_offset = ImVec2(0, 0);
 
@@ -150,6 +150,7 @@ namespace Chill
 
     static inline std::string ChillFolder();
     static inline std::string NodesFolder();
+    static bool scriptPath(const std::string& name, std::string& _path);
     inline void SetIceslPath();
 
     ProcessingGraph* getCurrentGraph() {
