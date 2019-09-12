@@ -342,6 +342,7 @@ namespace Chill
       ImVec2 size(100, 20);
 
 #ifdef WIN32
+      char title[32];
       uint i = 1;
       //TODO _Get_container is not standard
       for (auto graph : m_graphs._Get_container()) {
