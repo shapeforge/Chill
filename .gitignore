@@ -33,3 +33,7 @@
 
 # Visual Studio files
 *.vs/
+
+#VS Installer
+Chill_Installer/
+*Chill_Installer/
