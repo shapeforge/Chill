@@ -102,7 +102,7 @@ struct Style
     pipe_error_color    = ImColor(255, 55, 51);
 
     pipe_line_width = 8.0F;
-  };
+  }
 
 
 

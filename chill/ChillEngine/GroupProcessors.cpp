@@ -13,7 +13,7 @@ namespace Chill
 
     std::string code = "--[[ " + name() + " ]]--\n";
     code += "setfenv(1, _G0)  --go back to global initialization\n";
-    code += "__currentNodeId = " + std::to_string((int64_t)this) + "\n";
+    code += "__currentNodeId = " + std::to_string(reinterpret_cast<int64_t>(this)) + "\n";
     
     if (owner()->isDirty() || isDirty() || isEmiter()) {
       code += "setDirty(__currentNodeId)\n";
@@ -28,7 +28,7 @@ namespace Chill
         }
         // as input
         else {
-          std::string s2 = std::to_string((int64_t)input->m_link->owner());
+          std::string s2 = std::to_string(reinterpret_cast<int64_t>(input->m_link->owner()));
           code += "__input['" + std::string(input->name()) + "'] = " + input->m_link->name() + s2 + "\n";
         }
       }
@@ -43,7 +43,7 @@ namespace Chill
         }
         // as input
         else {
-          std::string s2 = std::to_string((int64_t)input->m_link->owner());
+          std::string s2 = std::to_string(reinterpret_cast<int64_t>(input->m_link->owner()));
           code += "__input['" + std::string(input->name()) + "'] = " + input->m_link->name() + s2 + "\n";
         }
       }
@@ -67,10 +67,10 @@ setfenv(1, _Gcurrent)    --set it\n";
       for (auto output : owner()->outputs()) {
         code += std::string(output->name()) + " = input('" + output->name() + "')\n";
         // set the parent as current node
-        code += "setNodeId(" + std::to_string((int64_t)owner()) + ")\n";
+        code += "setNodeId(" + std::to_string(reinterpret_cast<int64_t>(owner())) + ")\n";
         code += "output('" + std::string(output->name()) + "', 'UNDEF', " + output->name() + ")\n";
         // reset current node
-        code += "setNodeId(" + std::to_string((int64_t)this) + ")\n";
+        code += "setNodeId(" + std::to_string(reinterpret_cast<int64_t>(this)) + ")\n";
       }
     }
 

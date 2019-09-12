@@ -26,7 +26,7 @@ namespace Chill {
     for (AutoPtr<ProcessorOutput> output : m_outputs) {
       m_owner->disconnect(output);
     }
-    m_owner = NULL;
+    m_owner = nullptr;
     m_inputs.clear();
     m_outputs.clear();
   }
@@ -37,7 +37,7 @@ namespace Chill {
         return input;
       }
     }
-    return AutoPtr<ProcessorInput>(NULL);
+    return AutoPtr<ProcessorInput>(nullptr);
   }
 
   AutoPtr<ProcessorOutput> Processor::output(std::string name_) {
@@ -46,7 +46,7 @@ namespace Chill {
         return output;
       }
     }
-    return AutoPtr<ProcessorOutput>(NULL);
+    return AutoPtr<ProcessorOutput>(nullptr);
   }
 
 
@@ -152,7 +152,7 @@ namespace Chill {
       from->m_links.erase(std::remove(from->m_links.begin(), from->m_links.end(), to), from->m_links.end());
     }
 
-    to->m_link = AutoPtr<ProcessorOutput>(NULL);
+    to->m_link = AutoPtr<ProcessorOutput>(nullptr);
   }
 
   void Processor::disconnect(AutoPtr<ProcessorOutput> from) {
@@ -160,7 +160,7 @@ namespace Chill {
 
     for (AutoPtr<ProcessorInput> to : from->m_links) {
       if (!to.isNull()) {
-        to->m_link = AutoPtr<ProcessorOutput>(NULL);
+        to->m_link = AutoPtr<ProcessorOutput>(nullptr);
       }
     }
     from->m_links.clear();
@@ -211,9 +211,7 @@ namespace Chill {
     }
   }
   
-  void Processor::iceSL(std::ofstream& stream) {
-    
-  }
+  void Processor::iceSL(std::ofstream& ) {}
 };
 
 bool Chill::Processor::draw() {
@@ -317,12 +315,12 @@ bool Chill::Processor::draw() {
     float col[4];
     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
     {
-      memcpy((float*)col, payload->Data, sizeof(float) * 3);
+      memcpy(static_cast<float*>(col), payload->Data, sizeof(float) * 3);
       value_changed = true;
     }
     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
     {
-      memcpy((float*)col, payload->Data, sizeof(float) * 4);
+      memcpy(static_cast<float*>(col), payload->Data, sizeof(float) * 4);
       value_changed = true;
     }
     if (value_changed) m_color = ImColor(col[0], col[1], col[2]);
@@ -435,7 +433,7 @@ bool Chill::Multiplexer::draw() {
   ImVec2 min_pos = ImGui::GetCursorScreenPos();
   ImVec2 max_pos = min_pos + size;
 
-  float border_width = style.processor_border_width * w_scale;
+  //float border_width = style.processor_border_width * w_scale;
   float rounding_corners = style.processor_rounding_corners * w_scale;
 
 
@@ -500,7 +498,7 @@ void Chill::Multiplexer::iceSL(std::ofstream& _stream) {
   std::string lua = "--[[ " + name() + " ]]--\n";
   lua += "setfenv(1, _G0)  --go back to global initialization\n";
   lua += "__currentNodeId = ";
-  lua += std::to_string((int64_t)this);
+  lua += std::to_string(reinterpret_cast<int64_t>(this));
   lua += "\n";
 
   for (auto input : inputs()) {
@@ -510,7 +508,7 @@ void Chill::Multiplexer::iceSL(std::ofstream& _stream) {
     }
     // input
     else {
-      std::string s2 = std::to_string((int64_t)input->m_link->owner());
+      std::string s2 = std::to_string(reinterpret_cast<int64_t>(input->m_link->owner()));
       lua += "__input[\"" + std::string(input->name()) + "\"] = " + input->m_link->name() + s2 + "\n";
     }
   }
@@ -526,7 +524,7 @@ setfenv(1, _Gcurrent)    --set it\n\
 
   for (auto input : inputs()) {
     if (!input->m_link.isNull()) {
-      std::string s2 = std::to_string((int64_t)input->m_link->owner());
+      std::string s2 = std::to_string(reinterpret_cast<int64_t>(input->m_link->owner()));
       lua += ", " + s2;
     }
   }

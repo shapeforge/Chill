@@ -17,7 +17,7 @@ namespace fs = std::experimental::filesystem;
 namespace fs = std::filesystem;
 #endif
 
-LIBSL_WIN32_FIX
+//LIBSL_WIN32_FIX
 
 namespace Chill
 {
@@ -60,7 +60,8 @@ namespace Chill
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7F, 0.7F, 1.0F, 1.0F));
     ForIndex(i, directories.size()) {
-      if (ImGui::BeginMenu(directories[i].c_str())) {
+      const char* dir_name = directories[i].c_str();
+      if (dir_name[0] != '.' && ImGui::BeginMenu(dir_name)) {
         nameDir = recursiveFileSelecter(Resources::toPath(_current_dir, directories[i]));
         ImGui::EndMenu();
       }
@@ -81,7 +82,7 @@ namespace Chill
   //-------------------------------------------------------
   std::string relativePath(const std::string& _path)
   {
-    int nfsize = (int)NodeEditor::NodesFolder().size();
+    int nfsize = static_cast<int>(NodeEditor::NodesFolder().size());
     if (_path[nfsize + 1] == '/') nfsize++;
     std::string name = _path.substr(nfsize);
     return name;
@@ -155,7 +156,6 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  bool init = true;
   void NodeEditor::mainRender()
   {
     glClearColor(0.F, 0.F, 0.F, 0.F);
@@ -187,7 +187,7 @@ namespace Chill
   //-------------------------------------------------------
   void NodeEditor::mainOnResize(uint width, uint height)
   {
-    Instance()->m_size = ImVec2((float)width, (float)height);
+    Instance()->m_size = ImVec2(static_cast<float>(width), static_cast<float>(height));
     Instance()->moveIceSLWindowAlongChill();
   }
 
@@ -323,7 +323,6 @@ namespace Chill
   //-------------------------------------------------------
   void NodeEditor::drawLeftMenu()
   {
-    char title[32];
     char name[32];
 
     ImGui::Begin("GraphInfo", &m_visible,
@@ -340,11 +339,10 @@ namespace Chill
 
 
     if (ImGui::CollapsingHeader("Graph tree")) {
-      uint i = 1;
-
       ImVec2 size(100, 20);
 
-#if WIN32
+#ifdef WIN32
+      uint i = 1;
       //TODO _Get_container is not standard
       for (auto graph : m_graphs._Get_container()) {
         std::string text = "";
@@ -368,7 +366,10 @@ namespace Chill
         }
         ++i;
       }
+#else
+      // TODO
 #endif
+
     }
 
     ImGui::NewLine();
@@ -508,10 +509,10 @@ namespace Chill
         m_selecting = false;
         m_dragging = false;
 
-        if (io.MouseDown[0] && hovered.empty() || io.MouseDown[1]) {
+        if (io.MouseDown[0] && (hovered.empty() || io.MouseDown[1])) {
           linking = false;
-          m_selected_input = AutoPtr<ProcessorInput>(NULL);
-          m_selected_output = AutoPtr<ProcessorOutput>(NULL);
+          m_selected_input = AutoPtr<ProcessorInput>(nullptr);
+          m_selected_output = AutoPtr<ProcessorOutput>(nullptr);
         }
       }
       else {
@@ -538,7 +539,7 @@ namespace Chill
             }
           }
 
-          if (hovered.empty() && !m_dragging || m_selecting) {
+          if (hovered.empty() && (!m_dragging || m_selecting)) {
             selectProcessors();
           }
         }
@@ -669,14 +670,14 @@ namespace Chill
       }
       
       if (!selected.empty()) {
-        if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c' - 96] && io.KeysDownDuration['c' - 96] == 0) {
+        if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c' - 96] && io.KeysDownDuration['c' - 96] == 0.F) {
           buffer = getCurrentGraph()->copySubset(selected);
         }
       }
 
 
       if (!buffer.isNull()) {
-        if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['v' - 96] && io.KeysDownDuration['v' - 96] == 0) {
+        if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['v' - 96] && io.KeysDownDuration['v' - 96] == 0.F) {
           // mouse to screen
           ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
           // screen to grid
@@ -719,7 +720,7 @@ namespace Chill
 
     // Draw the pipes
     float pipe_width = style.pipe_line_width * w_scale;
-    int pipe_res = 20 * w_scale;
+    int pipe_res = static_cast<int>(20 * w_scale);
     for (AutoPtr<Processor> processor : currentGraph->processors()) {
       for (AutoPtr<ProcessorOutput> output : processor->outputs()) {
         for (AutoPtr<ProcessorInput> input : output->m_links) {
@@ -798,7 +799,7 @@ namespace Chill
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImGuiIO io = ImGui::GetIO();
 
-    if (true || io.FontAllowUserScaling) {
+    if (io.FontAllowUserScaling) {
       float old_scale = window->FontWindowScale;
       float new_scale = ImClamp(
         window->FontWindowScale + io.MouseWheel * exp(0.1F/window->FontWindowScale)/5.0F,
@@ -807,17 +808,14 @@ namespace Chill
 
 
       // ToDo : Move this elsewhere !!
-      if (old_scale == 0.1F && io.MouseWheel < 0 && m_graphs.size() > 1) {
+      if (old_scale <= 0.1F && io.MouseWheel < 0 && m_graphs.size() > 1) {
         m_graphs.pop();
         new_scale = 2.0F;
       }
 
-
-      
-      float scale = new_scale / old_scale;
       window->FontWindowScale = new_scale;
 
-      if (new_scale != old_scale) {
+      if (io.MouseWheel < 0 || 0 < io.MouseWheel) {
         // mouse to screen
         ImVec2 m2s = io.MousePos - (window->Pos + window->Size) / 2.F;
         // screen to grid
@@ -1187,8 +1185,6 @@ namespace Chill
     std::string filename(ChillFolder() + g_settingsFileName);
     //filename += g_settingsFileName;
 
-    std::cerr << Console::red << filename << Console::gray << std::endl;
-
     // remove space from icesl path for storage in txt file
     std::string cleanedIceslPath = g_iceslPath;
     std::replace(cleanedIceslPath.begin(), cleanedIceslPath.end(), ' ', '#');
@@ -1269,18 +1265,18 @@ namespace Chill
   //-------------------------------------------------------
   void NodeEditor::launch()
   {
+
     NodeEditor *nodeEditor = Instance();
 
-    Instance()->loadSettings();
-    Instance()->SetIceslPath();
-    // create the temp file
-    Instance()->exportIceSL(Instance()->g_iceSLTempExportPath.string());
+    nodeEditor->loadSettings();
+    nodeEditor->SetIceslPath();
 
-    std::cerr << Instance()->g_iceSLTempExportPath << std::endl;
+    // create the temp file
+    nodeEditor->exportIceSL(Instance()->g_iceSLTempExportPath.string());
 
     try {
       // create window
-      SimpleUI::init(Instance()->default_width, Instance()->default_height, "Chill, the node-based editor");
+      SimpleUI::init(nodeEditor->default_width, nodeEditor->default_height, "Chill, the node-based editor");
 
       // attach functions
       SimpleUI::onRender = NodeEditor::mainRender;
@@ -1294,9 +1290,9 @@ namespace Chill
       // imgui
       SimpleUI::bindImGui();
       SimpleUI::initImGui();
-      SimpleUI::onReshape(Instance()->default_width, Instance()->default_height);
+      SimpleUI::onReshape(nodeEditor->default_width, nodeEditor->default_height);
 
-      if (Instance()->g_auto_icesl) {
+      if (nodeEditor->g_auto_icesl) {
 #ifdef WIN32
         SimpleUI::setCustomCallbackMsgProc(custom_wndProc);
 
@@ -1310,19 +1306,19 @@ namespace Chill
 #ifdef WIN32
         Instance()->setDefaultAppsPos(NULL);
 #else
-        Instance()->setDefaultAppsPos();
+        nodeEditor->setDefaultAppsPos();
 #endif
       }
 
       // main loop
       SimpleUI::loop();
 
-      if (Instance()->g_auto_icesl) {
+      if (nodeEditor->g_auto_icesl) {
         // closing Icesl
         std::atexit(closeIcesl);
       }
 
-      Instance()->saveSettings();
+      nodeEditor->saveSettings();
 
       // clean up
       SimpleUI::terminateImGui();
@@ -1405,7 +1401,9 @@ namespace Chill
     std::string         path;
     std::vector<std::string> paths;
 
+#ifdef WIN32
     paths.push_back(getenv("APPDATA") + std::string("/Chill") + name);
+#endif
     paths.push_back(fs::current_path().string() + name);
     paths.push_back(".." + name);
     paths.push_back("../.." + name);
@@ -1434,9 +1432,7 @@ namespace Chill
   std::string NodeEditor::ChillFolder() {
     std::string chillFolder;
     std::string folderName = "";
-
     if (scriptPath(folderName, chillFolder)) {
-      std::cerr << Console::magenta << chillFolder << Console::gray << std::endl;
       return chillFolder;
     }
     else {

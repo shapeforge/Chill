@@ -42,7 +42,7 @@ namespace Chill
       m_name = name;
     }
 
-    inline const IOType::IOType type() {
+    inline IOType::IOType type() {
       return m_type;
     }
 
@@ -143,12 +143,11 @@ namespace Chill
 
     UndefInput() {
       setColor(color_undef);
-    };
+    }
 
     // For compatibility (shouldn't be called)
     template <typename ...>
-    UndefInput(...) : UndefInput()
-    {};
+    UndefInput(...) : UndefInput() {}
 
     bool drawTweak();
 
@@ -165,7 +164,7 @@ namespace Chill
   public:
     UndefOutput() {
       setColor(color_undef);
-    };
+    }
 
     AutoPtr<ProcessorOutput> clone() {
       AutoPtr<ProcessorOutput> output = AutoPtr<ProcessorOutput>(new UndefOutput());
@@ -186,26 +185,26 @@ namespace Chill
     {
       setType (IOType::BOOLEAN);
       setColor(color_bool);
-    };
+    }
 
     template <typename ...>
     BoolInput(bool _value = false, ...) : BoolInput()
     {
       m_value = _value;
-    };
+    }
 
     template <typename ...>
     BoolInput(std::vector<std::string> _params) : BoolInput()
     {
       size_t s = _params.size();
       m_value = s >= 1 ? _params[0] == "true": false;
-    };
+    }
 
     template <typename ...>
     BoolInput(...) : BoolInput()
     {
       sl_assert(false);
-    };
+    }
 
     bool drawTweak();
 
@@ -286,7 +285,7 @@ namespace Chill
           m_step = step();
         }
       }
-    };
+    }
 
     IntInput(std::vector<std::string>& _params) : IntInput()
     {
@@ -299,14 +298,14 @@ namespace Chill
       m_step  = s >= 5 ? std::stoi(_params[4]) : step();
 
       m_value = std::min(m_max, std::max(m_min, m_value));
-    };
+    }
 
     // For compatibility (shouldn't be called)
     template <typename ...>
     IntInput(...)
     {
       sl_assert(false);
-    };
+    }
 
     bool drawTweak();
 
@@ -325,7 +324,7 @@ namespace Chill
         (m_min != min() ? ", min = " + std::to_string(m_min) : "") <<
         (m_max != max() ? ", max = " + std::to_string(m_max) : "") <<
         (m_alt ? ", alt = true" : "") <<
-        (m_step != 0.1f ? ", step = " + std::to_string(m_step) : "") <<
+        ", step = " + std::to_string(m_step) <<
         "})" << std::endl;
     }
 
@@ -340,7 +339,7 @@ namespace Chill
     IntOutput() {
       setType (IOType::INTEGER);
       setColor(color_number);
-    };
+    }
 
     AutoPtr<ProcessorOutput> clone() {
       AutoPtr<ProcessorOutput> output = AutoPtr<ProcessorOutput>(new IntOutput());
@@ -374,12 +373,12 @@ namespace Chill
     {
       int s = static_cast<int>(_params.size());
 
-      m_value = s >= 1 ? std::stoi(_params[0]) : 0;
+      m_value = _value;
       m_min = 0;
       m_max = s;
 
       m_value = std::min(m_max, std::max(m_min, m_value));
-    };
+    }
 
     template <typename ...>
     ListInput(std::vector<std::string>& _params) : ListInput()
@@ -392,14 +391,14 @@ namespace Chill
       m_max    = s;
       
       m_value = std::min(m_max, std::max(m_min, m_value));
-    };
+    }
 
     // For compatibility (shouldn't be called)
     template <typename ...>
     ListInput(...)
     {
       sl_assert(false);
-    };
+    }
 
     bool drawTweak();
 
@@ -435,21 +434,21 @@ namespace Chill
     PathInput() {
       setType(IOType::STRING);
       setColor(color_string);
-    };
+    }
 
     // For compatibility (shouldn't be called)
     template <typename ...>
     PathInput(...) : PathInput()
     {
       sl_assert(false);
-    };
+    }
 
     template <typename ...>
     PathInput(std::string _value = "", bool _alt = false, std::string _filter = "", ...) : PathInput() {
       m_value  = _value;
       m_alt    = _alt;
       m_filter = _filter;
-    };
+    }
 
     template <typename ...>
     PathInput(std::vector<std::string>& _params) : PathInput()
@@ -468,7 +467,7 @@ namespace Chill
 
       regex_replace(std::back_inserter(unquoted), m_filter.begin(), m_filter.end(), quote, "$2");
       m_filter = unquoted;
-    };
+    }
 
     bool drawTweak();
 
@@ -502,7 +501,7 @@ namespace Chill
     PathOutput() {
       setType(IOType::STRING);
       setColor(color_string);
-    };
+    }
 
     AutoPtr<ProcessorOutput> clone() {
       AutoPtr<ProcessorOutput> output = AutoPtr<ProcessorOutput>(new PathOutput());
@@ -525,8 +524,9 @@ namespace Chill
     float m_value;
     float m_min;
     float m_max;
-    bool  m_alt;
     float m_step;
+
+    bool  m_alt;
 
     ScalarInput() {
       setType (IOType::SCALAR);
@@ -552,7 +552,7 @@ namespace Chill
           m_step = step();
         }
       }
-    };
+    }
 
     template <typename ...>
     ScalarInput(std::vector<std::string>& _params) : ScalarInput()
@@ -566,14 +566,14 @@ namespace Chill
       m_step  = s >= 5 ? std::stof(_params[4]) : step();
 
       m_value = std::min(m_max, std::max(m_min, m_value));
-    };
+    }
 
     // For compatibility (shouldn't be called)
     template <typename ...>
     ScalarInput(...) : ScalarInput()
     {
       sl_assert(false);
-    };
+    }
 
     bool drawTweak();
 
@@ -607,7 +607,7 @@ namespace Chill
     ScalarOutput() {
       setType (IOType::SCALAR);
       setColor(color_number);
-    };
+    }
 
     AutoPtr<ProcessorOutput> clone() {
       AutoPtr<ProcessorOutput> output = AutoPtr<ProcessorOutput>(new ScalarOutput());
@@ -629,20 +629,20 @@ namespace Chill
     StringInput() {
       setType (IOType::STRING);
       setColor(color_string);
-    };
+    }
 
     // For compatibility (shouldn't be called)
     template <typename ...>
     StringInput(...) : StringInput()
     {
       sl_assert(false);
-    };
+    }
 
     template <typename ...>
     StringInput(std::string _value = "", bool _alt = false, ...) : StringInput() {
       m_value = _value;
       m_alt = _alt;
-    };
+    }
 
     template <typename ...>
     StringInput(std::vector<std::string>& _params) : StringInput()
@@ -658,7 +658,7 @@ namespace Chill
       regex_replace(std::back_inserter(unquoted), m_value.begin(), m_value.end(), quote, "$2");
 
       m_value = unquoted;
-    };
+    }
 
     bool drawTweak();
 
@@ -692,7 +692,7 @@ namespace Chill
     StringOutput() {
       setType (IOType::STRING);
       setColor(color_string);
-    };
+    }
 
     AutoPtr<ProcessorOutput> clone() {
       AutoPtr<ProcessorOutput> output = AutoPtr<ProcessorOutput>(new StringOutput());
@@ -714,15 +714,13 @@ namespace Chill
     }
 
     template <typename ...>
-    ShapeInput(std::vector<std::string>& _params) : ShapeInput()
-    {
-    };
+    ShapeInput(std::vector<std::string>& ) : ShapeInput() {}
 
     template <typename ...>
     ShapeInput(...) : ShapeInput()
     {
       sl_assert(false);
-    };
+    }
 
     bool drawTweak();
 
@@ -751,7 +749,7 @@ namespace Chill
     ShapeOutput() {
       setType (IOType::SHAPE);
       setColor(color_shape);
-    };
+    }
 
     AutoPtr<ProcessorOutput> clone() {
       AutoPtr<ProcessorOutput> output = AutoPtr<ProcessorOutput>(new ShapeOutput());
@@ -774,8 +772,8 @@ public:
   float m_value[4];
   float m_min;
   float m_max;
-  bool  m_alt;
   float m_step;
+  bool  m_alt;
 
   Vec4Input() {
     setType (IOType::VEC4);
@@ -787,7 +785,7 @@ public:
   Vec4Input(...) : Vec4Input()
   {
     sl_assert(false);
-  };
+  }
   
   template <typename ...>
   Vec4Input(float * _value, float _min = min(), float _max = max(), bool _alt = false, float _step = step(), ...) : Vec4Input()
@@ -809,7 +807,7 @@ public:
         m_step = step();
       }
     }
-  };
+  }
 
   template <typename ...>
   Vec4Input(std::vector<std::string>& _params) : Vec4Input()
@@ -831,7 +829,7 @@ public:
     m_step  = s >= 5 ? std::stof(_params[4]) : step();
 
     std::cout << _params[3] << " " << _params[3].compare(std::string("true")) << " alt:" << (m_alt?"true":"false") << std::endl;
-  };
+  }
 
   bool drawTweak();
 
@@ -870,7 +868,7 @@ public:
   Vec4Output() {
     setType (IOType::VEC4);
     setColor(color_vec4);
-  };
+  }
 
   AutoPtr<ProcessorOutput> clone() {
     AutoPtr<ProcessorOutput> output = AutoPtr<ProcessorOutput>(new Vec4Output());
@@ -919,7 +917,7 @@ public:
         m_step = step();
       }
     }
-  };
+  }
 
   template <typename ...>
   Vec3Input(std::vector<std::string>& _params) : Vec3Input()
@@ -936,14 +934,14 @@ public:
     m_min  = s >= 2 ? std::stof(_params[1]) : min();
     m_max  = s >= 3 ? std::stof(_params[2]) : max();
     m_step = s >= 4 ? std::stof(_params[3]) : step();
-  };
+  }
 
   // For compatibility (shouldn't be called)
   template <typename ...>
   Vec3Input(...) : Vec3Input()
   {
     sl_assert(false);
-  };
+  }
 
   bool drawTweak();
 
@@ -980,7 +978,7 @@ public:
   Vec3Output() {
     setType (IOType::VEC3);
     setColor(color_vec3);
-  };
+  }
 
   AutoPtr<ProcessorOutput> clone() {
     AutoPtr<ProcessorOutput> output = AutoPtr<ProcessorOutput>(new Vec3Output());

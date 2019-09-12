@@ -24,7 +24,7 @@ namespace Chill {
     ImGui::SetCursorPosY(pos.y - text_size.y/2 + full_radius);
 
     if (w_scale > 0.7F) {
-      ImGui::Text(name());
+      ImGui::Text("%s", name());
     }
 
     ImGui::SetCursorPos(ImVec2(pos.x - full_radius + style.processor_border_width * w_scale / 2, pos.y));
@@ -51,7 +51,7 @@ namespace Chill {
 
     if (ImGui::BeginDragDropSource()) {
       NodeEditor::Instance()->setSelectedOutput(owner()->output(name()));
-      ImGui::SetDragDropPayload("_pipe_output", NULL, 0, ImGuiCond_Once);
+      ImGui::SetDragDropPayload("_pipe_output", nullptr, 0, ImGuiCond_Once);
       ImGui::EndDragDropSource();
     }
 
@@ -166,9 +166,9 @@ namespace Chill {
     // Drag and Drop Source
     if (ImGui::BeginDragDropSource()) {
       if (m_link.isNull()) {
-        ImGui::SetDragDropPayload("_pipe_input", NULL, 0, ImGuiCond_Once);
+        ImGui::SetDragDropPayload("_pipe_input", nullptr, 0, ImGuiCond_Once);
       } else {
-        ImGui::SetDragDropPayload("_pipe_output", NULL, 0, ImGuiCond_Once);
+        ImGui::SetDragDropPayload("_pipe_output", nullptr, 0, ImGuiCond_Once);
       }
       if (NodeEditor::Instance()->getSelectedOutput().isNull()) {
         active = true;
@@ -225,7 +225,7 @@ bool Chill::UndefInput::drawTweak()
 {
   ImGui::SameLine();
 
-  ImGui::Text(name());
+  ImGui::Text("%s", name());
 
   return false;
 }
@@ -241,7 +241,7 @@ bool Chill::BoolInput::drawTweak()
     value_changed = ImGui::Checkbox(name(), &m_value);
   }
   else {
-    ImGui::Text(name());
+    ImGui::Text("%s", name());
   }
 
   return value_changed || m_value != before;
@@ -266,7 +266,7 @@ bool Chill::IntInput::drawTweak()
     }
   }
   else {
-    ImGui::Text(name());
+    ImGui::Text("%s", name());
   }
 
   if (value_changed) {
@@ -288,7 +288,7 @@ bool Chill::ListInput::drawTweak()
 
 
   ImVec2 cursor = ImGui::GetCursorPos();
-  ImGui::Text( (" " + name_str + ":").c_str());
+  ImGui::Text(" %s:", name_str.c_str());
 
   ImGui::SetCursorPos(cursor + ImVec2(0, 1.5F * ImGui::CalcTextSize(name()).y));
 
@@ -296,12 +296,12 @@ bool Chill::ListInput::drawTweak()
 
     ImGui::Combo(label.c_str(), &m_value,
       [](void* data, int idx, const char** out_text) {
-        *out_text = ((const std::vector<std::string>*)data)->at(idx).c_str();
+        *out_text = static_cast<const std::vector<std::string>*>(data)->at(idx).c_str();
         return true;
       }, reinterpret_cast<void*> (&m_values),
         static_cast<int>(m_values.size()));
   } else {
-    ImGui::Text(name());
+    ImGui::Text("%s", name());
   }
 
   if (value_changed) {
@@ -328,7 +328,7 @@ bool Chill::PathInput::drawTweak()
 
   ImVec2 cursor = ImGui::GetCursorPos();
 
-  ImGui::Text((" " + name_str + ":").c_str());
+  ImGui::Text(" %s:", name_str.c_str());
   cursor += ImVec2(0, 1.5F * ImGui::CalcTextSize(name()).y);
 
   float item_width = ImGui::CalcItemWidth();
@@ -355,7 +355,7 @@ bool Chill::PathInput::drawTweak()
     }
     ImGui::PopStyleColor(2);
   } else {
-    ImGui::Text(name());
+    ImGui::Text("%s", name());
   }
   return value_changed || m_value != before;
 }
@@ -380,7 +380,7 @@ bool Chill::ScalarInput::drawTweak()
     }
   }
   else {
-    ImGui::Text(name());
+    ImGui::Text("%s", name());
   }
 
   if (value_changed) {
@@ -394,7 +394,7 @@ bool Chill::ScalarInput::drawTweak()
 bool Chill::ShapeInput::drawTweak()
 {
   ImGui::SameLine();
-  ImGui::Text(name());
+  ImGui::Text("%s", name());
   return false;
 }
 
@@ -402,7 +402,7 @@ bool Chill::ShapeInput::drawTweak()
 bool Chill::StringInput::drawTweak()
 {
   ImGui::SameLine();
-  ImGui::Text(name());
+  ImGui::Text("%s", name());
 
   std::string name_str = std::string(name());
   std::string label = "##" + name_str;
@@ -425,7 +425,7 @@ bool Chill::StringInput::drawTweak()
       m_value = string;
     }
   } else {
-    ImGui::Text(name());
+    ImGui::Text("%s", name());
   }
   return value_changed || m_value != before;
 }
@@ -437,7 +437,7 @@ bool Chill::Vec4Input::drawTweak()
   float w_scale = window->FontWindowScale;
 
   ImGui::SameLine();
-  ImGui::Text(name());
+  ImGui::Text("%s", name());
   ImVec2 current = ImGui::GetCursorPos();
 
   float before[4];
@@ -482,7 +482,7 @@ bool Chill::Vec3Input::drawTweak()
   float w_scale = window->FontWindowScale;
 
   ImGui::SameLine();
-  ImGui::Text(name());
+  ImGui::Text("%s", name());
   ImVec2 current = ImGui::GetCursorPos();
 
   float before[3];

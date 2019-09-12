@@ -44,8 +44,8 @@ namespace Chill
     NodeEditor();
     ~NodeEditor() {}
 
-    NodeEditor & operator= (const NodeEditor&) {};
-    NodeEditor(const NodeEditor&) {};
+    NodeEditor & operator= (const NodeEditor&) = delete;
+    NodeEditor(const NodeEditor&) = delete;
 
     /**
      *  Called at each frame
@@ -97,8 +97,8 @@ namespace Chill
     static void getDesktopRes(int& width, int& height);
 
   public:
-    const int default_width = 800;
-    const int default_height = 600;
+    const uint default_width = 800;
+    const uint default_height = 600;
 
     bool g_auto_save = true;
     bool g_auto_export = true;
@@ -108,7 +108,7 @@ namespace Chill
 
     std::string g_graphPath = "";
     std::string g_iceSLExportPath = "";
-    fs::path g_iceSLTempExportPath = fs::temp_directory_path() / (std::to_string(std::time(0)) + ".lua");
+    fs::path g_iceSLTempExportPath = fs::temp_directory_path() / (std::to_string(std::time(nullptr)) + ".lua");
 
     std::string g_settingsFileName = "/chill-settings.txt";
 
@@ -119,10 +119,7 @@ namespace Chill
 
     bool   m_dragging = false;
     bool   m_selecting = false;
-    bool   m_visible = true;
     bool   m_show_grid = true;
-
-    Style style;
 
 #ifdef WIN32
     HWND g_chill_hwnd = NULL;
@@ -184,8 +181,8 @@ namespace Chill
           return;
         }
         getCurrentGraph()->connect(m_selected_output, _input);
-        m_selected_input = AutoPtr<ProcessorInput>(NULL);
-        m_selected_output = AutoPtr<ProcessorOutput>(NULL);
+        m_selected_input = AutoPtr<ProcessorInput>(nullptr);
+        m_selected_output = AutoPtr<ProcessorOutput>(nullptr);
       }
     }
 
@@ -201,8 +198,8 @@ namespace Chill
           return;
         }
         getCurrentGraph()->connect(_output, m_selected_input);
-        m_selected_input = AutoPtr<ProcessorInput>(NULL);
-        m_selected_output = AutoPtr<ProcessorOutput>(NULL);
+        m_selected_input = AutoPtr<ProcessorInput>(nullptr);
+        m_selected_output = AutoPtr<ProcessorOutput>(nullptr);
       }
     }
 

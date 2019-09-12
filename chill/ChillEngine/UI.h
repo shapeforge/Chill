@@ -70,7 +70,7 @@ public:
     return m_position;
   }
 
-  inline const int64_t getUniqueID() {
+  inline int64_t getUniqueID() {
     return int64_t(this);
   }
 };
@@ -88,7 +88,7 @@ public:
   ImU32 m_color;
 
   /** Parent graph, raw pointer is needed. */
-  Chill::ProcessingGraph * m_owner = NULL;
+  Chill::ProcessingGraph * m_owner = nullptr;
 
 
 
@@ -97,7 +97,7 @@ public:
     m_edit = false;
   }
 
-  SelectableUI(SelectableUI &_copy) {
+  SelectableUI(SelectableUI&) {
     m_selected = false;
     m_edit = false;
   }
@@ -125,7 +125,7 @@ public:
    *  Get the color of this ui element.
    *  @return The color of the ui element.
    **/
-  inline const ImU32 color() {
+  inline ImU32 color() {
     return m_color;
   }
 
@@ -137,7 +137,7 @@ public:
     m_color = _color;
   }
 
-  bool draw() { return true; };
+  bool draw() { return true; }
 
   virtual AutoPtr<SelectableUI> clone() = 0;
 

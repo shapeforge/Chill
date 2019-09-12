@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <sstream>
+
 // Search and remove whitespace from both ends of the string
 static std::string TrimEnumString(const std::string &_s)
 {
@@ -32,8 +35,8 @@ static void SplitEnumArgs(const char* _szArgs, std::string _Array[], int _nMax)
         } \
         static ename FromString(const std::string& strEnum) { \
             if (_Strings[0].empty()) { SplitEnumArgs(#__VA_ARGS__, _Strings, COUNT); } \
-            for (int i = 0; i < COUNT; i++) { if (_Strings[i] == strEnum) { return (ename)i; } } \
-            return (ename)0; \
+            for (int i = 0; i < COUNT; i++) { if (_Strings[i] == strEnum) { return static_cast<ename>(i); } } \
+            return static_cast<ename>(0); \
         } \
     }
 

@@ -33,7 +33,7 @@ class Resources
     if (!ok) {
       throw Fatal("[Resources] cannot find resource files!");
     }
-  };
+  }
 
 public:
 

@@ -16,7 +16,7 @@ namespace Chill
     //-------------------------------------------------------
     Lua_Input() {
       m_Ptr = ProcessorInput::create("undef", IOType::UNDEF);
-    };
+    }
 
     //-------------------------------------------------------
     Lua_Input(const object& table) {
@@ -113,7 +113,7 @@ namespace Chill
     //-------------------------------------------------------
     Lua_Output() {
       m_Ptr = ProcessorOutput::create("undef", IOType::UNDEF, false);
-    };
+    }
 
     //-------------------------------------------------------
     Lua_Output(const object& table) {
@@ -146,12 +146,12 @@ namespace Chill
     //-------------------------------------------------------
     Lua_Processor() {
       m_Ptr = AutoPtr<Processor>(new Processor());
-    };
+    }
 
     //-------------------------------------------------------
     Lua_Processor(const std::string& name_) {
       m_Ptr = AutoPtr<Processor>(new Processor(name_));
-    };
+    }
 
     //-------------------------------------------------------
     Lua_Processor(const object& table) {
@@ -200,13 +200,13 @@ namespace Chill
   public:
     //-------------------------------------------------------
     Lua_Graph() {
-      m_Ptr = (AutoPtr<Processor>)AutoPtr<ProcessingGraph>(new ProcessingGraph());
-    };
+      m_Ptr = static_cast<AutoPtr<Processor>>(AutoPtr<ProcessingGraph>(new ProcessingGraph()));
+    }
 
     //-------------------------------------------------------
     Lua_Graph(const std::string& name_) {
-      m_Ptr = (AutoPtr<Processor>)AutoPtr<ProcessingGraph>(new ProcessingGraph(name_));
-    };
+      m_Ptr = static_cast<AutoPtr<Processor>>(AutoPtr<ProcessingGraph>(new ProcessingGraph(name_)));
+    }
 
     //-------------------------------------------------------
     Lua_Graph(const object& table) {
@@ -246,12 +246,12 @@ namespace Chill
     //-------------------------------------------------------
     Lua_Node() {
       m_Ptr = AutoPtr<Processor>(AutoPtr<ProcessingGraph>(new ProcessingGraph()));
-    };
+    }
 
     //-------------------------------------------------------
     Lua_Node(const std::string& name_) {
       m_Ptr = AutoPtr<Processor>(AutoPtr<ProcessingGraph>(new ProcessingGraph(name_)));
-    };
+    }
 
     //-------------------------------------------------------
     Lua_Node(const object& table) {
@@ -278,7 +278,7 @@ namespace Chill
       }
 
       AutoPtr<LuaProcessor> lua = AutoPtr<LuaProcessor>(new LuaProcessor(path));
-      m_Ptr = (AutoPtr<Processor>)lua;
+      m_Ptr = static_cast<AutoPtr<Processor>>(lua);
       m_Ptr->setName(name);
       m_Ptr->setPosition(pos);
       m_Ptr->setColor(color);
@@ -302,7 +302,7 @@ namespace Chill
 
   //-------------------------------------------------------
   void GraphSaver::execute(const char* path) {   
-    int ret = luaL_dofile(m_LuaState, path);
+    luaL_dofile(m_LuaState, path);
   }
 
   //-------------------------------------------------------

@@ -31,9 +31,6 @@ namespace Chill
       m_edit       = false;
     }
 
-    virtual ~VisualComment() {}
-
-
     bool draw() override;
 
     AutoPtr<SelectableUI> clone() override {
@@ -45,5 +42,4 @@ namespace Chill
   private:
     std::string m_comment = "";
   };
-
 }

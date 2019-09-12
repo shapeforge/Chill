@@ -44,8 +44,6 @@ bool Chill::VisualComment::draw() {
   // background
   draw_list->AddRectFilled(min_pos, max_pos, 0x60FFFFFF & m_color, rounding_corners, style.processor_rounded_corners);
 
-  float height = ImGui::GetCursorPosY();
-
   float padding = (style.socket_radius + style.socket_border_width + style.ItemSpacing.x) * w_scale;
 
   ImGui::PushItemWidth(m_size.x * w_scale - padding * 2);
@@ -92,12 +90,12 @@ bool Chill::VisualComment::draw() {
     float col[4];
     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
     {
-      memcpy((float*)col, payload->Data, sizeof(float) * 3);
+      memcpy(static_cast<float*>(col), payload->Data, sizeof(float) * 3);
       value_changed = true;
     }
     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
     {
-      memcpy((float*)col, payload->Data, sizeof(float) * 4);
+      memcpy(static_cast<float*>(col), payload->Data, sizeof(float) * 4);
       value_changed = true;
     }
     if (value_changed) m_color = ImColor(col[0], col[1], col[2]);

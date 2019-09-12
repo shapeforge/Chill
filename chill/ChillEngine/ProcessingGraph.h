@@ -73,7 +73,7 @@ namespace Chill
     {
       AutoPtr<T_Processor> processor(new T_Processor(args...));
       processor->setOwner(this);
-      m_processors.push_back((AutoPtr<Processor>)processor);
+      m_processors.push_back(static_cast<AutoPtr<Processor>>(processor));
       return processor;
     }
 
@@ -212,7 +212,7 @@ namespace Chill
       for (AutoPtr<SelectableUI> processor : _elements) {
         position += processor->getPosition();
       }
-      return position / (float)_elements.size();
+      return position / static_cast<float>(_elements.size());
     }
 
     ImVec2 getBarycenter() {

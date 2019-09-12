@@ -92,7 +92,6 @@ namespace Chill {
     for (AutoPtr<VisualComment> element : m_comments) {
       remove(element);
     }
-    Processor::~Processor();
   }
 
   void ProcessingGraph::remove(AutoPtr<Processor> _processor) {
@@ -367,9 +366,9 @@ namespace Chill {
 
     _stream << "--[[ " + std::string(name()) + " ]]--" << std::endl <<
                "setfenv(1, _G0)  --go back to global initialization" << std::endl <<
-               "__currentNodeId = " << std::to_string((int64_t)this) << std::endl;
+               "__currentNodeId = " << std::to_string(reinterpret_cast<int64_t>(this)) << std::endl;
 
-    if ( (owner() != NULL && owner()->isDirty()) || isDirty() || isEmiter()) {
+    if ( (owner() != nullptr && owner()->isDirty()) || isDirty() || isEmiter()) {
       _stream << "setDirty(__currentNodeId)" << std::endl;
     }
 
@@ -377,7 +376,7 @@ namespace Chill {
 
     for (auto input : inputs()) {
       if (!input->m_link.isNull()) {
-        std::string s2 = std::to_string((int64_t)input->m_link->owner());
+        std::string s2 = std::to_string(reinterpret_cast<int64_t>(input->m_link->owner()));
         _stream << ", " + s2;
       }
     }
