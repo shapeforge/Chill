@@ -48,6 +48,12 @@ git submodule update
 git submodule foreach git pull origin master
 ```
 
+>**Note**
+>If you have some trouble compiling Chill for Linux try to:
+>
+> - checkout LibSL to the unix_compile branch.
+> - use Clang as a compiler (or make sure that LibSL_sharp is disabled from cmake).
+
 You can now build the project for your IDE of choice using CMAKE, and then compile.
 
 ## How to Use ChiLL?
