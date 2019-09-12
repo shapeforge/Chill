@@ -33,6 +33,7 @@ ADD_LIBRARY( ChillEngine STATIC
 	FileDialog.cpp
 
 	Resources.h
+	SourcePath.h
   )
 
 TARGET_LINK_LIBRARIES(ChillEngine

@@ -7,6 +7,8 @@
 #include "Resources.h"
 #include "VisualComment.h"
 
+#include "SourcePath.h"
+
 #ifdef USE_GLUT
 #include <GL/glut.h>
 #endif
@@ -1410,8 +1412,7 @@ namespace Chill
     paths.push_back("../.." + name);
     paths.push_back("../../.." + name);
     paths.push_back("../../../.." + name);
-    paths.push_back("../../../../Source/Chill" + name); // dev path
-    paths.push_back("../../../Source/Chill" + name); // dev path
+    paths.push_back(SRC_PATH + name); // dev path
     
     bool ok = false;
     ForIndex(p, paths.size()) {
