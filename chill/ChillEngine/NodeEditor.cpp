@@ -1044,7 +1044,7 @@ namespace Chill
 #ifdef WIN32
     // CreateProcess init
     const char* icesl_path = Instance()->g_iceslPath.c_str();
-    std::string icesl_params = " " + Instance()->g_iceSLTempExportPath;
+    std::string icesl_params = " " + Instance()->g_iceSLTempExportPath.string();
 
     STARTUPINFO StartupInfo;
     ZeroMemory(&StartupInfo, sizeof(StartupInfo));
@@ -1109,7 +1109,7 @@ namespace Chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::exportIceSL(const std::string& filename) {
+  void NodeEditor::exportIceSL(const fs::path filename) {
     if (!filename.empty()) {
       std::ofstream file;
       file.open(filename);
@@ -1399,24 +1399,33 @@ namespace Chill
 
   //-------------------------------------------------------
   std::string NodeEditor::ChillFolder() {
-    std::string chillFolder;
 #ifdef WIN32
-    chillFolder = getenv("APPDATA") + std::string("/Chill/");
-#elif __linux__
-    chillFolder = getenv("HOME") + std::string("/Chill/");
+    fs::path homePath = getenv("APPDATA") + std::string("/Chill/");
+    fs::path homePath = getenv("APPDATA") + std::string("/Chill/");
+#else
+    fs::path homePath = getenv("HOME") + std::string("/Chill/");
+    fs::path homePath = getenv("HOME") + std::string("/Chill/");
 #endif
-    return  chillFolder;
+    if () {
+
+    }
+    else if ( fs::exists(homePath) ) {
+      return homePath.string();
+    }
+    else {
+      return fs::current_path().string();
+    }
+    // dev path?
+    // else appdata (win)
+    // else / (zip)
+    return fs::current_path().string();
   }
 
   //-------------------------------------------------------
   std::string NodeEditor::NodesFolder() {
-    std::string nodesFolder;
-#ifdef WIN32
-    nodesFolder = ChillFolder() + std::string("chill-nodes");
-#elif __linux__
-    nodesFolder = ChillFolder() + std::string("chill-nodes");
-#endif
-    return nodesFolder;
+    //return ChillFolder() + std::string("/chill-nodes");
+
+    return getenv("APPDATA") + std::string("/Chill/chill-nodes");
   }
 
   //-------------------------------------------------------

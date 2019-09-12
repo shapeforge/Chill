@@ -86,7 +86,7 @@ namespace Chill
     static void closeIcesl();
 
     // export the graph to a .lua file for IceSL
-    void exportIceSL(const std::string &filename_);
+    void exportIceSL(const fs::path filename_);
 
     void saveSettings();
     void loadSettings();
