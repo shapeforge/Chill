@@ -11,7 +11,7 @@ std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInp
   std::string base = _input->name();
   std::string name = base;
   int nb = 1;
-  while (input(name).get() != nullptr) {
+  while (input(name)) {
     name = base + "_" + std::to_string(nb++);
   }
   _input->setName(name);

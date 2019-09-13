@@ -36,8 +36,8 @@ namespace chill {
     // recreate the pipes
     for (std::shared_ptr<Processor> processor : copy.m_processors) {
       for (std::shared_ptr<ProcessorInput> input : processor->inputs()) {
-        if (input.get() == nullptr) continue;
-        if (input->m_link.get() == nullptr) continue;
+        if (!input) continue;
+        if (!input->m_link) continue;
 
         std::shared_ptr<ProcessorOutput> output = input->m_link;
 
@@ -96,12 +96,12 @@ namespace chill {
     // disconnect
     if (_processor->owner() == this) {
       for (std::shared_ptr<ProcessorInput> input : _processor->inputs()) {
-        if (input.get() != nullptr) {
+        if (input) {
           disconnect(input);
         }
       }
       for (std::shared_ptr<ProcessorOutput> output : _processor->outputs()) {
-        if (output.get() != nullptr) {
+        if (output) {
           disconnect(output);
         }
       }
@@ -118,11 +118,11 @@ namespace chill {
 
   void ProcessingGraph::remove(std::shared_ptr<SelectableUI> _select) {
     std::shared_ptr<Processor> proc = std::static_pointer_cast<Processor>(_select);
-    if (proc.get() != nullptr) {
+    if (proc) {
       remove(proc);
     }
     std::shared_ptr<VisualComment> com = std::static_pointer_cast<VisualComment>(_select);
-    if (com.get() != nullptr) {
+    if (com) {
       remove(com);
     }
   }
@@ -150,14 +150,14 @@ namespace chill {
     // edit border pipes
     for (std::shared_ptr<SelectableUI> select : subset) {
       std::shared_ptr<Processor> processor = std::static_pointer_cast<Processor>(select);
-      if (processor.get() == nullptr) {
+      if (!processor) {
         continue;
       }
 
       for (std::shared_ptr<ProcessorInput> input : processor->inputs()) {
         std::shared_ptr<ProcessorOutput> output = input->m_link;
         // not linked
-        if (output.get() == nullptr) continue;
+        if (!output) continue;
         // same graph, nothing to do
         if (output->owner()->owner() == input->owner()->owner()) continue;
 
@@ -188,7 +188,7 @@ namespace chill {
         
         for (std::shared_ptr<ProcessorInput> input : output->m_links) {
           // not linked
-          if (input.get() == nullptr) continue;
+          if (!input) continue;
           // same graph, nothing to do
           if (input->owner()->owner() == output->owner()->owner()) continue;
 
@@ -201,7 +201,7 @@ namespace chill {
           std::string base = output->name();
           std::string name = base;
           int nb = 1;
-          while (innerGraph->output(name).get() != nullptr) {
+          while (innerGraph->output(name)) {
             name = base + "_" + std::to_string(nb++);
           }
 
@@ -239,7 +239,7 @@ namespace chill {
     for (std::shared_ptr<Processor> processor : collapsed->m_processors) {
       std::shared_ptr<GroupProcessor> proc = std::static_pointer_cast<GroupProcessor> (processor);
       // If the processor is not a GroupProcessor
-      if (proc.get() == nullptr) {
+      if (proc) {
         addProcessor(processor);
       }
     }
@@ -284,7 +284,7 @@ namespace chill {
 
       std::shared_ptr<Processor> processor = std::static_pointer_cast<Processor>(select);
       std::shared_ptr<Processor> new_processor = std::static_pointer_cast<Processor>(new_select);
-      if (processor.get() != nullptr && new_processor.get() != nullptr) {
+      if (processor && new_processor) {
         assoc.push_back(std::make_pair(processor, new_processor));
       }
       graph->add(new_select);
@@ -293,12 +293,12 @@ namespace chill {
     // recreate the pipes
     for (std::shared_ptr<SelectableUI> select : subset) {
       std::shared_ptr<Processor> processor = std::static_pointer_cast<Processor>(select);
-      if (processor.get() == nullptr) {
+      if (!processor) {
         continue;
       }
       for (std::shared_ptr<ProcessorInput> input : processor->inputs()) {
-        if (input.get() == nullptr) continue;
-        if (input->m_link.get() == nullptr) continue;
+        if (!input) continue;
+        if (!input->m_link) continue;
 
         std::shared_ptr<ProcessorOutput> output = input->m_link;
 
@@ -338,7 +338,7 @@ namespace chill {
     for (std::shared_ptr<Processor> proc : m_processors) {
       for (std::shared_ptr<ProcessorInput> input : proc->inputs()) {
         std::shared_ptr<ProcessorOutput> output = input->m_link;
-        if (output.get() == nullptr) continue;
+        if (!output) continue;
         _stream << "connect( o_" << output->getUniqueID() << ", i_" << input->getUniqueID() << ")" << std::endl;
       }
     }
@@ -352,7 +352,7 @@ namespace chill {
     for (std::shared_ptr<Processor> processor : m_processors) {
       bool not_connected = true;
       for (std::shared_ptr<ProcessorInput> input : processor->inputs()) {
-        if (input.get() != nullptr && input->m_link.get() != nullptr) {
+        if (input && input->m_link) {
           not_connected = false;
           break;
         }
@@ -373,7 +373,7 @@ namespace chill {
     _stream << "if (isDirty({__currentNodeId";
 
     for (auto input : inputs()) {
-      if (input->m_link.get() != nullptr) {
+      if (input->m_link) {
         std::string s2 = std::to_string(reinterpret_cast<int64_t>(input->m_link->owner()));
         _stream << ", " + s2;
       }
@@ -393,7 +393,7 @@ namespace chill {
         for (std::shared_ptr<ProcessorInput> nextInput : output->m_links) {
           bool all_inputs_done = true;
           for (std::shared_ptr<ProcessorInput> input : nextInput->owner()->inputs()) {
-            if (input.get() != nullptr && input->m_link.get() != nullptr) {
+            if (input && input->m_link) {
               auto p = done.find(input->m_link->owner());
               if (p == done.end()) {
                 all_inputs_done = false;

@@ -608,6 +608,7 @@ namespace chill
         }
       } // ! RIGHT CLICK
 
+#if 0
       { // MOUSE WHEEL
         if (io.MouseWheel > 0 && w_scale == 2.0F && !hovered.empty()) {
           for (std::shared_ptr<SelectableUI> object : hovered) {
@@ -621,7 +622,7 @@ namespace chill
           }
         }
       } // ! MOUSE WHEEL
-
+#endif
       // Move selected processors
       if (m_dragging) {
         if (!io.KeysDown[LIBSL_KEY_CTRL]) {

@@ -106,11 +106,11 @@ class ProcessingGraph : public Processor
      **/
     void add(std::shared_ptr<SelectableUI>& _object) {
       std::shared_ptr<Processor> proc = std::static_pointer_cast<Processor>(_object);
-      if (proc.get() != nullptr) {
+      if (proc) {
         addProcessor(proc);
       }
       std::shared_ptr<VisualComment> com = std::static_pointer_cast<VisualComment>(_object);
-      if (com.get() != nullptr) {
+      if (com) {
         addComment(com);
       }
     }
