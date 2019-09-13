@@ -22,7 +22,7 @@ As IceSL offers the possibility to directly create models using Lua scripting, C
 For Windows users, ChiLL is available through an **installer** (an .exe or .msi), or by retrieving the source code and **building the project**.
 
 ### On Linux
-For Linux users, ChiLL is only available through retrieving the source code and **building the projet**.
+For Linux users, ChiLL is only available through retrieving the source code and **building the project**.
 
 Installers and pre-compiled versions of ChiLL will be provided in future releases.
 
@@ -32,9 +32,9 @@ To build ChiLL, you will need the following components installed on your compute
 - git
 - CMake
 - C++ 17 standard libraries
-- Any IDE supporting C++ (on windows, Visual Studio is recomended)
+- Any IDE supporting C++ (on windows, Visual Studio is recommended)
 
-Once the required components installed, you can fetch the source code by cloning or dowloading a .zip of the source files.
+Once the required components installed, you can fetch the source code by cloning or downloading a .zip of the source files.
 
 ```Shell
 git clone https://github.com/shapeforge/Chill.git
@@ -75,18 +75,22 @@ At launch time, ChiLL opens IceSL to produce a real-time preview of the model ge
 
 Once the graph is complete, you can save it for later, or export a .lua file tailored for IceSL.
 
-## How to contibute to ChiLL?
+## How to contribute to ChiLL?
 ### New features or reworking the project
-Create your own fork of the projet, and submit a [pull request](https://github.com/shapeforge/Chill/pulls). 
+Create your own fork of the project, and submit a [pull request](https://github.com/shapeforge/Chill/pulls). 
 >**Note**
 >When contributing using a pull request, don't hesitate to be precise in the description of your contribution, and don't forget to document what you did.
->It will greatly help us to intergrate your changes! 
+>It will greatly help us to integrate your changes! 
 
 ### Bug reports and feature requests
 If you encounter a bug, or have an idea for a new feature, please fill an [issue](https://github.com/shapeforge/Chill/issues), so we can discuss about it.
 >**Note**
 >Please be as precise as possible when filling an issue. For bug reports, please join some scripts/files that reproduce the problem.
 >Using a label on your Issue will greatly help us tracking and processing them.
+
+### C++ Style Guide
+You can follow the [[@Google C++ Style Guide] https://google.github.io/styleguide/cppguide.html] for new code.
+You may encounter code that is not compliant with this style, mainly because it was written before we define the code style guide.
 
 # Credits
 Main developpers:
@@ -100,7 +104,7 @@ Logos:
 
 - Pierre-Alexandre Hugron
 
-Acknowledgements:
+Acknowledgments:
 
 Special thanks to the [IceSL devs](https://icesl.loria.fr/about/) and in particular Salim Perchy [[@ysperchy](https://github.com/ysperchy)] for his help!
 
