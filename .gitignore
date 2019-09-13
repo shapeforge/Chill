@@ -37,3 +37,6 @@
 #VS Installer
 Chill_Installer/
 *Chill_Installer/
+
+#SourcePath
+SourcePath.h

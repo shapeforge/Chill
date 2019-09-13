@@ -7,6 +7,8 @@
 #include "Resources.h"
 #include "VisualComment.h"
 
+#include "SourcePath.h"
+
 #ifdef USE_GLUT
 #include <GL/glut.h>
 #endif
@@ -800,32 +802,29 @@ namespace chill
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImGuiIO io = ImGui::GetIO();
 
-    if (io.FontAllowUserScaling) {
-      float old_scale = window->FontWindowScale;
-      float new_scale = ImClamp(
-        window->FontWindowScale + io.MouseWheel * exp(0.1F/window->FontWindowScale)/5.0F,
-        0.1F,
-        2.0F);
+    float old_scale = window->FontWindowScale;
+    float new_scale = ImClamp(
+      window->FontWindowScale + io.MouseWheel * exp(0.1F/window->FontWindowScale)/5.0F,
+      0.1F,
+      2.0F);
 
+    // ToDo : Move this elsewhere !!
+    if (old_scale <= 0.1F && io.MouseWheel < 0 && m_graphs.size() > 1) {
+      m_graphs.pop();
+      new_scale = 2.0F;
+    }
 
-      // ToDo : Move this elsewhere !!
-      if (old_scale <= 0.1F && io.MouseWheel < 0 && m_graphs.size() > 1) {
-        m_graphs.pop();
-        new_scale = 2.0F;
-      }
+    window->FontWindowScale = new_scale;
 
-      window->FontWindowScale = new_scale;
+    if (io.MouseWheel < 0 || 0 < io.MouseWheel) {
+      // mouse to screen
+      ImVec2 m2s = io.MousePos - (window->Pos + window->Size) / 2.F;
+      // screen to grid
+      ImVec2 s2g = m2s / old_scale - m_offset;
+      // grid to screen
+      ImVec2 g2s = (s2g + m_offset) * new_scale;
 
-      if (io.MouseWheel < 0 || 0 < io.MouseWheel) {
-        // mouse to screen
-        ImVec2 m2s = io.MousePos - (window->Pos + window->Size) / 2.F;
-        // screen to grid
-        ImVec2 s2g = m2s / old_scale - m_offset;
-        // grid to screen
-        ImVec2 g2s = (s2g + m_offset) * new_scale;
-
-        m_offset += (m2s - g2s) / new_scale;
-      }
+      m_offset += (m2s - g2s) / new_scale;
     }
   }
 
@@ -1410,8 +1409,7 @@ namespace chill
     paths.push_back("../.." + name);
     paths.push_back("../../.." + name);
     paths.push_back("../../../.." + name);
-    paths.push_back("../../../../Source/Chill" + name); // dev path
-    paths.push_back("../../../Source/Chill" + name); // dev path
+    paths.push_back(SRC_PATH + name); // dev path
     
     bool ok = false;
     ForIndex(p, paths.size()) {
