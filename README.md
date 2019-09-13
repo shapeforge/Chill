@@ -89,7 +89,7 @@ If you encounter a bug, or have an idea for a new feature, please fill an [issue
 >Using a label on your Issue will greatly help us tracking and processing them.
 
 ### C++ Style Guide
-You can follow the [[Google C++ Style Guide] (https://google.github.io/styleguide/cppguide.html)] for new code.
+You can follow the [[Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html)] for new code.
 You may encounter code that is not compliant with this style, mainly because it was written before we define the code style guide.
 
 # Credits
