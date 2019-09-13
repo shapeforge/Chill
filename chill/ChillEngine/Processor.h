@@ -1,41 +1,31 @@
 /** @file */
 #pragma once
 
-
-//-------------------------------------------------------
-// IOs.h
-namespace Chill
-{
-  class ProcessorInput;
-  class ProcessorOutput;
-};
-
-//-------------------------------------------------------
-// ProcessingGraph.h
-namespace Chill
-{
-  class ProcessingGraph;
-}
-
-//-------------------------------------------------------
-namespace Chill
-{
-  class Processor;
-  class LuaProcessor;
-  class GroupProcessor;
-};
-
 //-------------------------------------------------------
 
 #include <LibSL.h>
 
-#include "UI.h"
-#include "IOTypes.h"
 #include "IOs.h"
+#include "IOTypes.h"
+#include "UI.h"
 
 //-------------------------------------------------------
-namespace Chill
-{
+// ProcessingGraph.h
+namespace chill {
+  class ProcessingGraph;
+}
+
+//-------------------------------------------------------
+
+namespace chill {
+  class Processor;
+  class LuaProcessor;
+  class GroupProcessor;
+}
+
+
+//-------------------------------------------------------
+namespace chill {
   enum ProcessorState {
     DEFAULT,
     DISABLED,
@@ -92,7 +82,7 @@ namespace Chill
      *  Get the list of inputs.
      *  @return The list of inputs.
      **/
-    const std::vector<AutoPtr<ProcessorInput>> inputs() {
+    const std::vector<std::shared_ptr<ProcessorInput>> inputs() {
       return m_inputs;
     }
 
@@ -100,7 +90,7 @@ namespace Chill
      *  Get the list of outputs.
      *  @return The list of outputs.
      **/
-    std::vector<AutoPtr<ProcessorOutput>> outputs() {
+    std::vector<std::shared_ptr<ProcessorOutput>> outputs() {
       return m_outputs;
     }
 
@@ -109,21 +99,21 @@ namespace Chill
      *  @param _name The input name.
      *  @return The input pointer if exists else a null pointer.
      **/
-    AutoPtr<ProcessorInput> input(std::string _name);
+    std::shared_ptr<ProcessorInput> input(std::string _name);
 
     /**
      *  Get an output by name.
      *  @param _name The output name.
      *  @return The output pointer if exists else a null pointer.
      **/
-    AutoPtr<ProcessorOutput> output(std::string _name);
+    std::shared_ptr<ProcessorOutput> output(std::string _name);
 
     /**
     *  Add a new input to the processor.
     *  @param _input The input.
     *  @return A pointer to the new input.
     **/
-    virtual AutoPtr<ProcessorInput> addInput(AutoPtr<ProcessorInput> _input);
+    virtual std::shared_ptr<ProcessorInput> addInput(std::shared_ptr<ProcessorInput> _input);
 
     /**
      *  Add a new input to the processor.
@@ -133,14 +123,16 @@ namespace Chill
      *  @return A pointer to the new input.
      **/
     template <typename ... Args>
-    AutoPtr<ProcessorInput> addInput(std::string _name, IOType::IOType _type, Args&& ... _args);
+    std::shared_ptr<ProcessorInput> addInput(std::string _name, IOType::IOType _type, Args&& ... _args) {
+      return addInput(ProcessorInput::create(_name, _type, _args...));
+    }
 
     /**
      *  Add a new output to the processor.
      *  @param _output The output.
      *  @return A pointer to the new output.
      **/
-    virtual AutoPtr<ProcessorOutput> addOutput(AutoPtr<ProcessorOutput> _output);
+    virtual std::shared_ptr<ProcessorOutput> addOutput(std::shared_ptr<ProcessorOutput> _output);
 
     /**
      *  Add a new output to the processor.
@@ -148,26 +140,26 @@ namespace Chill
      *  @param _type The output type.
      *  @return A pointer to the new output.
      **/
-    AutoPtr<ProcessorOutput> addOutput(std::string _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false);
+    std::shared_ptr<ProcessorOutput> addOutput(std::string _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false);
 
     /**
      *  Remove an input.
      *  @param _input The pointer that refers to the input
      **/
-    void removeInput(AutoPtr<ProcessorInput>& _input);
+    void removeInput(std::shared_ptr<ProcessorInput>& _input);
 
     /**
      *  Remove an output.
      *  @param _output The pointer that refers to the output
      **/
-    void removeOutput(AutoPtr<ProcessorOutput>& _output);
+    void removeOutput(std::shared_ptr<ProcessorOutput>& _output);
 
 
-    void replaceInput(std::string _inputName, AutoPtr<ProcessorInput> _input) {
+    void replaceInput(std::string _inputName, std::shared_ptr<ProcessorInput> _input) {
       std::replace(m_inputs.begin(), m_inputs.end(), input(_inputName), _input);
     }
 
-    void replaceOutput(std::string _outputName, AutoPtr<ProcessorOutput> _output) {
+    void replaceOutput(std::string _outputName, std::shared_ptr<ProcessorOutput> _output) {
       std::replace(m_outputs.begin(), m_outputs.end(), output(_outputName), _output);
     }
 
@@ -178,27 +170,27 @@ namespace Chill
      *  @param _to The destination processor.
      *  @param _input_name The name of the input.
      **/
-    static bool connect(AutoPtr<Processor> _from, const std::string _output_name,
-      AutoPtr<Processor> _to, const std::string _input_name);
+    static bool connect(std::shared_ptr<Processor> _from, const std::string _output_name,
+      std::shared_ptr<Processor> _to, const std::string _input_name);
 
     /**
      *  Add a new connection to the graph if, and only if, there is no cycle created.
      *  @param _from The processor's output.
      *  @param _to The processor's input.
      **/
-    static bool connect(AutoPtr<ProcessorOutput> _from, AutoPtr<ProcessorInput> _to);
+    static bool connect(std::shared_ptr<ProcessorOutput> _from, std::shared_ptr<ProcessorInput> _to);
 
     /**
      *  Remove a connection in the graph.
      *  @param _to The processor's input.
      **/
-    static void disconnect(AutoPtr<ProcessorInput> _to);
+    static void disconnect(std::shared_ptr<ProcessorInput> _to);
 
     /**
      *  Remove a connection in the graph.
      *  @param _from The processor's output.
      **/
-    static void disconnect(AutoPtr<ProcessorOutput> _from);
+    static void disconnect(std::shared_ptr<ProcessorOutput> _from);
 
     /**
      *  Check if two processors are connected.
@@ -216,8 +208,8 @@ namespace Chill
     /**
      *  Make a copy of the processor (deep copy).
      **/
-    virtual AutoPtr<SelectableUI> clone() {
-      return AutoPtr<SelectableUI>(new Processor(*this));
+    virtual std::shared_ptr<SelectableUI> clone() {
+      return std::shared_ptr<SelectableUI>(new Processor(*this));
     }
 
     /**
@@ -261,14 +253,16 @@ namespace Chill
   private:
     /** Emit a shape or a slicing parameter */
     bool                                  m_emit = false;
+
+
+    ProcessorState                        m_state = DEFAULT;
     /** List of all inputs. */
-    std::vector<AutoPtr<ProcessorInput>>  m_inputs;
+    std::vector<std::shared_ptr<ProcessorInput>>  m_inputs;
     /** List of all outputs. */
-    std::vector<AutoPtr<ProcessorOutput>> m_outputs;
+    std::vector<std::shared_ptr<ProcessorOutput>> m_outputs;
     /** Next nodes have to update themselves. */
     bool                                  m_dirty = false;
 
-    ProcessorState                        m_state = DEFAULT;
   };
 
   //-------------------------------------------------------
@@ -278,8 +272,8 @@ namespace Chill
   public:
     GroupProcessor();
 
-    virtual AutoPtr<SelectableUI> clone() override {
-      return AutoPtr<SelectableUI>(new GroupProcessor(*this));
+    virtual std::shared_ptr<SelectableUI> clone() override {
+      return std::shared_ptr<SelectableUI>(new GroupProcessor(*this));
     }
 
     bool draw() override;
@@ -306,8 +300,8 @@ namespace Chill
   public:
     Multiplexer();
 
-    virtual AutoPtr<SelectableUI> clone() override {
-      return AutoPtr<SelectableUI>(new Multiplexer(*this));
+    virtual std::shared_ptr<SelectableUI> clone() override {
+      return std::shared_ptr<SelectableUI>(new Multiplexer(*this));
     }
 
     bool draw() override;

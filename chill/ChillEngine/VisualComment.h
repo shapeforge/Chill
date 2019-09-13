@@ -1,23 +1,17 @@
 #pragma once
-namespace Chill
-{
-  class ProcessingGraph;
-}
 
-namespace Chill
-{
-  class VisualComment;
-}
 
 #include <LibSL.h>
 #include "UI.h"
 
+namespace chill {
+class ProcessingGraph;
+class VisualComment;
+}
 
 
-namespace Chill
-{
-
-  class VisualComment : public SelectableUI {
+namespace chill {
+class VisualComment : public SelectableUI {
   public:
 
     VisualComment(VisualComment &_copy);
@@ -33,13 +27,13 @@ namespace Chill
 
     bool draw() override;
 
-    AutoPtr<SelectableUI> clone() override {
-      return AutoPtr<SelectableUI>(new VisualComment(*this));
+    std::shared_ptr<SelectableUI> clone() override {
+      return std::shared_ptr<SelectableUI>(new VisualComment(*this));
     }
 
     ImVec2 m_title_size;
 
   private:
     std::string m_comment = "";
-  };
+};
 }

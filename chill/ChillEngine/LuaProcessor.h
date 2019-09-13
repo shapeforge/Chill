@@ -2,7 +2,7 @@
 
 #include "Processor.h"
 
-namespace Chill
+namespace chill
 {
   /**
    *
@@ -20,8 +20,8 @@ namespace Chill
   public:
     LuaProcessor(const std::string &_path);
 
-    AutoPtr<SelectableUI> clone() override {
-      return AutoPtr<SelectableUI>(new LuaProcessor(*this));
+    std::shared_ptr<SelectableUI> clone() override {
+      return std::shared_ptr<SelectableUI>(new LuaProcessor(*this));
     }
 
     void save(std::ofstream& _stream) override;
@@ -54,14 +54,14 @@ namespace Chill
     *  @param _input The input.
     *  @return A pointer to the new input.
     */
-    AutoPtr<ProcessorInput> addInput(AutoPtr<ProcessorInput> _input) override;
+    std::shared_ptr<ProcessorInput> addInput(std::shared_ptr<ProcessorInput> _input) override;
 
     /**
     *  Add a new output to the processor.
     *  @param _output The output.
     *  @return A pointer to the new output.
     **/
-    AutoPtr<ProcessorOutput> addOutput(AutoPtr<ProcessorOutput> _output)  override;
+    std::shared_ptr<ProcessorOutput> addOutput(std::shared_ptr<ProcessorOutput> _output)  override;
 
     /**
     *  Add a new output to the processor.
@@ -69,7 +69,7 @@ namespace Chill
     *  @param _type The output type.
     *  @return A pointer to the new output.
     **/
-    AutoPtr<ProcessorOutput> addOutput(std::string _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false)
+    std::shared_ptr<ProcessorOutput> addOutput(std::string _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false)
     {
       return addOutput(ProcessorOutput::create(_name, _type, _emitable));
     }
@@ -82,7 +82,7 @@ namespace Chill
     *  @return A pointer to the new input.
     */
     template <typename ... Args>
-    AutoPtr<ProcessorInput> addInput(std::string _name, IOType::IOType _type, Args&& ... _args)
+    std::shared_ptr<ProcessorInput> addInput(std::string _name, IOType::IOType _type, Args&& ... _args)
     {
       return addInput(ProcessorInput::create(_name, _type, _args...));
     }

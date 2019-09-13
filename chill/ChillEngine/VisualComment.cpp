@@ -1,6 +1,6 @@
 #include "VisualComment.h"
 
-Chill::VisualComment::VisualComment(VisualComment &copy) {
+chill::VisualComment::VisualComment(VisualComment &copy) {
   m_name    = copy.m_name;
   m_color   = copy.m_color;
   m_owner   = copy.m_owner;
@@ -8,7 +8,7 @@ Chill::VisualComment::VisualComment(VisualComment &copy) {
 }
 
 
-bool Chill::VisualComment::draw() {
+bool chill::VisualComment::draw() {
 
   m_size.y = max(50, m_size.y);
   m_size.x = max(50, m_size.x);

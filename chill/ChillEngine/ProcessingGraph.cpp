@@ -1,9 +1,7 @@
 #include "ProcessingGraph.h"
-#include "IOs.h"
 
-#include <vector>
 
-namespace Chill {
+namespace chill {
 
   ProcessingGraph::ProcessingGraph(ProcessingGraph &copy) {
     setName (copy.name());
@@ -11,50 +9,50 @@ namespace Chill {
     setOwner(copy.owner());
 
     //clone inputs
-    std::vector<std::pair<AutoPtr<ProcessorInput>, AutoPtr<ProcessorInput>>> input_old_new;
-    for (AutoPtr<ProcessorInput> input : copy.inputs()) {
-      AutoPtr<ProcessorInput> new_input = input->clone();
+    std::vector<std::pair<std::shared_ptr<ProcessorInput>, std::shared_ptr<ProcessorInput>>> input_old_new;
+    for (std::shared_ptr<ProcessorInput> input : copy.inputs()) {
+      std::shared_ptr<ProcessorInput> new_input = input->clone();
       input_old_new.push_back(std::make_pair(input, new_input));
       addInput(new_input);
     }
 
     // clone outputs
-    std::vector<std::pair<AutoPtr<ProcessorOutput>, AutoPtr<ProcessorOutput>>> output_old_new;
-    for (AutoPtr<ProcessorOutput> output : copy.outputs()) {
-      AutoPtr<ProcessorOutput> new_output = output->clone();
+    std::vector<std::pair<std::shared_ptr<ProcessorOutput>, std::shared_ptr<ProcessorOutput>>> output_old_new;
+    for (std::shared_ptr<ProcessorOutput> output : copy.outputs()) {
+      std::shared_ptr<ProcessorOutput> new_output = output->clone();
       output_old_new.push_back(std::make_pair(output, new_output));
       addOutput(new_output);
     }
 
     // clone nodes
-    std::vector<std::pair<AutoPtr<Processor>, AutoPtr<Processor>>> proc_old_new;
-    for (AutoPtr<Processor> processor : copy.m_processors) {
-      AutoPtr<Processor> new_proc = AutoPtr<Processor>(processor->clone());
+    std::vector<std::pair<std::shared_ptr<Processor>, std::shared_ptr<Processor>>> proc_old_new;
+    for (std::shared_ptr<Processor> processor : copy.m_processors) {
+      std::shared_ptr<Processor> new_proc = std::static_pointer_cast<Processor>(processor->clone());
       new_proc->setPosition(processor->getPosition());
       proc_old_new.push_back(std::make_pair(processor, new_proc));
       addProcessor(new_proc);
     }
 
     // recreate the pipes
-    for (AutoPtr<Processor> processor : copy.m_processors) {
-      for (AutoPtr<ProcessorInput> input : processor->inputs()) {
-        if (input.isNull()) continue;
-        if (input->m_link.isNull()) continue;
+    for (std::shared_ptr<Processor> processor : copy.m_processors) {
+      for (std::shared_ptr<ProcessorInput> input : processor->inputs()) {
+        if (input.get() == nullptr) continue;
+        if (input->m_link.get() == nullptr) continue;
 
-        AutoPtr<ProcessorOutput> output = input->m_link;
+        std::shared_ptr<ProcessorOutput> output = input->m_link;
 
         Processor* old1 = input->owner();
         Processor* old2 = output->owner();
 
         auto it1 = std::find_if(proc_old_new.begin(), proc_old_new.end(),
-          [old1](const std::pair<AutoPtr<Processor>, AutoPtr<Processor>>& element) { return element.first.raw() == old1; });
+          [old1](const std::pair<std::shared_ptr<Processor>, std::shared_ptr<Processor>>& element) { return element.first.get() == old1; });
         auto it2 = std::find_if(proc_old_new.begin(), proc_old_new.end(),
-          [old2](const std::pair<AutoPtr<Processor>, AutoPtr<Processor>>& element) { return element.first.raw() == old2; });
+          [old2](const std::pair<std::shared_ptr<Processor>, std::shared_ptr<Processor>>& element) { return element.first.get() == old2; });
 
         if (it1 == proc_old_new.end() || it2 == proc_old_new.end()) continue;
 
-        AutoPtr<Processor> new1 = it1->second;
-        AutoPtr<Processor> new2 = it2->second;
+        std::shared_ptr<Processor> new1 = it1->second;
+        std::shared_ptr<Processor> new2 = it2->second;
 
         connect(new2->output(output->name()), new1->input(input->name()));
       }
@@ -63,20 +61,20 @@ namespace Chill {
     // recreate GroupIO
     for (GroupInput ginput : copy.m_group_inputs) {
       auto it_ginput = std::find_if(input_old_new.begin(), input_old_new.end(),
-        [ginput](const std::pair<AutoPtr<ProcessorInput>, AutoPtr<ProcessorInput>>& element) { return element.first == ginput.first; });
+        [ginput](const std::pair<std::shared_ptr<ProcessorInput>, std::shared_ptr<ProcessorInput>>& element) { return element.first == ginput.first; });
       if (it_ginput == input_old_new.end()) continue;
       
-      AutoPtr<ProcessorInput> old_exposed_input = it_ginput->first;
-      AutoPtr<ProcessorInput> new_exposed_input = it_ginput->second;
+      std::shared_ptr<ProcessorInput> old_exposed_input = it_ginput->first;
+      std::shared_ptr<ProcessorInput> new_exposed_input = it_ginput->second;
       
       Processor* old_groupprocessor = old_exposed_input->owner();
       auto it_proc = std::find_if(proc_old_new.begin(), proc_old_new.end(),
-        [old_groupprocessor](const std::pair<AutoPtr<Processor>, AutoPtr<Processor>>& element) { return element.first.raw() == old_groupprocessor; });
+        [old_groupprocessor](const std::pair<std::shared_ptr<Processor>, std::shared_ptr<Processor>>& element) { return element.first.get() == old_groupprocessor; });
       if (it_proc == proc_old_new.end()) continue;
       
-      AutoPtr<Processor> new_groupprocessor = it_proc->second;
+      std::shared_ptr<Processor> new_groupprocessor = it_proc->second;
 
-      AutoPtr<ProcessorOutput> new_groupinput = new_groupprocessor->output(new_exposed_input->name());
+      std::shared_ptr<ProcessorOutput> new_groupinput = new_groupprocessor->output(new_exposed_input->name());
 
       m_group_inputs.push_back(GroupInput(new_exposed_input, new_groupinput));
     }
@@ -86,24 +84,24 @@ namespace Chill {
     m_group_inputs.clear();
     m_group_outputs.clear();
 
-    for (AutoPtr<Processor> processor : m_processors) {
+    for (std::shared_ptr<Processor> processor : m_processors) {
       remove(processor);
     }
-    for (AutoPtr<VisualComment> element : m_comments) {
+    for (std::shared_ptr<VisualComment> element : m_comments) {
       remove(element);
     }
   }
 
-  void ProcessingGraph::remove(AutoPtr<Processor> _processor) {
+  void ProcessingGraph::remove(std::shared_ptr<Processor> _processor) {
     // disconnect
     if (_processor->owner() == this) {
-      for (AutoPtr<ProcessorInput> input : _processor->inputs()) {
-        if (!input.isNull()) {
+      for (std::shared_ptr<ProcessorInput> input : _processor->inputs()) {
+        if (input.get() != nullptr) {
           disconnect(input);
         }
       }
-      for (AutoPtr<ProcessorOutput> output : _processor->outputs()) {
-        if (!output.isNull()) {
+      for (std::shared_ptr<ProcessorOutput> output : _processor->outputs()) {
+        if (output.get() != nullptr) {
           disconnect(output);
         }
       }
@@ -111,20 +109,20 @@ namespace Chill {
 
     // remove the processor
     m_processors.erase(std::remove(m_processors.begin(), m_processors.end(), _processor), m_processors.end());
-    //_processor.~AutoPtr();
+    //_processor.~std::shared_ptr();
   }
 
-  void ProcessingGraph::remove(AutoPtr<VisualComment> _comment) {
+  void ProcessingGraph::remove(std::shared_ptr<VisualComment> _comment) {
     m_comments.erase(std::remove(m_comments.begin(), m_comments.end(), _comment), m_comments.end());
   }
 
-  void ProcessingGraph::remove(AutoPtr<SelectableUI> _select) {
-    AutoPtr<Processor> proc = AutoPtr<Processor>(_select);
-    if (!proc.isNull()) {
+  void ProcessingGraph::remove(std::shared_ptr<SelectableUI> _select) {
+    std::shared_ptr<Processor> proc = std::static_pointer_cast<Processor>(_select);
+    if (proc.get() != nullptr) {
       remove(proc);
     }
-    AutoPtr<VisualComment> com = AutoPtr<VisualComment>(_select);
-    if (!com.isNull()) {
+    std::shared_ptr<VisualComment> com = std::static_pointer_cast<VisualComment>(_select);
+    if (com.get() != nullptr) {
       remove(com);
     }
   }
@@ -132,11 +130,11 @@ namespace Chill {
 
 
 
-  AutoPtr<ProcessingGraph> ProcessingGraph::collapseSubset(const std::vector<AutoPtr<SelectableUI>>& subset)
+  std::shared_ptr<ProcessingGraph> ProcessingGraph::collapseSubset(const std::vector<std::shared_ptr<SelectableUI>>& subset)
   {
-    AutoPtr<ProcessingGraph> innerGraph   = addProcessor<ProcessingGraph>();
-    AutoPtr<GroupProcessor>  groupInputs  = innerGraph->addProcessor<GroupProcessor>();
-    AutoPtr<GroupProcessor>  groupOutputs = innerGraph->addProcessor<GroupProcessor>();
+    std::shared_ptr<ProcessingGraph> innerGraph   = addProcessor<ProcessingGraph>();
+    std::shared_ptr<GroupProcessor>  groupInputs  = innerGraph->addProcessor<GroupProcessor>();
+    std::shared_ptr<GroupProcessor>  groupOutputs = innerGraph->addProcessor<GroupProcessor>();
 
     innerGraph->setName("group");
     groupInputs->setName("Group Input");
@@ -145,37 +143,37 @@ namespace Chill {
     groupOutputs->setOutputMode(true);
 
     // move the entities
-    for (AutoPtr<SelectableUI> select : subset) {
+    for (std::shared_ptr<SelectableUI> select : subset) {
       innerGraph->add(select);
     }
 
     // edit border pipes
-    for (AutoPtr<SelectableUI> select : subset) {
-      AutoPtr<Processor> processor = AutoPtr<Processor>(select);
-      if (processor.isNull()) {
+    for (std::shared_ptr<SelectableUI> select : subset) {
+      std::shared_ptr<Processor> processor = std::static_pointer_cast<Processor>(select);
+      if (processor.get() == nullptr) {
         continue;
       }
 
-      for (AutoPtr<ProcessorInput> input : processor->inputs()) {
-        AutoPtr<ProcessorOutput> output = input->m_link;
+      for (std::shared_ptr<ProcessorInput> input : processor->inputs()) {
+        std::shared_ptr<ProcessorOutput> output = input->m_link;
         // not linked
-        if (output.isNull()) continue;
+        if (output.get() == nullptr) continue;
         // same graph, nothing to do
         if (output->owner()->owner() == input->owner()->owner()) continue;
 
         auto it = std::find_if(innerGraph->m_group_inputs.begin(), innerGraph->m_group_inputs.end(),
-          [output](const std::pair<AutoPtr<ProcessorInput>, AutoPtr<ProcessorOutput>>& element) { 
-            return element.first->m_link.raw() == output.raw();
+          [output](const std::pair<std::shared_ptr<ProcessorInput>, std::shared_ptr<ProcessorOutput>>& element) {
+            return element.first->m_link.get() == output.get();
           });
 
         if (it != innerGraph->m_group_inputs.end()) {
-          AutoPtr<ProcessorOutput> groupInput = it->second;
+          std::shared_ptr<ProcessorOutput> groupInput = it->second;
           connect(groupInput, input);
           continue;
         }
 
-        AutoPtr<ProcessorInput> exposedInput = innerGraph->addInput(input->name(), input->type());
-        AutoPtr<ProcessorOutput> groupInput = groupInputs->addOutput(exposedInput->name(), input->type());
+        std::shared_ptr<ProcessorInput> exposedInput = innerGraph->addInput(input->name(), input->type());
+        std::shared_ptr<ProcessorOutput> groupInput = groupInputs->addOutput(exposedInput->name(), input->type());
 
         innerGraph->m_group_inputs.push_back(GroupInput(exposedInput, groupInput));
 
@@ -185,12 +183,12 @@ namespace Chill {
       }
 
 
-      for (AutoPtr<ProcessorOutput> output : processor->outputs()) {
+      for (std::shared_ptr<ProcessorOutput> output : processor->outputs()) {
         bool linked = false;
         
-        for (AutoPtr<ProcessorInput> input : output->m_links) {
+        for (std::shared_ptr<ProcessorInput> input : output->m_links) {
           // not linked
-          if (input.isNull()) continue;
+          if (input.get() == nullptr) continue;
           // same graph, nothing to do
           if (input->owner()->owner() == output->owner()->owner()) continue;
 
@@ -203,15 +201,15 @@ namespace Chill {
           std::string base = output->name();
           std::string name = base;
           int nb = 1;
-          while (!innerGraph->output(name).isNull()) {
+          while (innerGraph->output(name).get() != nullptr) {
             name = base + "_" + std::to_string(nb++);
           }
 
-          AutoPtr<ProcessorOutput> innerOutput = innerGraph->addOutput(name, output->type());
-          AutoPtr<ProcessorInput> innerOutputGroup = groupOutputs->addInput(name, output->type());
+          std::shared_ptr<ProcessorOutput> innerOutput = innerGraph->addOutput(name, output->type());
+          std::shared_ptr<ProcessorInput> innerOutputGroup = groupOutputs->addInput(name, output->type());
           innerGraph->m_group_outputs.emplace_back(innerOutput, innerOutputGroup);
 
-          for (AutoPtr<ProcessorInput> input : output->m_links) {
+          for (std::shared_ptr<ProcessorInput> input : output->m_links) {
             if (input->owner()->owner() != output->owner()->owner()) {
               disconnect(input);
               connect(innerOutput, input);
@@ -222,7 +220,7 @@ namespace Chill {
       }
     }
 
-    for (AutoPtr<SelectableUI> select : subset) {
+    for (std::shared_ptr<SelectableUI> select : subset) {
       remove(select);
     }
 
@@ -235,87 +233,87 @@ namespace Chill {
     return innerGraph;
   }
 
-  void ProcessingGraph::expandGraph(AutoPtr<ProcessingGraph> collapsed, ImVec2 position) {
+  void ProcessingGraph::expandGraph(std::shared_ptr<ProcessingGraph> collapsed, ImVec2 position) {
 
     // Move processors
-    for (AutoPtr<Processor> processor : collapsed->m_processors) {
-      AutoPtr<GroupProcessor> proc(processor);
+    for (std::shared_ptr<Processor> processor : collapsed->m_processors) {
+      std::shared_ptr<GroupProcessor> proc = std::static_pointer_cast<GroupProcessor> (processor);
       // If the processor is not a GroupProcessor
-      if (proc.isNull()) {
+      if (proc.get() == nullptr) {
         addProcessor(processor);
       }
     }
 
-    for (AutoPtr<VisualComment> comment : collapsed->m_comments) {
+    for (std::shared_ptr<VisualComment> comment : collapsed->m_comments) {
         addComment(comment);
     }
     
     // Update pipes
     for (GroupInput gi : collapsed->m_group_inputs) {
-      AutoPtr<ProcessorOutput> output = gi.first->m_link;
-      for (AutoPtr<ProcessorInput> input : gi.second->m_links) {
+      std::shared_ptr<ProcessorOutput> output = gi.first->m_link;
+      for (std::shared_ptr<ProcessorInput> input : gi.second->m_links) {
         connect(output, input);
       }
     }
     for (GroupOutput go : collapsed->m_group_outputs) {
-      AutoPtr<ProcessorOutput> output = go.second->m_link;
-      for (AutoPtr<ProcessorInput> input : go.first->m_links) {
+      std::shared_ptr<ProcessorOutput> output = go.second->m_link;
+      for (std::shared_ptr<ProcessorInput> input : go.first->m_links) {
         connect(output, input);
       }
     }
 
     ImVec2 offset = position - collapsed->getBarycenter();
-    for (AutoPtr<Processor> processor : collapsed->m_processors) {
+    for (std::shared_ptr<Processor> processor : collapsed->m_processors) {
       processor->setPosition(processor->getPosition() + offset);
     }
 
-    remove(AutoPtr<Processor>(collapsed));
+    remove(std::static_pointer_cast<Processor>(collapsed));
   }
 
-  AutoPtr<ProcessingGraph> ProcessingGraph::copySubset(std::vector<AutoPtr<SelectableUI>>& subset)
+  std::shared_ptr<ProcessingGraph> ProcessingGraph::copySubset(std::vector<std::shared_ptr<SelectableUI>>& subset)
   {
-    AutoPtr<ProcessingGraph> graph = AutoPtr<ProcessingGraph>(new ProcessingGraph());
+    std::shared_ptr<ProcessingGraph> graph = std::shared_ptr<ProcessingGraph>(new ProcessingGraph());
     
-    std::vector<std::pair<AutoPtr<Processor>, AutoPtr<Processor>>> assoc;
+    std::vector<std::pair<std::shared_ptr<Processor>, std::shared_ptr<Processor>>> assoc;
     
     // copy the node
-    for (AutoPtr<SelectableUI> select : subset) {
-      AutoPtr<SelectableUI> new_select = select->clone();
+    for (std::shared_ptr<SelectableUI> select : subset) {
+      std::shared_ptr<SelectableUI> new_select = select->clone();
       new_select->setOwner(nullptr);
       new_select->setPosition(select->getPosition());
 
-      AutoPtr<Processor> processor = AutoPtr<Processor>(select);
-      AutoPtr<Processor> new_processor = AutoPtr<Processor>(new_select);
-      if (!processor.isNull() && !new_processor.isNull()) {
+      std::shared_ptr<Processor> processor = std::static_pointer_cast<Processor>(select);
+      std::shared_ptr<Processor> new_processor = std::static_pointer_cast<Processor>(new_select);
+      if (processor.get() != nullptr && new_processor.get() != nullptr) {
         assoc.push_back(std::make_pair(processor, new_processor));
       }
       graph->add(new_select);
     }
 
     // recreate the pipes
-    for (AutoPtr<SelectableUI> select : subset) {
-      AutoPtr<Processor> processor = AutoPtr<Processor>(select);
-      if (processor.isNull()) {
+    for (std::shared_ptr<SelectableUI> select : subset) {
+      std::shared_ptr<Processor> processor = std::static_pointer_cast<Processor>(select);
+      if (processor.get() == nullptr) {
         continue;
       }
-      for (AutoPtr<ProcessorInput> input : processor->inputs()) {
-        if (input.isNull()) continue;
-        if (input->m_link.isNull()) continue;
+      for (std::shared_ptr<ProcessorInput> input : processor->inputs()) {
+        if (input.get() == nullptr) continue;
+        if (input->m_link.get() == nullptr) continue;
 
-        AutoPtr<ProcessorOutput> output = input->m_link;
+        std::shared_ptr<ProcessorOutput> output = input->m_link;
 
         Processor* old1 = input->owner();
         Processor* old2 = output->owner();
 
         auto it1 = std::find_if(assoc.begin(), assoc.end(),
-          [old1](const std::pair<AutoPtr<Processor>, AutoPtr<Processor>>& element) { return element.first.raw() == old1; });
+          [old1](const std::pair<std::shared_ptr<Processor>, std::shared_ptr<Processor>>& element) { return element.first.get() == old1; });
         auto it2 = std::find_if(assoc.begin(), assoc.end(),
-          [old2](const std::pair<AutoPtr<Processor>, AutoPtr<Processor>>& element) { return element.first.raw() == old2; });
+          [old2](const std::pair<std::shared_ptr<Processor>, std::shared_ptr<Processor>>& element) { return element.first.get() == old2; });
 
         if (it1 == assoc.end() || it2 == assoc.end()) continue;
 
-        AutoPtr<Processor> new1 = it1->second;
-        AutoPtr<Processor> new2 = it2->second;
+        std::shared_ptr<Processor> new1 = it1->second;
+        std::shared_ptr<Processor> new2 = it2->second;
         
         connect(new2->output(output->name()), new1->input(input->name()));
       }
@@ -329,7 +327,7 @@ namespace Chill {
     
     ImVec2 bar = getBarycenter();
     // Save the nodes
-    for (AutoPtr<Processor> proc : m_processors) {
+    for (std::shared_ptr<Processor> proc : m_processors) {
       proc->translate(ImVec2(0,0)-bar);
       proc->save(_stream);
       proc->translate(bar);
@@ -337,10 +335,10 @@ namespace Chill {
     }
 
     // Save the connections
-    for (AutoPtr<Processor> proc : m_processors) {
-      for (AutoPtr<ProcessorInput> input : proc->inputs()) {
-        AutoPtr<ProcessorOutput> output = input->m_link;
-        if (output.isNull()) continue;
+    for (std::shared_ptr<Processor> proc : m_processors) {
+      for (std::shared_ptr<ProcessorInput> input : proc->inputs()) {
+        std::shared_ptr<ProcessorOutput> output = input->m_link;
+        if (output.get() == nullptr) continue;
         _stream << "connect( o_" << output->getUniqueID() << ", i_" << input->getUniqueID() << ")" << std::endl;
       }
     }
@@ -351,16 +349,16 @@ namespace Chill {
     std::set<Processor*> done;
     std::unordered_set<Processor*> toDo;
 
-    for (AutoPtr<Processor> processor : m_processors) {
+    for (std::shared_ptr<Processor> processor : m_processors) {
       bool not_connected = true;
-      for (AutoPtr<ProcessorInput> input : processor->inputs()) {
-        if (!input.isNull() && !input->m_link.isNull()) {
+      for (std::shared_ptr<ProcessorInput> input : processor->inputs()) {
+        if (input.get() != nullptr && input->m_link.get() != nullptr) {
           not_connected = false;
           break;
         }
       }
       if (not_connected) {
-        toDo.emplace(processor.raw());
+        toDo.emplace(processor.get());
       }
     }
 
@@ -375,7 +373,7 @@ namespace Chill {
     _stream << "if (isDirty({__currentNodeId";
 
     for (auto input : inputs()) {
-      if (!input->m_link.isNull()) {
+      if (input->m_link.get() != nullptr) {
         std::string s2 = std::to_string(reinterpret_cast<int64_t>(input->m_link->owner()));
         _stream << ", " + s2;
       }
@@ -391,11 +389,11 @@ namespace Chill {
       processor->iceSL(_stream);
       done.emplace(processor);
 
-      for (AutoPtr<ProcessorOutput> output : processor->outputs()) {
-        for (AutoPtr<ProcessorInput> nextInput : output->m_links) {
+      for (std::shared_ptr<ProcessorOutput> output : processor->outputs()) {
+        for (std::shared_ptr<ProcessorInput> nextInput : output->m_links) {
           bool all_inputs_done = true;
-          for (AutoPtr<ProcessorInput> input : nextInput->owner()->inputs()) {
-            if (!input.isNull() && !input->m_link.isNull()) {
+          for (std::shared_ptr<ProcessorInput> input : nextInput->owner()->inputs()) {
+            if (input.get() != nullptr && input->m_link.get() != nullptr) {
               auto p = done.find(input->m_link->owner());
               if (p == done.end()) {
                 all_inputs_done = false;

@@ -20,81 +20,9 @@ namespace fs = std::experimental::filesystem;
 namespace fs = std::filesystem;
 #endif
 
-namespace Chill
-{
-  class NodeEditor : public UI
-  {
-  private:
-    static NodeEditor* s_instance;
+namespace chill {
+  class NodeEditor : public UI {
 
-    std::stack<Chill::ProcessingGraph*> m_graphs;
-
-    AutoPtr<ProcessorInput>  m_selected_input;
-    AutoPtr<ProcessorOutput> m_selected_output;
-
-    std::vector<AutoPtr<SelectableUI>>     hovered;
-    std::vector<AutoPtr<SelectableUI>>     selected;
-    AutoPtr<ProcessingGraph> buffer;
-
-    bool text_editing;
-    bool linking;
-
-    //-------------------------------------------------------
-
-    NodeEditor();
-    ~NodeEditor() {}
-
-    NodeEditor & operator= (const NodeEditor&) = delete;
-    NodeEditor(const NodeEditor&) = delete;
-
-    /**
-     *  Called at each frame
-     */
-    static void mainRender();
-
-    static void setIcon();
-
-    /**
-     *  Called on resize
-     *  @param width the new width
-     *  @param height the new height
-     */
-    static void mainOnResize(uint _width, uint _height);
-
-    /**
-     *  Called when a key is pressed
-     *  @param k the typed character
-     */
-    static void mainKeyPressed(uchar _k);
-    static void mainScanCodePressed(uint _sc);
-    static void mainScanCodeUnpressed(uint _sc);
-    static void mainMouseMoved(uint _x, uint _y);
-    static void mainMousePressed(uint _x, uint _y, uint _button, uint _flags);
-
-    bool draw();
-    void drawMenuBar();
-    void drawLeftMenu();
-    void drawGraph();
-
-    void zoom();
-    void drawGrid();
-    void menus();
-
-    void selectProcessors();
-
-    static void launchIcesl();
-    static void closeIcesl();
-
-    // export the graph to a .lua file for IceSL
-    void exportIceSL(const fs::path filename_);
-
-    void saveSettings();
-    void loadSettings();
-
-    // Get current screen size
-    static void getScreenRes(int& width, int& height);
-    // Get current desktop size (without taskbar for windows)
-    static void getDesktopRes(int& width, int& height);
 
   public:
     const uint default_width = 800;
@@ -173,39 +101,112 @@ namespace Chill
       m_graphs.push(_graph);
     }
 
-    void setSelectedInput(AutoPtr<ProcessorInput> _input) {
+    void setSelectedInput(std::shared_ptr<ProcessorInput> _input) {
       m_selected_input = _input;
 
-      if (!m_selected_output.isNull()) {
+      if (m_selected_output) {
         if (m_selected_output->owner() == m_selected_input->owner()) {
           return;
         }
         getCurrentGraph()->connect(m_selected_output, _input);
-        m_selected_input = AutoPtr<ProcessorInput>(nullptr);
-        m_selected_output = AutoPtr<ProcessorOutput>(nullptr);
+        m_selected_input = std::shared_ptr<ProcessorInput>(nullptr);
+        m_selected_output = std::shared_ptr<ProcessorOutput>(nullptr);
       }
     }
 
-    AutoPtr<ProcessorInput> getSelectedInput() {
+    std::shared_ptr<ProcessorInput> getSelectedInput() {
       return m_selected_input;
     }
 
-    void setSelectedOutput(AutoPtr<ProcessorOutput> _output) {
+    void setSelectedOutput(std::shared_ptr<ProcessorOutput> _output) {
       m_selected_output = _output;
 
-      if (!m_selected_input.isNull()) {
+      if (m_selected_input) {
         if (m_selected_output->owner() == m_selected_input->owner()) {
           return;
         }
         getCurrentGraph()->connect(_output, m_selected_input);
-        m_selected_input = AutoPtr<ProcessorInput>(nullptr);
-        m_selected_output = AutoPtr<ProcessorOutput>(nullptr);
+        m_selected_input = std::shared_ptr<ProcessorInput>(nullptr);
+        m_selected_output = std::shared_ptr<ProcessorOutput>(nullptr);
       }
     }
 
-    AutoPtr<ProcessorOutput> getSelectedOutput() {
+    std::shared_ptr<ProcessorOutput> getSelectedOutput() {
       return m_selected_output;
     }
 
+
+    private:
+      NodeEditor();
+      ~NodeEditor() = default;
+
+      NodeEditor & operator= (const NodeEditor&) = delete;
+      NodeEditor(const NodeEditor&)              = delete;
+
+      /**
+       *  Called at each frame
+       */
+      static void mainRender();
+
+      static void setIcon();
+
+      /**
+       *  Called on resize
+       *  @param width the new width
+       *  @param height the new height
+       */
+      static void mainOnResize(uint _width, uint _height);
+
+      /**
+       *  Called when a key is pressed
+       *  @param k the typed character
+       */
+      static void mainKeyPressed(uchar _k);
+      static void mainScanCodePressed(uint _sc);
+      static void mainScanCodeUnpressed(uint _sc);
+      static void mainMouseMoved(uint _x, uint _y);
+      static void mainMousePressed(uint _x, uint _y, uint _button, uint _flags);
+
+      bool draw();
+      void drawMenuBar();
+      void drawLeftMenu();
+      void drawGraph();
+
+      void zoom();
+      void drawGrid();
+      void menus();
+
+      void selectProcessors();
+
+      static void launchIcesl();
+      static void closeIcesl();
+
+      // export the graph to a .lua file for IceSL
+      void exportIceSL(const fs::path filename_);
+
+      void saveSettings();
+      void loadSettings();
+
+      // Get current screen size
+      static void getScreenRes(int& width, int& height);
+      // Get current desktop size (without taskbar for windows)
+      static void getDesktopRes(int& width, int& height);
+
+      //-------------------------------------------------------
+
+      static NodeEditor* s_instance;
+
+      std::stack<chill::ProcessingGraph*> m_graphs;
+
+      std::shared_ptr<ProcessorInput>  m_selected_input;
+      std::shared_ptr<ProcessorOutput> m_selected_output;
+
+      std::vector<std::shared_ptr<SelectableUI>>     hovered;
+      std::vector<std::shared_ptr<SelectableUI>>     selected;
+      std::shared_ptr<ProcessingGraph> buffer;
+
+      bool text_editing;
+      bool linking;
+
   };
-};
+}

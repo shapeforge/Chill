@@ -1,14 +1,5 @@
 #pragma once
 
-class SelectableUI;
-
-// ProcessingGraph.h
-namespace Chill
-{
-  class ProcessingGraph;
-}
-
-
 #include <LibSL/LibSL.h>
 #include <LibSL/LibSL_gl.h>
 
@@ -18,7 +9,13 @@ namespace Chill
 
 #include "Style.h"
 
+class SelectableUI;
 
+// ProcessingGraph.h
+namespace chill
+{
+  class ProcessingGraph;
+}
 
 class UI
 {
@@ -88,7 +85,7 @@ public:
   ImU32 m_color;
 
   /** Parent graph, raw pointer is needed. */
-  Chill::ProcessingGraph * m_owner = nullptr;
+  chill::ProcessingGraph * m_owner = nullptr;
 
 
 
@@ -139,13 +136,13 @@ public:
 
   bool draw() { return true; }
 
-  virtual AutoPtr<SelectableUI> clone() = 0;
+  virtual std::shared_ptr<SelectableUI> clone() = 0;
 
   /**
   *  Set a new owner.
   *  @param _owner The graph that contains this processor.
   */
-  void setOwner(Chill::ProcessingGraph * _owner) {
+  void setOwner(chill::ProcessingGraph * _owner) {
     m_owner = _owner;
   }
 
@@ -153,7 +150,7 @@ public:
   *  Get the owner of this processor.
   *  @return The parent graph.
   */
-  Chill::ProcessingGraph * owner() {
+  chill::ProcessingGraph * owner() {
     return m_owner;
   }
 

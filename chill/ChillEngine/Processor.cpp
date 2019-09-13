@@ -2,28 +2,44 @@
 #include "ProcessingGraph.h"
 #include "IOs.h"
 
-namespace Chill {
+namespace chill {
+
+std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInput> _input) {
+  _input->setOwner(this);
+
+  // rename the input if the name already exists (should only appears in GroupProcessors)
+  std::string base = _input->name();
+  std::string name = base;
+  int nb = 1;
+  while (input(name).get() != nullptr) {
+    name = base + "_" + std::to_string(nb++);
+  }
+  _input->setName(name);
+
+  m_inputs.push_back(_input);
+  return _input;
+}
 
   Processor::Processor(Processor &copy) {
     m_name  = copy.m_name;
     m_color = copy.m_color;
     m_owner = copy.m_owner;
 
-    for (AutoPtr<ProcessorInput> input : copy.m_inputs) {
+    for (std::shared_ptr<ProcessorInput> input : copy.m_inputs) {
       addInput(input->clone());
     }
 
-    for (AutoPtr<ProcessorOutput> output : copy.m_outputs) {
+    for (std::shared_ptr<ProcessorOutput> output : copy.m_outputs) {
       addOutput(output->clone());
     }
   }
 
   Processor::~Processor() {
     std::cout << "~" << name() << std::endl;
-    for (AutoPtr<ProcessorInput> input : m_inputs) {
+    for (std::shared_ptr<ProcessorInput> input : m_inputs) {
       m_owner->disconnect(input);
     }
-    for (AutoPtr<ProcessorOutput> output : m_outputs) {
+    for (std::shared_ptr<ProcessorOutput> output : m_outputs) {
       m_owner->disconnect(output);
     }
     m_owner = nullptr;
@@ -31,54 +47,32 @@ namespace Chill {
     m_outputs.clear();
   }
 
-  AutoPtr<ProcessorInput> Processor::input(std::string name_) {
-    for (AutoPtr<ProcessorInput> input : m_inputs) {
+  std::shared_ptr<ProcessorInput> Processor::input(std::string name_) {
+    for (std::shared_ptr<ProcessorInput> input : m_inputs) {
       if (input->name() == name_) {
         return input;
       }
     }
-    return AutoPtr<ProcessorInput>(nullptr);
+    return std::shared_ptr<ProcessorInput>(nullptr);
   }
 
-  AutoPtr<ProcessorOutput> Processor::output(std::string name_) {
-    for (AutoPtr<ProcessorOutput> output : m_outputs) {
+  std::shared_ptr<ProcessorOutput> Processor::output(std::string name_) {
+    for (std::shared_ptr<ProcessorOutput> output : m_outputs) {
       if (output->name() == name_) {
         return output;
       }
     }
-    return AutoPtr<ProcessorOutput>(nullptr);
+    return std::shared_ptr<ProcessorOutput>(nullptr);
   }
 
-
-  AutoPtr<ProcessorInput> Processor::addInput(AutoPtr<ProcessorInput> input_) {
-    input_->setOwner(this);
-
-    // rename the input if the name already exists (should only appears in GroupProcessors)
-    std::string base = input_->name();
-    std::string name = base;
-    int nb = 1;
-    while (!input(name).isNull()) {
-      name = base + "_" + std::to_string(nb++);
-    }
-    input_->setName(name);
-
-    m_inputs.push_back(input_);
-    return input_;
-  }
-
-  template <typename ... Args>
-  AutoPtr<ProcessorInput> Processor::addInput(std::string name_, IOType::IOType type_, Args&& ... args_) {
-    return addInput(ProcessorInput::create(name_, type_, args_...));
-  }
-
-  AutoPtr<ProcessorOutput> Processor::addOutput(AutoPtr<ProcessorOutput> output_) {
+  std::shared_ptr<ProcessorOutput> Processor::addOutput(std::shared_ptr<ProcessorOutput> output_) {
     output_->setOwner(this);
 
     // rename the output if the name already exists (should only appears in GroupProcessors)
     std::string base = output_->name();
     std::string name = base;
     int nb = 1;
-    while (!output(name).isNull()) {
+    while (output(name)) { // ! isNull
       name = base + "_" + std::to_string(nb++);
     }
     output_->setName(name);
@@ -87,39 +81,39 @@ namespace Chill {
     return output_;
   }
 
-  AutoPtr<ProcessorOutput> Processor::addOutput(std::string _name, IOType::IOType _type, bool _emitable) {
+  std::shared_ptr<ProcessorOutput> Processor::addOutput(std::string _name, IOType::IOType _type, bool _emitable) {
     return addOutput(ProcessorOutput::create(_name, _type, _emitable));
   }
 
-  void Processor::removeInput(AutoPtr<ProcessorInput>& input) {
+  void Processor::removeInput(std::shared_ptr<ProcessorInput>& input) {
     m_owner->disconnect(input);
     m_inputs.erase(remove(m_inputs.begin(), m_inputs.end(), input), m_inputs.end());
   }
 
-  void Processor::removeOutput(AutoPtr<ProcessorOutput>& output) {
+  void Processor::removeOutput(std::shared_ptr<ProcessorOutput>& output) {
     m_owner->disconnect(output);
     m_outputs.erase(remove(m_outputs.begin(), m_outputs.end(), output), m_outputs.end());
   }
 
 
-  bool Processor::connect(AutoPtr<Processor> from, const std::string output_name,
-    AutoPtr<Processor> to, const std::string input_name)
+  bool Processor::connect(std::shared_ptr<Processor> from, const std::string output_name,
+    std::shared_ptr<Processor> to, const std::string input_name)
   {
     // check if the processors exists
-    if (from.isNull() || to.isNull()) {
+    if (!from || !to) {
       return false;
     }
 
-    AutoPtr<ProcessorOutput> output = from->output(output_name);
-    AutoPtr<ProcessorInput>  input  = to->input(input_name);
+    std::shared_ptr<ProcessorOutput> output = from->output(output_name);
+    std::shared_ptr<ProcessorInput>  input  = to->input(input_name);
 
     return connect(output, input);
   }
 
-  bool Processor::connect(AutoPtr<ProcessorOutput> from, AutoPtr<ProcessorInput> to)
+  bool Processor::connect(std::shared_ptr<ProcessorOutput> from, std::shared_ptr<ProcessorInput> to)
   {
     // check if the processors i/o exists
-    if (from.isNull() || to.isNull()) {
+    if (!from || !to) {
       return false;
     }
 
@@ -129,7 +123,7 @@ namespace Chill {
     }
 
     // check if input already connected
-    if (!to->m_link.isNull()) {
+    if (to->m_link) {
       disconnect(to);
     }
 
@@ -144,23 +138,23 @@ namespace Chill {
     return true;
   }
 
-  void Processor::disconnect(AutoPtr<ProcessorInput> to) {
-    if (to.isNull()) return;
+  void Processor::disconnect(std::shared_ptr<ProcessorInput> to) {
+    if (!to) return;
 
-    AutoPtr<ProcessorOutput> from = to->m_link;
-    if (!from.isNull()) {
+    std::shared_ptr<ProcessorOutput> from = to->m_link;
+    if (from) {
       from->m_links.erase(std::remove(from->m_links.begin(), from->m_links.end(), to), from->m_links.end());
     }
 
-    to->m_link = AutoPtr<ProcessorOutput>(nullptr);
+    to->m_link = std::shared_ptr<ProcessorOutput>(nullptr);
   }
 
-  void Processor::disconnect(AutoPtr<ProcessorOutput> from) {
-    if (from.isNull()) return;
+  void Processor::disconnect(std::shared_ptr<ProcessorOutput> from) {
+    if (!from) return;
 
-    for (AutoPtr<ProcessorInput> to : from->m_links) {
-      if (!to.isNull()) {
-        to->m_link = AutoPtr<ProcessorOutput>(nullptr);
+    for (std::shared_ptr<ProcessorInput> to : from->m_links) {
+      if (to) {
+        to->m_link = std::shared_ptr<ProcessorOutput>(nullptr);
       }
     }
     from->m_links.clear();
@@ -179,9 +173,9 @@ namespace Chill {
       if (current == from) {
         return true;
       }
-      for (AutoPtr<ProcessorInput> input : current->inputs()) {
-        if (!input->m_link.isNull()) {
-          AutoPtr<ProcessorOutput> output = input->m_link;
+      for (std::shared_ptr<ProcessorInput> input : current->inputs()) {
+        if (input->m_link) {
+          std::shared_ptr<ProcessorOutput> output = input->m_link;
           toCheck.push(output->owner());
         }
       }
@@ -200,12 +194,12 @@ namespace Chill {
     
     /* Saving I/Os is not usefull in general case*/
     // Save inputs
-    for (AutoPtr<ProcessorInput> input : m_inputs) {
+    for (std::shared_ptr<ProcessorInput> input : m_inputs) {
       input->save(stream);
       stream << "p_" << getUniqueID() << ":add(i_" << input->getUniqueID() << ")" << std::endl;
     }
     // Save outputs
-    for (AutoPtr<ProcessorOutput> output : m_outputs) {
+    for (std::shared_ptr<ProcessorOutput> output : m_outputs) {
       output->save(stream);
       stream << "p_" << getUniqueID() << ":add(o_" << output->getUniqueID() << ")" << std::endl;
     }
@@ -214,7 +208,7 @@ namespace Chill {
   void Processor::iceSL(std::ofstream& ) {}
 };
 
-bool Chill::Processor::draw() {
+bool chill::Processor::draw() {
   m_dirty = false;
 
   ImGui::PushID(int(getUniqueID()));
@@ -378,7 +372,7 @@ bool Chill::Processor::draw() {
 
   // draw inputs
   ImGui::BeginGroup();
-  for (AutoPtr<ProcessorInput> input : m_inputs) {
+  for (std::shared_ptr<ProcessorInput> input : m_inputs) {
     m_dirty |= input->draw();
   }
   ImGui::EndGroup();
@@ -386,7 +380,7 @@ bool Chill::Processor::draw() {
   // draw outputs
   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + size.x);
   ImGui::BeginGroup();
-  for (AutoPtr<ProcessorOutput> output : m_outputs) {
+  for (std::shared_ptr<ProcessorOutput> output : m_outputs) {
     m_dirty |= output->draw();
   }
   ImGui::EndGroup();
@@ -411,7 +405,7 @@ bool Chill::Processor::draw() {
 
 
 
-Chill::Multiplexer::Multiplexer() {
+chill::Multiplexer::Multiplexer() {
   setName("Multiplexer");
   m_size = ImVec2(1, 1);
   m_size *= style.processor_title_height;
@@ -420,7 +414,7 @@ Chill::Multiplexer::Multiplexer() {
   addOutput("o", IOType::UNDEF);
 }
 
-bool Chill::Multiplexer::draw() {
+bool chill::Multiplexer::draw() {
 
   ImGui::PushID(int(getUniqueID()));
 
@@ -468,9 +462,9 @@ bool Chill::Multiplexer::draw() {
   ImGui::SetCursorPosY(y);
   
   ImGui::BeginGroup();
-  for (AutoPtr<ProcessorInput> input : inputs()) {
+  for (std::shared_ptr<ProcessorInput> input : inputs()) {
     input->draw();
-    if (!input->m_link.isNull()) {
+    if (input->m_link) {
       setColor(input->m_link->owner()->color());
     }
   }
@@ -480,7 +474,7 @@ bool Chill::Multiplexer::draw() {
   ImGui::SetCursorPosX(x + size.x);
   // draw ouputs
   ImGui::BeginGroup();
-  for (AutoPtr<ProcessorOutput> output : outputs()) {
+  for (std::shared_ptr<ProcessorOutput> output : outputs()) {
     output->draw();
   }
   ImGui::EndGroup();
@@ -492,7 +486,7 @@ bool Chill::Multiplexer::draw() {
   return m_edit;
 }
 
-void Chill::Multiplexer::iceSL(std::ofstream& _stream) {
+void chill::Multiplexer::iceSL(std::ofstream& _stream) {
   //write the current Id of the node
 
   std::string lua = "--[[ " + name() + " ]]--\n";
@@ -503,7 +497,7 @@ void Chill::Multiplexer::iceSL(std::ofstream& _stream) {
 
   for (auto input : inputs()) {
     // tweak
-    if (input->m_link.isNull()) {
+    if (!input->m_link) {
       lua += "__input[\"" + std::string(input->name()) + "\"] = nil\n";
     }
     // input
@@ -523,7 +517,7 @@ setfenv(1, _Gcurrent)    --set it\n\
   lua += "if (isDirty({__currentNodeId";
 
   for (auto input : inputs()) {
-    if (!input->m_link.isNull()) {
+    if (input->m_link) {
       std::string s2 = std::to_string(reinterpret_cast<int64_t>(input->m_link->owner()));
       lua += ", " + s2;
     }

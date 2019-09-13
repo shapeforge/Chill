@@ -16,8 +16,7 @@ const std::string REGEX_NAMED   = "^(?:\\s)*([a-zA-Z_][\\w_]*)\\s*=\\s*";
 const std::string REGEX_TABLE   = "\\{(?:(,?\\s*(?:" + REGEX_NAMED + "|)(?:" + REGEX_STRING + "|" + REGEX_NUMBER + "|" + REGEX_BOOL + ")\\s*?)*)\\}";
 const std::string REGEX_PARAM   = "(?:" + REGEX_STRING + "|" + REGEX_NUMBER + "|" + REGEX_BOOL + "|" + REGEX_TABLE + ")";
 
-namespace Chill
-{
+namespace chill {
   LuaProcessor::LuaProcessor(LuaProcessor &_processor) {
     m_nodepath = _processor.m_nodepath;
     setName(_processor.name());
@@ -54,12 +53,12 @@ namespace Chill
 
     /* Saving I/Os is not usefull in general case*/
     // Save inputs
-    for (AutoPtr<ProcessorInput> input : inputs()) {
+    for (std::shared_ptr<ProcessorInput> input : inputs()) {
       input->save(_stream);
       _stream << "p_" << getUniqueID() << ":add(i_" << input->getUniqueID() << ")" << std::endl;
     }
     // Save outputs
-    for (AutoPtr<ProcessorOutput> output : outputs()) {
+    for (std::shared_ptr<ProcessorOutput> output : outputs()) {
       output->save(_stream);
       _stream << "p_" << getUniqueID() << ":add(o_" << output->getUniqueID() << ")" << std::endl;
     }
@@ -78,7 +77,7 @@ namespace Chill
 
     for (auto input : inputs()) {
       // tweak
-      if (input->m_link.isNull()) {
+      if (!input->m_link) {
         code += "__input[\"" + std::string(input->name()) + "\"] = {" + input->getLuaValue() + ", 0}\n";
       }
       // input
@@ -98,7 +97,7 @@ setfenv(1, _Gcurrent)    --set it\n\
     code += "if (isDirty({__currentNodeId";
 
     for (auto input : inputs()) {
-      if (!input->m_link.isNull()) {
+      if (input->m_link) {
         std::string s2 = std::to_string(reinterpret_cast<int64_t>(input->m_link->owner()));
         code += ", " + s2;
       }
@@ -211,9 +210,9 @@ setDirty(__currentNodeId)\n";
     }
   }
 
-  AutoPtr<ProcessorInput> LuaProcessor::addInput(AutoPtr<ProcessorInput> _input) {
+  std::shared_ptr<ProcessorInput> LuaProcessor::addInput(std::shared_ptr<ProcessorInput> _input) {
     _input->setOwner(this);
-    if (input(_input->name()).isNull()) {
+    if (!input(_input->name())) {
       Processor::addInput(_input);
     }
     else {
@@ -222,9 +221,9 @@ setDirty(__currentNodeId)\n";
     return _input;
   }
 
-  AutoPtr<ProcessorOutput> LuaProcessor::addOutput(AutoPtr<ProcessorOutput> _output) {
+  std::shared_ptr<ProcessorOutput> LuaProcessor::addOutput(std::shared_ptr<ProcessorOutput> _output) {
     _output->setOwner(this);
-    if (output(_output->name()).isNull()) {
+    if (!output(_output->name())) {
       Processor::addOutput(_output);
     }
     else {

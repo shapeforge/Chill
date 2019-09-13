@@ -19,7 +19,7 @@ namespace fs = std::filesystem;
 
 //LIBSL_WIN32_FIX
 
-namespace Chill
+namespace chill
 {
   NodeEditor* NodeEditor::s_instance = nullptr;
 
@@ -93,7 +93,7 @@ namespace Chill
     NodeEditor* n_e = NodeEditor::Instance();
     std::string node = recursiveFileSelecter(NodeEditor::NodesFolder());
     if (!node.empty()) {
-      AutoPtr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>(relativePath(node));
+      std::shared_ptr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>(relativePath(node));
       proc->setPosition(_pos);
     }
   }
@@ -391,7 +391,7 @@ namespace Chill
       }
       
       /*
-      AutoPtr<Processor> proc = AutoPtr<Processor>(object);
+      std::shared_ptr<Processor> proc = std::shared_ptr<Processor>(object);
       if (!proc.isNull()) {
         for (auto input : proc->inputs()) {
           ImGui::NewLine();
@@ -412,7 +412,7 @@ namespace Chill
   //-------------------------------------------------------
   void NodeEditor::drawGraph()
   {
-    linking = !m_selected_input.isNull() || !m_selected_output.isNull();
+    linking = m_selected_input || m_selected_output;
 
     ImGui::PushStyleColor(ImGuiCol_WindowBg, style.graph_bg_color);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0F);
@@ -443,7 +443,7 @@ namespace Chill
 
     
 
-    for (AutoPtr<Processor> processor : m_graphs.top()->processors()) {
+    for (std::shared_ptr<Processor> processor : m_graphs.top()->processors()) {
       if (processor->isDirty()) {
         if (g_auto_export) {
           exportIceSL(g_iceSLTempExportPath);
@@ -465,7 +465,7 @@ namespace Chill
       selected.clear();
       text_editing = false;
 
-      for (AutoPtr<Processor> processor : m_graphs.top()->processors()) {
+      for (std::shared_ptr<Processor> processor : m_graphs.top()->processors()) {
         ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * w_scale;
 
         ImVec2 size = processor->m_size * window->FontWindowScale;
@@ -473,11 +473,11 @@ namespace Chill
         ImVec2 max_pos = min_pos + size + socket_size * 2;
 
         if (ImGui::IsMouseHoveringRect(min_pos, max_pos)) {
-          hovered.push_back(AutoPtr<SelectableUI>(processor));
+          hovered.push_back(std::shared_ptr<SelectableUI>(processor));
         }
 
         if (processor->m_selected) {
-          selected.push_back(AutoPtr<SelectableUI>(processor));
+          selected.push_back(std::shared_ptr<SelectableUI>(processor));
         }
 
         if (processor->m_edit) {
@@ -485,7 +485,7 @@ namespace Chill
         }
       }
 
-      for (AutoPtr<VisualComment> comment : m_graphs.top()->comments()) {
+      for (std::shared_ptr<VisualComment> comment : m_graphs.top()->comments()) {
         ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * w_scale;
 
         ImVec2 size = comment->m_title_size * w_scale;
@@ -493,11 +493,11 @@ namespace Chill
         ImVec2 max_pos = min_pos + size + socket_size * 2;
 
         if (ImGui::IsMouseHoveringRect(min_pos, max_pos)) {
-          hovered.push_back(AutoPtr<SelectableUI>(comment));
+          hovered.push_back(std::shared_ptr<SelectableUI>(comment));
         }
 
         if (comment->m_selected) {
-          selected.push_back(AutoPtr<SelectableUI>(comment));
+          selected.push_back(std::shared_ptr<SelectableUI>(comment));
         }
 
         if (comment->m_edit) {
@@ -512,14 +512,14 @@ namespace Chill
 
         if (io.MouseDown[0] && (hovered.empty() || io.MouseDown[1])) {
           linking = false;
-          m_selected_input = AutoPtr<ProcessorInput>(nullptr);
-          m_selected_output = AutoPtr<ProcessorOutput>(nullptr);
+          m_selected_input = std::shared_ptr<ProcessorInput>(nullptr);
+          m_selected_output = std::shared_ptr<ProcessorOutput>(nullptr);
         }
       }
       else {
         if (io.MouseDoubleClicked[0]) {
-          for (AutoPtr<SelectableUI> hovproc : hovered) {
-            if (ProcessingGraph* v = dynamic_cast<ProcessingGraph*>(hovproc.raw())) {
+          for (std::shared_ptr<SelectableUI> hovproc : hovered) {
+            if (ProcessingGraph* v = dynamic_cast<ProcessingGraph*>(hovproc.get())) {
               if (!v->m_edit) {
                 m_graphs.push(v);
                 m_offset = m_graphs.top()->getBarycenter() * -1.0F;
@@ -531,8 +531,8 @@ namespace Chill
 
         if (io.MouseDown[0] && io.MouseDownOwned[0]) {
           if (!hovered.empty() && !m_selecting) {
-            for (AutoPtr<SelectableUI> selproc : selected) {
-              for (AutoPtr<SelectableUI> hovproc : hovered) {
+            for (std::shared_ptr<SelectableUI> selproc : selected) {
+              for (std::shared_ptr<SelectableUI> hovproc : hovered) {
                 if (hovproc == selproc) {
                   m_dragging = true;
                 }
@@ -552,7 +552,7 @@ namespace Chill
         if (io.MouseClicked[0]) {
           // if no processor hovered, clear
           if (!io.KeysDown[LIBSL_KEY_SHIFT] && hovered.empty()) {
-            for (AutoPtr<SelectableUI> selproc : selected) {
+            for (std::shared_ptr<SelectableUI> selproc : selected) {
               selproc->m_selected = false;
             }
             selected.clear();
@@ -560,7 +560,7 @@ namespace Chill
           else {
 
 
-            for (AutoPtr<SelectableUI> hovproc : hovered) {
+            for (std::shared_ptr<SelectableUI> hovproc : hovered) {
               if (io.KeysDown[LIBSL_KEY_SHIFT]) {
                 if (hovproc->m_selected) {
                   hovproc->m_selected = false;
@@ -573,14 +573,14 @@ namespace Chill
               }
               else {
                 bool sel_and_hov = false;
-                for (AutoPtr<SelectableUI> selproc : selected) {
+                for (std::shared_ptr<SelectableUI> selproc : selected) {
                   if (selproc == hovproc) {
                     sel_and_hov = true;
                     break;
                   }
                 }
                 if (!sel_and_hov) {
-                  for (AutoPtr<SelectableUI> selproc : selected) {
+                  for (std::shared_ptr<SelectableUI> selproc : selected) {
                     selproc->m_selected = false;
                   }
                   selected.clear();
@@ -608,10 +608,10 @@ namespace Chill
 
       { // MOUSE WHEEL
         if (io.MouseWheel > 0 && w_scale == 2.0F && !hovered.empty()) {
-          for (AutoPtr<SelectableUI> object : hovered) {
-            AutoPtr<ProcessingGraph> pg(object);
-            if (!pg.isNull()) {
-              m_graphs.push(pg.raw());
+          for (std::shared_ptr<SelectableUI> object : hovered) {
+            std::shared_ptr<ProcessingGraph> pg = std::static_pointer_cast<ProcessingGraph>(object);
+            if (pg) {
+              m_graphs.push(pg.get());
               w_scale = 0.1F;
               window->FontWindowScale = 0.1F;
               break;
@@ -623,14 +623,14 @@ namespace Chill
       // Move selected processors
       if (m_dragging) {
         if (!io.KeysDown[LIBSL_KEY_CTRL]) {
-          for (AutoPtr<SelectableUI> object : selected) {
+          for (std::shared_ptr<SelectableUI> object : selected) {
             object->translate(io.MouseDelta / w_scale);
           }
         }
         else {
-          for (AutoPtr<SelectableUI> object : selected) {
-            AutoPtr<VisualComment> com(object);
-            if (!com.isNull())
+          for (std::shared_ptr<SelectableUI> object : selected) {
+            std::shared_ptr<VisualComment> com = std::static_pointer_cast<VisualComment>(object);
+            if (com)
               object->m_size += io.MouseDelta / w_scale;
           }
         }
@@ -663,7 +663,7 @@ namespace Chill
           ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
           // screen to grid
           ImVec2 s2g = m2s / w_scale - m_offset;
-          AutoPtr<VisualComment> com(new VisualComment());
+          std::shared_ptr<VisualComment> com(new VisualComment());
           com->setPosition(s2g);
           this->getCurrentGraph()->addComment(com);
         }
@@ -677,20 +677,20 @@ namespace Chill
       }
 
 
-      if (!buffer.isNull()) {
+      if (buffer) {
         if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['v' - 96] && io.KeysDownDuration['v' - 96] == 0.F) {
           // mouse to screen
           ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
           // screen to grid
           ImVec2 s2g = m2s / w_scale - m_offset;
 
-          AutoPtr<SelectableUI> copy_buff = buffer->clone();
+          std::shared_ptr<SelectableUI> copy_buff = buffer->clone();
           getCurrentGraph()->expandGraph(buffer, s2g);
-          buffer = AutoPtr<ProcessingGraph>(copy_buff);
+          buffer = std::static_pointer_cast<ProcessingGraph>(copy_buff);
         }
       }
       if (io.KeysDown[LIBSL_KEY_DELETE]) {
-        for (AutoPtr<SelectableUI> item : selected) {
+        for (std::shared_ptr<SelectableUI> item : selected) {
           getCurrentGraph()->remove(item);
         }
       }
@@ -706,14 +706,14 @@ namespace Chill
     }
     ProcessingGraph* currentGraph = m_graphs.top();
 
-    for (AutoPtr<VisualComment> comment : currentGraph->comments()) {
+    for (std::shared_ptr<VisualComment> comment : currentGraph->comments()) {
       ImVec2 position = offset + comment->m_position * w_scale;
       ImGui::SetCursorPos(position);
       comment->draw();
     }
 
     // Draw the nodes
-    for (AutoPtr<Processor> processor : currentGraph->processors()) {
+    for (std::shared_ptr<Processor> processor : currentGraph->processors()) {
       ImVec2 position = offset + processor->m_position * w_scale;
       ImGui::SetCursorPos(position);
       processor->draw();
@@ -722,9 +722,9 @@ namespace Chill
     // Draw the pipes
     float pipe_width = style.pipe_line_width * w_scale;
     int pipe_res = static_cast<int>(20 * w_scale);
-    for (AutoPtr<Processor> processor : currentGraph->processors()) {
-      for (AutoPtr<ProcessorOutput> output : processor->outputs()) {
-        for (AutoPtr<ProcessorInput> input : output->m_links) {
+    for (std::shared_ptr<Processor> processor : currentGraph->processors()) {
+      for (std::shared_ptr<ProcessorOutput> output : processor->outputs()) {
+        for (std::shared_ptr<ProcessorInput> input : output->m_links) {
           ImVec2 A = input->getPosition()  + w_pos - ImVec2(pipe_width / 4.F, 0.F);
           ImVec2 B = output->getPosition() + w_pos + ImVec2(pipe_width / 4.F, 0.F);
 
@@ -762,11 +762,11 @@ namespace Chill
       ImVec2 A = ImGui::GetMousePos();
       ImVec2 B = ImGui::GetMousePos();
 
-      if (!m_selected_input.isNull()) {
+      if (m_selected_input) {
         A = w_pos + m_selected_input->getPosition();
         A -= ImVec2(pipe_width / 4.F, 0.F);
       }
-      else if (!m_selected_output.isNull()) {
+      else if (m_selected_output) {
         B = w_pos + m_selected_output->getPosition();
         B += ImVec2(pipe_width / 4.F, 0.F);
       }
@@ -910,27 +910,27 @@ namespace Chill
       }
       */
 
-      if (!buffer.isNull()) {
+      if (buffer) {
         if (ImGui::MenuItem("Paste", "CTRL+V")) {
           // mouse to screen
           ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
           // screen to grid
           ImVec2 s2g = m2s / w_scale - m_offset;
 
-          AutoPtr<SelectableUI> copy_buff = buffer->clone();
+          std::shared_ptr<SelectableUI> copy_buff = buffer->clone();
           getCurrentGraph()->expandGraph(buffer, s2g);
-          buffer = AutoPtr<ProcessingGraph>(copy_buff);
+          buffer = std::static_pointer_cast<ProcessingGraph>(copy_buff);
         }
       }
       /*
       if (ImGui::MenuItem("Add multiplexer node")) {
-        AutoPtr<Multiplexer> proc = n_e->getCurrentGraph()->addProcessor<Multiplexer>();
+        std::shared_ptr<Multiplexer> proc = n_e->getCurrentGraph()->addProcessor<Multiplexer>();
         proc->setPosition(s2g);
       }
       
 
       if (ImGui::MenuItem("Comment")) {
-        AutoPtr<VisualComment> com(new VisualComment());
+        std::shared_ptr<VisualComment> com(new VisualComment());
         com->setPosition(s2g);
         n_e->getCurrentGraph()->addComment(com);
       }
@@ -952,27 +952,27 @@ namespace Chill
         n_e->getCurrentGraph()->collapseSubset(selected);
       }
       if (ImGui::MenuItem("Ungroup")) {
-        for (AutoPtr<SelectableUI> proc : selected) {
+        for (std::shared_ptr<SelectableUI> proc : selected) {
           if (typeid(*proc.raw()) == typeid(ProcessingGraph)) {
-            n_e->getCurrentGraph()->expandGraph(AutoPtr<ProcessingGraph>(proc), proc->getPosition());
+            n_e->getCurrentGraph()->expandGraph(std::shared_ptr<ProcessingGraph>(proc), proc->getPosition());
           }
         }
       }
       */
       if (ImGui::MenuItem("Delete")) {
-        for (AutoPtr<SelectableUI> item : selected) {
+        for (std::shared_ptr<SelectableUI> item : selected) {
           n_e->getCurrentGraph()->remove(item);
         }
       }
       if (ImGui::MenuItem("Unlink")) {
-        for (AutoPtr<SelectableUI> select : selected) {
-          AutoPtr<Processor> proc = AutoPtr<Processor>(select);
-          if (!proc.isNull()) {
-            for (AutoPtr<ProcessorInput> input : proc->inputs())
+        for (std::shared_ptr<SelectableUI> select : selected) {
+          std::shared_ptr<Processor> proc = std::static_pointer_cast<Processor>(select);
+          if (proc) {
+            for (std::shared_ptr<ProcessorInput> input : proc->inputs())
             {
               Processor::disconnect(input);
             }
-            for (AutoPtr<ProcessorOutput> output : proc->outputs()) {
+            for (std::shared_ptr<ProcessorOutput> output : proc->outputs()) {
               Processor::disconnect(output);
             }
           }
@@ -1012,7 +1012,7 @@ namespace Chill
       );
 
       if (!io.KeysDown[LIBSL_KEY_SHIFT]) {
-        for (AutoPtr<SelectableUI> selproc : selected) {
+        for (std::shared_ptr<SelectableUI> selproc : selected) {
           selproc->m_selected = false;
         }
         selected.clear();
@@ -1022,18 +1022,18 @@ namespace Chill
         return !(min.x < A.x || B.x < max.x || min.y < A.y || B.y < max.y);
       };
 
-      for (AutoPtr<Processor> procui : n_e->getCurrentGraph()->processors()) {
+      for (std::shared_ptr<Processor> procui : n_e->getCurrentGraph()->processors()) {
         ImVec2 pos_min = procui->getPosition();
         ImVec2 pos_max = pos_min + procui->m_size;
         procui->m_selected = isInside(pos_min, pos_max, A, B);
-        selected.push_back(AutoPtr<SelectableUI>(procui));
+        selected.push_back(std::shared_ptr<SelectableUI>(procui));
       }
 
-      for (AutoPtr<VisualComment> comui : n_e->getCurrentGraph()->comments()) {
+      for (std::shared_ptr<VisualComment> comui : n_e->getCurrentGraph()->comments()) {
         ImVec2 pos_min = comui->getPosition();
         ImVec2 pos_max = pos_min + comui->m_size;
         comui->m_selected = isInside(pos_min, pos_max, A, B);
-        selected.push_back(AutoPtr<SelectableUI>(comui));
+        selected.push_back(std::shared_ptr<SelectableUI>(comui));
       }
     }
   }
