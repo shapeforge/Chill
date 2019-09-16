@@ -18,15 +18,26 @@ As IceSL offers the possibility to directly create models using Lua scripting, C
 >First and foremost, install [IceSL](https://icesl.loria.fr/download/).
 >Once IceSL is installed on your machine, you have everything required to run a pre-compiled version of Chill!
 
-### On Windows
-For Windows users, ChiLL is available through an **installer** (an .exe or .msi), or by retrieving the source code and **building the project**.
+### Pre-compiled versions
+For both [Windows][win_zip] and [Linux][linux_zip] based systems, ChiLL is available as a **.zip** containing pre-compiled executables and nodes to provide a quick start!
 
-### On Linux
-For Linux users, ChiLL is only available through retrieving the source code and **building the project**.
+### Installers
 
-Installers and pre-compiled versions of ChiLL will be provided in future releases.
+#### On Windows
+For Windows users, [.msi][win_msi] or [.exe][win_exe] installers are available.
 
-## How to build ChiLL?
+#### On Linux
+For Linux users, a [.deb][deb_install] is available for **Debian-based** distributions.
+
+### From Source
+ChiLL can also be used direcly from the source code, by **building and compiling** the project manually. To do so, please [see the section below](#build-chill).
+
+### How about macOS?
+As ChiLL is closely tied to IceSL to offer a complete modeling experience, **macOS is currently not supported**.
+
+Support for macOS will be provided once IceSL will be ported on this system.
+
+## How to build ChiLL? <a name ="build-chill"> 
 To build ChiLL, you will need the following components installed on your computer:
 
 - git
@@ -49,10 +60,7 @@ git submodule foreach git pull origin master
 ```
 
 >**Note**
->If you have some trouble compiling Chill for Linux try to:
->
-> - checkout LibSL to the unix_compile branch.
-> - use Clang as a compiler (or make sure that LibSL_sharp is disabled from cmake).
+>If you have some trouble compiling Chill for Linux, try to **checkout LibSL** to the **unix_compile branch**.
 
 You can now build the project for your IDE of choice using CMAKE, and then compile.
 
@@ -132,3 +140,10 @@ ChiLL initial development was mainly supported by the ERC ShapeForge (StG-2012-3
 [input_node]: ressources/images/howto/inputnode.gif
 [linking_nodes]: ressources/images/howto/linknode.gif
 [live_preview]: ressources/images/howto/preview.gif
+
+[//]: # (Release links)
+[win_zip]: 
+[linux_zip]: 
+[win_msi]: 
+[win_exe]: 
+[deb_install]: 
