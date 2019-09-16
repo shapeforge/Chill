@@ -5,18 +5,18 @@
 ## What is Chill?
 Chill is a **node-based editor** for [**IceSL**, the **Modeler and Slicer**](https://icesl.loria.fr).
 
-Created by members of the team behind IceSL, ChiLL is a tool which aims to provide a **Visual Programming** interface for IceSL.
+Created by members of the team behind IceSL, ChiLL aims to provide a **Visual Programming** interface for IceSL.
 
-As IceSL offers the possibility to directly create models using Lua scripting, ChiLL will provide a way to create those modeling scripts using an approach based on Visual Programming. No need to code or learn the scripting language!
+Because IceSL offers the possibility to directly create models using Lua scripting, ChiLL provide a way to create those modeling scripts using an approach based on Visual Programming. No need to code or learn the scripting language!
 
 >**Note**
->ChiLL is easily extendable, as all nodes are themselves IceSL scripts.
+>ChiLL is easily extendable, all nodes are IceSL scripts themselves.
 
 ## How to install ChiLL?
 
 >**Note**
 >First and foremost, install [IceSL](https://icesl.loria.fr/download/).
->Once IceSL is installed on your machine, you have everything required to run a pre-compiled version of Chill!
+>Once this is done, you have everything required to run a pre-compiled version of Chill!
 
 ### Pre-compiled versions
 For both [Windows][win_zip] and [Linux][linux_zip] based systems, ChiLL is available as a **.zip** containing pre-compiled executables and nodes to provide a quick start!
@@ -31,11 +31,6 @@ For Linux users, a [.deb][deb_install] is available for **Debian-based** distrib
 
 ### From Source
 ChiLL can also be used direcly from the source code, by **building and compiling** the project manually. To do so, please [see the section below](#build-chill).
-
-### How about macOS?
-As ChiLL is closely tied to IceSL to offer a complete modeling experience, **macOS is currently not supported**.
-
-Support for macOS will be provided once IceSL will be ported on this system.
 
 ## How to build ChiLL? <a name ="build-chill"> 
 To build ChiLL, you will need the following components installed on your computer:
