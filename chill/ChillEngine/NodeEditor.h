@@ -27,6 +27,7 @@ namespace chill {
   public:
     const uint default_width = 800;
     const uint default_height = 600;
+    const float c_zoom_motion_scale = 0.1f;
 
     bool g_auto_save = true;
     bool g_auto_export = true;

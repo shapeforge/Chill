@@ -805,7 +805,7 @@ namespace chill
 
     float old_scale = window->FontWindowScale;
     float new_scale = ImClamp(
-      window->FontWindowScale + io.MouseWheel * exp(0.1F/window->FontWindowScale)/5.0F,
+      window->FontWindowScale + c_zoom_motion_scale * io.MouseWheel * sqrt(old_scale),
       0.1F,
       2.0F);
 
@@ -1064,8 +1064,7 @@ namespace chill
       &StartupInfo, // @lpStartupInfo -startup info
       &Instance()->g_icesl_p_info); // @lpProcessInformation - process info
 
-    if (icesl_process)
-    {
+    if (icesl_process) {
       // watch the process
       WaitForSingleObject(Instance()->g_icesl_p_info.hProcess, 1000);
       // getting the hwnd
@@ -1073,9 +1072,8 @@ namespace chill
       if (Instance()->g_auto_export) {
         Instance()->exportIceSL(Instance()->g_iceSLTempExportPath);
       }
-    }
-    else
-    {
+
+    } else {
       // process creation failed
       std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
       std::cerr << Console::red << "ErrorCode: " << GetLastError() << Console::gray << std::endl;
@@ -1361,16 +1359,18 @@ namespace chill
     //get hwnd for desktop on current monitor
     HWND hDesktop = WindowFromPoint(monitor_center);
 
-    // move chill to position
-    SetWindowPos(g_chill_hwnd, hDesktop, monitorInfo.rcMonitor.left - app_x_offset, monitorInfo.rcMonitor.top, app_width, app_heigth, SWP_SHOWWINDOW);
-
     // move icesl to the last part of the screen
     int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
     int icesl_xpos = app_width - icesl_x_offset;
     int icesl_ypos = monitorInfo.rcMonitor.top;
     int icesl_width = desktop_width - app_width + icesl_x_offset * 1.2;
-
     SetWindowPos(g_icesl_hwnd, hDesktop, icesl_xpos, icesl_ypos, icesl_width, app_heigth, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    SetForegroundWindow(g_icesl_hwnd);
+
+    // move chill to position
+    SetWindowPos(g_chill_hwnd, hDesktop, monitorInfo.rcMonitor.left - app_x_offset, monitorInfo.rcMonitor.top, app_width, app_heigth, SWP_SHOWWINDOW);
+    SetForegroundWindow(g_chill_hwnd);
+
   }
 
 #else
@@ -1383,19 +1383,34 @@ namespace chill
 #endif
 
   //-------------------------------------------------------
+
   void NodeEditor::moveIceSLWindowAlongChill() {
 #ifdef WIN32
-    // get Chill current size
-    RECT chillRect;
-    GetWindowRect(g_chill_hwnd, &chillRect);
-    int icesl_x_offset = 15; // TODO PB:get a correct offset / resolution calculation
-    // move and resize according to Chill
 
-    HMONITOR hMonitor = MonitorFromWindow(g_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
-    MONITORINFO monitorInfo = { sizeof(MONITORINFO) };
-    GetMonitorInfo(hMonitor, &monitorInfo);
+    /* TODO
+    This could be improved, taking into account IceSL resize as
+    well as screen boundaries.
+    */
 
-    SetWindowPos(g_icesl_hwnd, HWND_NOTOPMOST, chillRect.right - icesl_x_offset, chillRect.top, ((chillRect.right - chillRect.left + 1) / 2) + icesl_x_offset * 2, chillRect.bottom - chillRect.top, SWP_NOACTIVATE);
+    if (g_icesl_hwnd != NULL) {
+
+      // snap IceSL window to Chill, preserve width
+      RECT chillRect;
+      GetWindowRect(g_chill_hwnd, &chillRect);
+
+      const int magic_offset = 15; // TODO determine automatically?
+
+      RECT iceslRect;
+      GetWindowRect(g_icesl_hwnd, &iceslRect);
+
+      SetWindowPos(g_icesl_hwnd, HWND_NOTOPMOST,
+        chillRect.right - magic_offset,
+        chillRect.top,
+        iceslRect.right - iceslRect.left, 
+        chillRect.bottom - chillRect.top, 
+        SWP_NOACTIVATE);
+    }
+
 #endif
   }
 
