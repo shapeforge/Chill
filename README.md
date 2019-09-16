@@ -97,14 +97,14 @@ You can follow the [Google C++ Style Guide](https://google.github.io/styleguide/
 >You may encounter code that is not compliant with this style, mainly because it was written before we defined the code style guide.
 
 # Credits
-##Developpers:
+## Developpers:
 
 - Jimmy Etienne [[@JuDePom](https://github.com/JuDePom)] 
 - Pierre Bedell [[@Phazon54](https://github.com/Phazon54)] 
 - Thibault Tricard [[@ThibaultTricard](https://github.com/ThibaultTricard)] 
 - Cedric Zanni [[@czanni](https://github.com/czanni)] 
 
-##Logos:
+## Logos:
 
 - Pierre-Alexandre Hugron [[@pa_hugron](https://www.instagram.com/pa_hugron/)] 
 
