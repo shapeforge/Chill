@@ -1040,11 +1040,12 @@ namespace chill
 
   //-------------------------------------------------------
   void NodeEditor::launchIcesl() {
-#ifdef WIN32
-    // CreateProcess init
+
     const char* icesl_path = Instance()->g_iceslPath.c_str();
     std::string icesl_params = " " + Instance()->g_iceSLTempExportPath.string();
 
+#ifdef WIN32
+    // CreateProcess init
     STARTUPINFO StartupInfo;
     ZeroMemory(&StartupInfo, sizeof(StartupInfo));
     StartupInfo.cb = sizeof StartupInfo;
@@ -1081,6 +1082,8 @@ namespace chill
 
       Instance()->g_icesl_hwnd = NULL;
     }
+#elif __linux__
+  std::system( (icesl_path + icesl_params + " &").c_str() );
 #endif
   }
 
