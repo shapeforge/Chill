@@ -1337,6 +1337,7 @@ namespace chill
   //-------------------------------------------------------
 #ifdef WIN32
   void NodeEditor::setDefaultAppsPos(HMONITOR hMonitor) {
+    
     int desktop_width, desktop_height = 0;
 
     // get desktop dimmensions
@@ -1348,9 +1349,12 @@ namespace chill
     int app_x_offset = 8; // TODO  PB:get a correct offset / resolution calculation
 
     // get current monitor infos
-    MONITORINFO monitorInfo = {sizeof(MONITORINFO) };
-    GetMonitorInfo(hMonitor, &monitorInfo);;
-
+    MONITORINFO monitorInfo;
+    memset(&monitorInfo, 0, sizeof(MONITORINFO));
+    monitorInfo.cbSize = sizeof(MONITORINFO);
+    if (hMonitor != NULL) {
+      GetMonitorInfo(hMonitor, &monitorInfo);;
+    }
     // get center point of current monitor
     POINT monitor_center;
     monitor_center.x = monitorInfo.rcMonitor.right / 2;
@@ -1359,17 +1363,19 @@ namespace chill
     //get hwnd for desktop on current monitor
     HWND hDesktop = WindowFromPoint(monitor_center);
 
+    // TODO strange behavior: if caller window is *not* maximized, SetWindowPos does nothing... ?!?
+
     // move icesl to the last part of the screen
     int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
     int icesl_xpos = app_width - icesl_x_offset;
     int icesl_ypos = monitorInfo.rcMonitor.top;
     int icesl_width = desktop_width - app_width + icesl_x_offset * 1.2;
-    SetWindowPos(g_icesl_hwnd, hDesktop, icesl_xpos, icesl_ypos, icesl_width, app_heigth, SWP_SHOWWINDOW | SWP_NOACTIVATE);
-    SetForegroundWindow(g_icesl_hwnd);
+    SetWindowPos(g_icesl_hwnd, hDesktop, icesl_xpos, icesl_ypos, icesl_width, app_heigth,SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    BringWindowToTop(g_icesl_hwnd);
 
     // move chill to position
     SetWindowPos(g_chill_hwnd, hDesktop, monitorInfo.rcMonitor.left - app_x_offset, monitorInfo.rcMonitor.top, app_width, app_heigth, SWP_SHOWWINDOW);
-    SetForegroundWindow(g_chill_hwnd);
+    BringWindowToTop(g_chill_hwnd);
 
   }
 
