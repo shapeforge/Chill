@@ -1363,18 +1363,18 @@ namespace chill
     //get hwnd for desktop on current monitor
     HWND hDesktop = WindowFromPoint(monitor_center);
 
-    // TODO strange behavior: if caller window is *not* maximized, SetWindowPos does nothing... ?!?
-
     // move icesl to the last part of the screen
     int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
     int icesl_xpos = app_width - icesl_x_offset;
     int icesl_ypos = monitorInfo.rcMonitor.top;
     int icesl_width = desktop_width - app_width + icesl_x_offset * 1.2;
-    SetWindowPos(g_icesl_hwnd, hDesktop, icesl_xpos, icesl_ypos, icesl_width, app_heigth,SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    // SetWindowPos(g_icesl_hwnd, hDesktop, icesl_xpos, icesl_ypos, icesl_width, app_heigth, SWP_SHOWWINDOW | SWP_NOACTIVATE); // NOTE: strange issue depending on launching window state (maximized or not)
+    MoveWindow(g_icesl_hwnd, icesl_xpos, icesl_ypos, icesl_width, app_heigth, true);
     BringWindowToTop(g_icesl_hwnd);
 
     // move chill to position
-    SetWindowPos(g_chill_hwnd, hDesktop, monitorInfo.rcMonitor.left - app_x_offset, monitorInfo.rcMonitor.top, app_width, app_heigth, SWP_SHOWWINDOW);
+    // SetWindowPos(g_chill_hwnd, hDesktop, monitorInfo.rcMonitor.left - app_x_offset, monitorInfo.rcMonitor.top, app_width, app_heigth, SWP_SHOWWINDOW); // NOTE: strange issue depending on launching window state (maximized or not)
+    MoveWindow(g_chill_hwnd, monitorInfo.rcMonitor.left - app_x_offset, monitorInfo.rcMonitor.top, app_width, app_heigth, true);
     BringWindowToTop(g_chill_hwnd);
 
   }
