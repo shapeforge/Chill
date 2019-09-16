@@ -1407,6 +1407,8 @@ namespace chill
 
 #ifdef WIN32
     paths.push_back(getenv("APPDATA") + std::string("/Chill") + name);
+#elif __linux__
+    paths.push_back("/etc/chill" + name);
 #endif
     paths.push_back(fs::current_path().string() + name);
     paths.push_back(".." + name);
