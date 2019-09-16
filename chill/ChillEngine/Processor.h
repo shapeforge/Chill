@@ -261,7 +261,7 @@ namespace chill {
     /** List of all outputs. */
     std::vector<std::shared_ptr<ProcessorOutput>> m_outputs;
     /** Next nodes have to update themselves. */
-    bool                                  m_dirty = false;
+    bool                                  m_dirty = true;
 
   };
 
