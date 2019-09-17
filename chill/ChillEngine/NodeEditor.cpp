@@ -1088,10 +1088,7 @@ namespace chill
       if (Instance()->m_auto_export) {
         Instance()->exportIceSL(Instance()->m_iceSLTempExportPath);
       }
-      // now that we have the hwnd, apply some changes
-      // remove the ability to resize the IceSL window
-      SetWindowLong(Instance()->m_icesl_hwnd, GWL_STYLE, GetWindowLong(Instance()->m_icesl_hwnd, GWL_STYLE) & ~WS_THICKFRAME);
-
+   
     } else {
       // process creation failed
       std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
@@ -1326,6 +1323,8 @@ namespace chill
         // place apps in default pos
 #ifdef WIN32
         Instance()->setDefaultAppsPos(NULL);
+        // remove the ability to resize the IceSL window
+        SetWindowLongPtr(Instance()->m_icesl_hwnd, GWL_STYLE, GetWindowLongPtr(Instance()->m_icesl_hwnd, GWL_STYLE) & ~WS_THICKFRAME);
 #else
         nodeEditor->setDefaultAppsPos();
 #endif
