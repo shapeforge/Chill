@@ -72,6 +72,7 @@ namespace chill {
     void setDefaultAppsPos();
 #endif   
 
+    void resizeIceSLWindowAlongChill();
     void moveIceSLWindowAlongChill();
 
     static inline std::string ChillFolder();

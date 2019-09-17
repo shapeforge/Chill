@@ -190,7 +190,7 @@ namespace chill
   void NodeEditor::mainOnResize(uint width, uint height)
   {
     Instance()->m_size = ImVec2(static_cast<float>(width), static_cast<float>(height));
-    Instance()->moveIceSLWindowAlongChill();
+    Instance()->resizeIceSLWindowAlongChill();
   }
 
   //-------------------------------------------------------
@@ -1063,15 +1063,19 @@ namespace chill
       NULL, // @lpCurrentDirectory - current directory
       &StartupInfo, // @lpStartupInfo -startup info
       &Instance()->g_icesl_p_info); // @lpProcessInformation - process info
-
+    
     if (icesl_process) {
       // watch the process
       WaitForSingleObject(Instance()->g_icesl_p_info.hProcess, 1000);
       // getting the hwnd
-      EnumWindows(EnumWindowsFromPid, Instance()->g_icesl_p_info.dwProcessId);
+      EnumWindows(EnumWindowsFromPid /*sets g_icesl_hwnd*/, Instance()->g_icesl_p_info.dwProcessId);
+      sl_assert(Instance()->g_icesl_hwnd != NULL);
       if (Instance()->g_auto_export) {
         Instance()->exportIceSL(Instance()->g_iceSLTempExportPath);
       }
+      // now that we have the hwnd, apply some changes
+      // remove the ability to resize the IceSL window
+      SetWindowLong(Instance()->g_icesl_hwnd, GWL_STYLE, GetWindowLong(Instance()->g_icesl_hwnd, GWL_STYLE) & ~WS_THICKFRAME);
 
     } else {
       // process creation failed
@@ -1343,37 +1347,29 @@ namespace chill
     // get desktop dimmensions
     getDesktopRes(desktop_width, desktop_height);
 
-    // set chill dimensions to be 2/3 - 1/3 with icesl
-    int app_width = 2 * (desktop_width / 3);
+    // set chill dimensions to be 1/2 - 1/2 with icesl
+    int app_width = (desktop_width / 2);
     int app_heigth = desktop_height;
     int app_x_offset = 8; // TODO  PB:get a correct offset / resolution calculation
 
-    // get current monitor infos
+    // get current monitor info (set to zero in not specified, eg. hMonitor == NULL)
     MONITORINFO monitorInfo;
     memset(&monitorInfo, 0, sizeof(MONITORINFO));
     monitorInfo.cbSize = sizeof(MONITORINFO);
     if (hMonitor != NULL) {
       GetMonitorInfo(hMonitor, &monitorInfo);;
     }
-    // get center point of current monitor
-    POINT monitor_center;
-    monitor_center.x = monitorInfo.rcMonitor.right / 2;
-    monitor_center.y = monitorInfo.rcMonitor.bottom / 2;
-
-    //get hwnd for desktop on current monitor
-    HWND hDesktop = WindowFromPoint(monitor_center);
-
+    
     // move icesl to the last part of the screen
-    int icesl_x_offset = 22; // TODO PB:get a correct offset / resolution calculation
-    int icesl_xpos = app_width - icesl_x_offset;
+    const int magic_offset = 15; // TODO determine automatically?
+    int icesl_xpos = app_width - magic_offset + monitorInfo.rcMonitor.left;
     int icesl_ypos = monitorInfo.rcMonitor.top;
-    int icesl_width = desktop_width - app_width + icesl_x_offset * 1.2;
-    // SetWindowPos(g_icesl_hwnd, hDesktop, icesl_xpos, icesl_ypos, icesl_width, app_heigth, SWP_SHOWWINDOW | SWP_NOACTIVATE); // NOTE: strange issue depending on launching window state (maximized or not)
+    int icesl_width = desktop_width - app_width + magic_offset;
+
     MoveWindow(g_icesl_hwnd, icesl_xpos, icesl_ypos, icesl_width, app_heigth, true);
     BringWindowToTop(g_icesl_hwnd);
 
     // move chill to position
-    // SetWindowPos(g_chill_hwnd, hDesktop, monitorInfo.rcMonitor.left - app_x_offset, monitorInfo.rcMonitor.top, app_width, app_heigth, SWP_SHOWWINDOW); // NOTE: strange issue depending on launching window state (maximized or not)
     MoveWindow(g_chill_hwnd, monitorInfo.rcMonitor.left - app_x_offset, monitorInfo.rcMonitor.top, app_width, app_heigth, true);
     BringWindowToTop(g_chill_hwnd);
 
@@ -1390,13 +1386,8 @@ namespace chill
 
   //-------------------------------------------------------
 
-  void NodeEditor::moveIceSLWindowAlongChill() {
+  void NodeEditor::resizeIceSLWindowAlongChill() {
 #ifdef WIN32
-
-    /* TODO
-    This could be improved, taking into account IceSL resize as
-    well as screen boundaries.
-    */
 
     if (g_icesl_hwnd != NULL) {
 
@@ -1409,17 +1400,54 @@ namespace chill
       RECT iceslRect;
       GetWindowRect(g_icesl_hwnd, &iceslRect);
 
-      SetWindowPos(g_icesl_hwnd, HWND_NOTOPMOST,
+      /*
+      MoveWindow(g_icesl_hwnd,
         chillRect.right - magic_offset,
         chillRect.top,
         iceslRect.right - iceslRect.left, 
-        chillRect.bottom - chillRect.top, 
-        SWP_NOACTIVATE);
+        chillRect.bottom - chillRect.top, true);
+      */
+
+      int total_width = iceslRect.right - chillRect.left + magic_offset;
+
+      MoveWindow(g_icesl_hwnd,
+        chillRect.right - magic_offset,
+        chillRect.top,
+        total_width - (chillRect.right - chillRect.left),
+        chillRect.bottom - chillRect.top, true);
+
     }
 
 #endif
   }
 
+  //-------------------------------------------------------
+
+  void NodeEditor::moveIceSLWindowAlongChill() {
+#ifdef WIN32
+
+    if (g_icesl_hwnd != NULL) {
+
+      // snap IceSL window to Chill, preserve width
+      RECT chillRect;
+      GetWindowRect(g_chill_hwnd, &chillRect);
+
+      const int magic_offset = 15; // TODO determine automatically?
+
+      RECT iceslRect;
+      GetWindowRect(g_icesl_hwnd, &iceslRect);
+
+      MoveWindow(g_icesl_hwnd,
+        chillRect.right - magic_offset,
+        chillRect.top,
+        iceslRect.right  - iceslRect.left,
+        chillRect.bottom - chillRect.top, true);
+
+    }
+
+#endif
+  }
+  
   //-------------------------------------------------------
   bool NodeEditor::scriptPath(const std::string& name, std::string& _path)
   {
