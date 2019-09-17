@@ -135,7 +135,7 @@ ChiLL initial development was mainly supported by the ERC ShapeForge (StG-2012-3
 [live_preview]: ressources/images/howto/preview.gif
 
 [//]: # (Release links)
-[win_zip]: https://github.com/shapeforge/Chill/releases/download/0.1.0/chill_0.1.0_win64.zip
-[linux_zip]: https://github.com/shapeforge/Chill/releases/download/0.1.0/chill_0.1.0-0_amd64.tar.gz
-[win_msi]: https://github.com/shapeforge/Chill/releases/download/0.1.0/Chill_Installer.msi
-[deb_install]: https://github.com/shapeforge/Chill/releases/download/0.1.0/chill_0.1.0-0_amd64.deb
+[win_zip]: https://github.com/shapeforge/Chill/releases/download/0.1.1/chill_0.1.1_win64.zip
+[linux_zip]: https://github.com/shapeforge/Chill/releases/download/0.1.1/chill_0.1.1-0_amd64.tar.gz
+[win_msi]: https://github.com/shapeforge/Chill/releases/download/0.1.1/Chill_Installer.msi
+[deb_install]: https://github.com/shapeforge/Chill/releases/download/0.1.1/chill_0.1.1-0_amd64.deb
