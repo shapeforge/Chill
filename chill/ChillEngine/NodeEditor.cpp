@@ -818,6 +818,9 @@ namespace chill
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImGuiIO io = ImGui::GetIO();
 
+    // Make sure the wheel is only io.MouseWheel, 1 and -1
+    io.MouseWheel = io.MouseWheel > 0.001F ? 1.0F : io.MouseWheel < -0.001F ? -1.0F : 0.0F;
+
     float old_scale = window->FontWindowScale;
     float new_scale = ImClamp(
       window->FontWindowScale + c_zoom_motion_scale * io.MouseWheel * sqrt(old_scale),
@@ -1518,7 +1521,7 @@ namespace chill
 #ifdef WIN32
       m_iceslPath = getenv("PROGRAMFILES") + std::string("/INRIA/IceSL/bin/IceSL-slicer.exe");
 #elif __linux__
-      g_iceslPath = getenv("HOME") + std::string("/icesl/bin/IceSL-slicer");
+      m_iceslPath = getenv("HOME") + std::string("/icesl/bin/IceSL-slicer");
 #endif
     }
     if (!LibSL::System::File::exists(m_iceslPath.c_str())) {
@@ -1542,8 +1545,10 @@ namespace chill
 
 #elif __linux__
       // TODO Linux modal window
-      g_iceslPath = openFileDialog(OFD_FILTER_ALL).c_str();
-      std::cerr << Console::yellow << "IceSL location specified: " << g_iceslPath << Console::gray << std::endl;
+      //std::system( ("echo -e " + std::string(modalText) + " | xmessage -file -").c_str() );
+      std::system( ("xmessage \""+ std::string(modalText) + "\"").c_str() );
+      m_iceslPath = openFileDialog(OFD_FILTER_ALL).c_str();
+      std::cerr << Console::yellow << "IceSL location specified: " << m_iceslPath << Console::gray << std::endl;
 #endif
     }
   }
