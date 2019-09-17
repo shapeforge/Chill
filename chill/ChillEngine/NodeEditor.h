@@ -29,17 +29,17 @@ namespace chill {
     const uint default_height = 600;
     const float c_zoom_motion_scale = 0.1f;
 
-    bool g_auto_save = true;
-    bool g_auto_export = true;
-    bool g_auto_icesl = true;
+    bool m_auto_save = true;
+    bool m_auto_export = true;
+    bool m_auto_icesl = true;
 
-    std::string g_iceslPath;
+    std::string m_iceslPath;
 
-    std::string g_graphPath = "";
-    std::string g_iceSLExportPath = "";
-    fs::path g_iceSLTempExportPath = fs::temp_directory_path() / (std::to_string(std::time(nullptr)) + ".lua");
+    std::string m_graphPath = "";
+    std::string m_iceSLExportPath = "";
+    fs::path m_iceSLTempExportPath = fs::temp_directory_path() / (std::to_string(std::time(nullptr)) + ".lua");
 
-    std::string g_settingsFileName = "/chill-settings.txt";
+    std::string m_settingsFileName = "/chill-settings.txt";
 
     ImVec2 m_offset = ImVec2(0, 0);
 
@@ -51,9 +51,9 @@ namespace chill {
     bool   m_show_grid = true;
 
 #ifdef WIN32
-    HWND g_chill_hwnd = NULL;
-    HWND g_icesl_hwnd = NULL;
-    PROCESS_INFORMATION g_icesl_p_info;
+    HWND m_chill_hwnd = NULL;
+    HWND m_icesl_hwnd = NULL;
+    PROCESS_INFORMATION m_icesl_p_info;
 #endif
 
     //-------------------------------------------------------
