@@ -153,13 +153,29 @@ namespace chill
 #endif
 
   //-------------------------------------------------------
+
   NodeEditor::NodeEditor() {
     m_graphs.push(new ProcessingGraph());
   }
 
   //-------------------------------------------------------
-  void NodeEditor::mainRender()
-  {
+
+  NodeEditor* NodeEditor::Instance() {
+    if (!s_instance) {
+      s_instance = new NodeEditor();
+
+      std::string filename = Instance()->ChillFolder() + "/init.graph";
+      if (fs::exists(filename.c_str())) {
+        GraphSaver test;
+        test.execute(filename.c_str());
+      }
+    }
+    return s_instance;
+  }
+
+  //-------------------------------------------------------
+
+  void NodeEditor::mainRender() {
     glClearColor(0.F, 0.F, 0.F, 0.F);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -171,8 +187,8 @@ namespace chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::setIcon()
-  {
+
+  void NodeEditor::setIcon() {
     static bool icon_changed = false;
     if (!icon_changed) {
 #ifdef WIN32
@@ -272,9 +288,8 @@ namespace chill
         if (ImGui::MenuItem("Load graph")) {
           fullpath = openFileDialog(OFD_FILTER_GRAPHS);
           if (!fullpath.empty()) {
-            GraphSaver *test = new GraphSaver();
-            test->execute(fullpath.c_str());
-            delete test;
+            GraphSaver test;
+            test.execute(fullpath.c_str());
             g_graphPath = fullpath;
           }
         }

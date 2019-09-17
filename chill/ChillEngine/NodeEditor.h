@@ -58,11 +58,7 @@ namespace chill {
 
     //-------------------------------------------------------
 
-    static NodeEditor* Instance() {
-      if (!s_instance)
-        s_instance = new NodeEditor;
-      return s_instance;
-    }
+    static NodeEditor* Instance();
 
     static void launch();
 
