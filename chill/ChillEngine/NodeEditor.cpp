@@ -130,11 +130,16 @@ namespace chill
   LRESULT CALLBACK custom_wndProc(
     _In_ HWND   /*_hwnd*/,
     _In_ UINT   _uMsg,
-    _In_ WPARAM /*_wParam*/,
-    _In_ LPARAM /*_lParam*/)
+    _In_ WPARAM _wParam,
+    _In_ LPARAM _lParam)
   {
     // get current monitor hwnd
     HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
+    if (_uMsg == WM_ACTIVATE) {
+      if (_wParam == WA_ACTIVE || _wParam == WA_CLICKACTIVE) {
+        NodeEditor::Instance()->showIceSL();
+      }
+    }
 
     if (_uMsg == WM_MOVE) {
       NodeEditor::Instance()->moveIceSLWindowAlongChill();
@@ -146,6 +151,15 @@ namespace chill
       if (wPlacement.showCmd == SW_MAXIMIZE) {
         // set default pos
         NodeEditor::Instance()->setDefaultAppsPos(hMonitor);
+      }
+    }
+
+    if (_uMsg == WM_SYSCOMMAND) {
+      if (_wParam == SC_MINIMIZE) {
+        NodeEditor::Instance()->m_minimized = true;
+      }
+      if (_wParam == SC_RESTORE) {
+        NodeEditor::Instance()->m_minimized = false;
       }
     }
     return 0;
@@ -251,7 +265,9 @@ namespace chill
   //-------------------------------------------------------
   bool NodeEditor::draw()
   {
-
+    /*if (m_docking_icesl && m_icesl_hwnd) {
+      SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, WS_VISIBLE | WS_CHILD);
+    }*/
     drawMenuBar();
     ImGui::SetNextWindowPos(ImVec2(0, 20));
     ImGui::SetNextWindowSize(ImVec2(200, m_size.y));
@@ -263,6 +279,11 @@ namespace chill
 
     //for docking
     updateIceSLPosRatio();
+    if (m_docking_icesl) {
+      showIceSL();
+    }
+
+   
     return true;
   }
 
@@ -330,7 +351,7 @@ namespace chill
         ImGui::MenuItem("Automatic export", "", &m_auto_export);
         ImGui::MenuItem("Automatic use of IceSL", "", &m_auto_icesl);
 #ifdef WIN32
-        ImGui::MenuItem("Docking of IceSL (Ctrl + D)", "", &m_docking_icesl);
+        ImGui::MenuItem("Docking of IceSL", "Ctrl + D", &m_docking_icesl);
 #endif
         ImGui::EndMenu();
       }
@@ -1401,8 +1422,14 @@ namespace chill
     getDesktopRes(desktop_width, desktop_height);
 
     // set chill dimensions to be 1/2 - 1/2 with icesl
-    int app_width = app_width = (desktop_width);
+    float rx = m_ratio_icesl.x + m_offset_icesl.x;
+    float ry = m_ratio_icesl.y + m_offset_icesl.y;
+    int app_width = (desktop_width);
+    if(rx > 1.0)
+      app_width = app_width/ rx;
     int app_heigth = desktop_height ; // bottom shadow is around 10px
+
+    
 
     int chill_x_pos = monitorInfo.rcMonitor.left - magic_x_offset;
     int chill_y_pos = monitorInfo.rcMonitor.top;
@@ -1418,9 +1445,9 @@ namespace chill
     //MoveWindow(m_icesl_hwnd, icesl_xpos, icesl_ypos, icesl_width, icesl_height, true);
 
     // set chill and icesl on top level
-    BringWindowToTop(m_icesl_hwnd);
-    if (m_docking_icesl)
-      SetWindowPos(m_icesl_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE); //Windows voodoo to set window on top without focus
+    //BringWindowToTop(m_icesl_hwnd);
+    //if (m_docking_icesl)
+      //SetWindowPos(m_icesl_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE); //Windows voodoo to set window on top without focus
     
     
   }
@@ -1582,7 +1609,7 @@ namespace chill
 
 
   void NodeEditor::updateIceSLPosRatio() {
-    if (m_docking_icesl) {
+    if (m_docking_icesl && !m_minimized) {
       RECT rect_icesl;
       RECT rect_chill;
       if (GetWindowRect(m_icesl_hwnd, &rect_icesl) && GetWindowRect(m_chill_hwnd, &rect_chill))
@@ -1598,6 +1625,12 @@ namespace chill
         m_offset_icesl.x = float(rect_icesl.left - rect_chill.left) / float(width_chill);
         m_offset_icesl.y = float(rect_icesl.top - rect_chill.top) / float(height_chill);
       }
+    }
+  }
+
+  void NodeEditor::showIceSL() {
+    if (m_icesl_hwnd != NULL && m_docking_icesl) {
+      SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
   }
 }
