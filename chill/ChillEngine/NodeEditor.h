@@ -50,6 +50,9 @@ namespace chill {
     bool   m_selecting = false;
     bool   m_show_grid = true;
 
+    bool   m_IceSLDocking = true;
+    void toggleIceSLDocking() { m_IceSLDocking = !m_IceSLDocking;}
+
 #ifdef WIN32
     HWND m_chill_hwnd = NULL;
     HWND m_icesl_hwnd = NULL;

@@ -693,7 +693,10 @@ namespace chill
           buffer = getCurrentGraph()->copySubset(selected);
         }
       }
-
+      if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['d' - 96] && io.KeysDownDuration['d' - 96] == 0.F) {
+        toggleIceSLDocking();
+      }
+        
 
       if (buffer) {
         if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['v' - 96] && io.KeysDownDuration['v' - 96] == 0.F) {
@@ -1375,7 +1378,10 @@ namespace chill
     getDesktopRes(desktop_width, desktop_height);
 
     // set chill dimensions to be 1/2 - 1/2 with icesl
-    int app_width = (desktop_width / 2);
+    int app_width = app_width = (desktop_width);
+    if (m_IceSLDocking) {
+       app_width = (desktop_width / 2);
+    }
     int app_heigth = desktop_height + magic_offset - 5; // bottom shadow is around 10px
 
     int chill_x_pos = monitorInfo.rcMonitor.left - magic_x_offset;
@@ -1388,10 +1394,12 @@ namespace chill
 
     // move chill & icesl to position
     MoveWindow(m_chill_hwnd, chill_x_pos, chill_y_pos, app_width + 2 * magic_x_offset, app_heigth, true);
-    MoveWindow(m_icesl_hwnd, icesl_xpos, icesl_ypos, icesl_width, app_heigth, true);
+    if (m_IceSLDocking)
+      MoveWindow(m_icesl_hwnd, icesl_xpos, icesl_ypos, icesl_width, app_heigth, true);
 
     // set icesl and chill on top level
-    BringWindowToTop(m_icesl_hwnd);
+    if (m_IceSLDocking)
+      BringWindowToTop(m_icesl_hwnd);
     BringWindowToTop(m_chill_hwnd);
   }
 
@@ -1422,6 +1430,7 @@ namespace chill
       int total_width = iceslRect.right - chillRect.left + magic_offset;
 
       // snap IceSL window to Chill, preserve width
+      if(m_IceSLDocking)
       MoveWindow(m_icesl_hwnd,
         chillRect.right - magic_offset,
         chillRect.top,
@@ -1435,7 +1444,7 @@ namespace chill
 
   void NodeEditor::moveIceSLWindowAlongChill() {
 #ifdef WIN32
-    if (m_icesl_hwnd != NULL) {
+    if (m_icesl_hwnd != NULL && m_IceSLDocking) {
       // offset to compensate for the window's shadows
       const int magic_offset = 15; // TODO determine automatically?
 
