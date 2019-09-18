@@ -327,6 +327,7 @@ namespace chill
         ImGui::MenuItem("Automatic save", "", &m_auto_save);
         ImGui::MenuItem("Automatic export", "", &m_auto_export);
         ImGui::MenuItem("Automatic use of IceSL", "", &m_auto_icesl);
+        ImGui::MenuItem("Docking of IceSL (Ctrl + D)", "", &m_IceSLDocking);
         ImGui::EndMenu();
       }
       // save the effective menubar height in the style
