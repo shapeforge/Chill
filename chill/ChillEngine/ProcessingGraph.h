@@ -111,7 +111,8 @@ class ProcessingGraph : public Processor
       }
       std::shared_ptr<VisualComment> com = std::static_pointer_cast<VisualComment>(_object);
       if (com) {
-        addComment(com);
+        // TODO enable if visual comments are active
+        //addComment(com);
       }
     }
 

@@ -84,12 +84,15 @@ namespace chill {
     m_group_inputs.clear();
     m_group_outputs.clear();
 
+    // NOTE: hotfix : this shouldn't be needed with shared_ptr
+    /*
     for (std::shared_ptr<Processor> processor : m_processors) {
       remove(processor);
     }
     for (std::shared_ptr<VisualComment> element : m_comments) {
       remove(element);
     }
+    */
   }
 
   void ProcessingGraph::remove(std::shared_ptr<Processor> _processor) {
