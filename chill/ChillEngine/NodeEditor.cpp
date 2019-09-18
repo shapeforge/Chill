@@ -1610,6 +1610,7 @@ namespace chill
 
   void NodeEditor::updateIceSLPosRatio() {
     if (m_docking_icesl && !m_minimized) {
+#ifdef WIN32
       RECT rect_icesl;
       RECT rect_chill;
       if (GetWindowRect(m_icesl_hwnd, &rect_icesl) && GetWindowRect(m_chill_hwnd, &rect_chill))
@@ -1625,12 +1626,15 @@ namespace chill
         m_offset_icesl.x = float(rect_icesl.left - rect_chill.left) / float(width_chill);
         m_offset_icesl.y = float(rect_icesl.top - rect_chill.top) / float(height_chill);
       }
+#endif
     }
   }
 
   void NodeEditor::showIceSL() {
     if (m_icesl_hwnd != NULL && m_docking_icesl) {
+#ifdef WIN32
       SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+#endif
     }
   }
 }
