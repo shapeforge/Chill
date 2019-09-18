@@ -139,21 +139,24 @@ setDirty(__currentNodeId)\n";
 
     try {
       std::string outcome = uncommented;
-      std::regex input_regex("input" + REGEX_WSPACES + "\\(" + REGEX_WSPACES + REGEX_STRING + REGEX_WSPACES
+      std::regex input_regex("(input|data)" + REGEX_WSPACES + "\\(" + REGEX_WSPACES + REGEX_STRING + REGEX_WSPACES
         + "," + REGEX_WSPACES + REGEX_STRING + REGEX_WSPACES
         + "(?:," + REGEX_WSPACES + "((?:,?" + REGEX_WSPACES + REGEX_PARAM + REGEX_WSPACES + ")*?)|)\\)");
       std::smatch sm;
       while (regex_search(outcome, sm, input_regex)) {
         std::smatch parameters;
         std::regex param_regex("^,?" + REGEX_WSPACES + "?(" + REGEX_PARAM  + ")" + REGEX_WSPACES + "?");
-        std::string outcome2 = sm[3].str();
+        std::string outcome2 = sm[4].str();
 
         std::vector<std::string> params;
         while (!outcome2.empty() && regex_search(outcome2, parameters, param_regex)) {
           params.push_back(parameters[1]);
           outcome2 = parameters.suffix().str();
         }
-        addInput(sm[1], IOType::FromString(sm[2]), params);
+        auto input = addInput(sm[2], IOType::FromString(sm[3]), params);
+        
+        if (sm[1] == "data")
+          input->m_isDataOnly = true;
         outcome = sm.suffix().str();
       }
     }

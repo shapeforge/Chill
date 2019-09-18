@@ -1,7 +1,7 @@
 [submodule "LibSL"]
 	path = libs/LibSL
 	url = https://github.com/sylefeb/LibSL
-	branch = master
+	branch = imgui_latest
 
 [submodule "chill-nodes"]
 	path = chill-nodes

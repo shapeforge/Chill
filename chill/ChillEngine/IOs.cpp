@@ -137,74 +137,80 @@ bool ProcessorInput::draw() {
   bool updt = false;
 
   float radius = (style.socket_radius + style.socket_border_width) * w_scale;
-  float full_radius = (style.socket_radius + style.socket_border_width) * w_scale;
 
   ImVec2 pos = ImGui::GetCursorPos();
 
-  ImGui::SetCursorPos(ImVec2(pos.x - full_radius - style.processor_border_width * w_scale / 2, pos.y));
-  setPosition(ImVec2(pos.x, pos.y + full_radius));
+    
+    ImGui::SetCursorPos(ImVec2(pos.x - radius - style.processor_border_width * w_scale / 2, pos.y));
+    setPosition(ImVec2(pos.x, pos.y + radius));
 
-  ImGui::PushStyleColor(ImGuiCol_Text,          color());
-  ImGui::PushStyleColor(ImGuiCol_Button,        color());
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color());
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive,  color() & 0xAAFFFFFF);
-
-  ImGui::PushStyleColor(ImGuiCol_DragDropTarget, style.pipe_selected_color);
-
-  int id = int(getUniqueID());
-
-  bool active = false;
-
-  ImGui::PushID(id);
-
-  ImGui::PushStyleColor(ImGuiCol_Border, 0X00000000);
-  if (ImGui::Button("", ImVec2(radius, radius) * 2)) {
-    active = true;
-  }
-  ImGui::PopStyleColor();
-
-  // Drag and Drop Target
-  if (ImGui::BeginDragDropTarget()) {
-    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_pipe_output"))
-    {
-      active = true;
-    }
-    ImGui::EndDragDropTarget();
-  }
-
-  // Drag and Drop Source
-  if (ImGui::BeginDragDropSource()) {
-    if (!m_link) {
-      ImGui::SetDragDropPayload("_pipe_input", nullptr, 0, ImGuiCond_Once);
-    } else {
-      ImGui::SetDragDropPayload("_pipe_output", nullptr, 0, ImGuiCond_Once);
-    }
-    if (!NodeEditor::Instance()->getSelectedOutput()) {
-      active = true;
-    }
-    ImGui::EndDragDropSource();
-  }
-
-  ImGui::PopID();
-
-  if (active) {
-    updt = true;
-    if (!m_link || NodeEditor::Instance()->getSelectedOutput()) {
-      // start a new link
-      NodeEditor::Instance()->setSelectedInput(owner()->input(name()));
+    if (!m_isDataOnly) {
+        ImGui::PushStyleColor(ImGuiCol_Text, color());
+        ImGui::PushStyleColor(ImGuiCol_Button, color());
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color());
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, color() & 0xAAFFFFFF);
+        ImGui::PushStyleColor(ImGuiCol_DragDropTarget, style.pipe_selected_color);
     }
     else {
-      // move the actual link
-      NodeEditor::Instance()->setSelectedOutput(m_link->owner()->output(m_link->name()));
-      Processor::disconnect(owner()->input(name()));
+      ImGui::PushStyleColor(ImGuiCol_Text, 0X00000000);
+      ImGui::PushStyleColor(ImGuiCol_Button, 0X00000000);
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, 0X00000000);
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, 0X00000000);
+      ImGui::PushStyleColor(ImGuiCol_DragDropTarget, 0X00000000);
     }
-  }
 
-  ImGui::PopStyleColor();
-  ImGui::PopStyleColor();
-  ImGui::PopStyleColor();
-  ImGui::PopStyleColor();
-  ImGui::PopStyleColor();
+    int id = int(getUniqueID());
+
+    bool active = false;
+
+    ImGui::PushID(id);
+
+    ImGui::PushStyleColor(ImGuiCol_Border, 0X00000000);
+    if (ImGui::Button("", ImVec2(radius, radius) * 2)) {
+      active = true;
+    }
+    ImGui::PopStyleColor();
+
+    // Drag and Drop Target
+    if (ImGui::BeginDragDropTarget()) {
+      if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_pipe_output"))
+      {
+        active = true;
+      }
+      ImGui::EndDragDropTarget();
+    }
+
+    // Drag and Drop Source
+    if (ImGui::BeginDragDropSource()) {
+      if (!m_link) {
+        ImGui::SetDragDropPayload("_pipe_input", nullptr, 0, ImGuiCond_Once);
+      }
+      else {
+        ImGui::SetDragDropPayload("_pipe_output", nullptr, 0, ImGuiCond_Once);
+      }
+      if (!NodeEditor::Instance()->getSelectedOutput()) {
+        active = true;
+      }
+      ImGui::EndDragDropSource();
+    }
+
+    ImGui::PopID();
+
+    if (active && !m_isDataOnly) {
+      updt = true;
+      if (!m_link || NodeEditor::Instance()->getSelectedOutput()) {
+        // start a new link
+        NodeEditor::Instance()->setSelectedInput(owner()->input(name()));
+      }
+      else {
+        // move the actual link
+        NodeEditor::Instance()->setSelectedOutput(m_link->owner()->output(m_link->name()));
+        Processor::disconnect(owner()->input(name()));
+      }
+    }
+
+    ImGui::PopStyleColor(5);
+ 
 
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, style.socket_border_width * w_scale);
 
@@ -371,6 +377,7 @@ bool chill::PathInput::drawTweak() {
 
 bool chill::ScalarInput::drawTweak() {
   ImGui::SameLine();
+
   std::string name_str = std::string(name());
   std::string label = "##" + name_str;
   std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".4g";
@@ -409,7 +416,6 @@ bool chill::ShapeInput::drawTweak() {
 
 bool chill::StringInput::drawTweak() {
   ImGui::SameLine();
-  ImGui::Text("%s", name());
 
   std::string name_str = std::string(name());
   std::string label = "##" + name_str;
@@ -424,9 +430,9 @@ bool chill::StringInput::drawTweak() {
 
   if (!m_link) {
     if (m_alt) {
-      value_changed = ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), string, 512);
+      value_changed = ImGui::InputTextWithHint(("##" + std::to_string(getUniqueID())).c_str(), name(),string, 512);
     } else {
-      value_changed = ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), string, 512);
+      value_changed = ImGui::InputTextWithHint(("##" + std::to_string(getUniqueID())).c_str(), name(), string, 512);
     }
     if (value_changed) {
       m_value = string;

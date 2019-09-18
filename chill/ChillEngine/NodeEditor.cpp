@@ -655,7 +655,7 @@ namespace chill
       }
 
       // Move the whole canvas
-      if (io.MouseDown[2] && ImGui::IsMouseHoveringAnyWindow()) {
+      if (io.MouseDown[2] && ImGui::IsWindowHovered()) {
         m_offset += io.MouseDelta / w_scale;
       }
 
@@ -1152,6 +1152,10 @@ namespace chill
         "end" << std::endl <<
         "" << std::endl <<
         "function setColor(...) end" << std::endl <<
+        "" << std::endl <<
+        "function data(name, type, ...)" << std::endl <<
+        "  return __input[name][1]" << std::endl <<
+        "end" << std::endl <<
         "" << std::endl <<
         "function input(name, type, ...)" << std::endl <<
         "  return __input[name][1]" << std::endl <<

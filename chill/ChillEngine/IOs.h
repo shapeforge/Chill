@@ -186,6 +186,10 @@ class ProcessorInput : public IO {
 
     /** Linked output. */
     std::shared_ptr<ProcessorOutput> m_link;
+
+    /** Is not linkable */
+    bool m_isDataOnly = false;
+
 }; // class ProcessorInput
 
 //-------------------------------------------------------
@@ -204,6 +208,7 @@ class UndefInput : public ProcessorInput
       std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new UndefInput());
       input->setName (name());
       input->setColor(color());
+      input->m_isDataOnly = m_isDataOnly;
       return input;
     }
 
@@ -272,6 +277,7 @@ class BoolInput : public ProcessorInput
       std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new BoolInput(m_value));
       input->setName (name());
       input->setColor(color());
+      input->m_isDataOnly = m_isDataOnly;
       return input;
     }
 
@@ -374,6 +380,7 @@ class IntInput : public ProcessorInput {
       std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new IntInput(m_value, m_min, m_max, m_alt, m_step));
       input->setName (name());
       input->setColor(color());
+      input->m_isDataOnly = m_isDataOnly;
       return input;
     }
 
@@ -487,6 +494,7 @@ class ListInput : public ProcessorInput {
       std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new ListInput(m_value, m_values));
       input->setName(name());
       input->setColor(color());
+      input->m_isDataOnly = m_isDataOnly;
       return input;
     }
 
@@ -577,6 +585,7 @@ class PathInput : public ProcessorInput {
       std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new PathInput(m_value));
       input->setName(name());
       input->setColor(color());
+      input->m_isDataOnly = m_isDataOnly;
       return input;
     }
 
@@ -683,6 +692,7 @@ class ScalarInput : public ProcessorInput {
       std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new ScalarInput(m_value, m_min, m_max, m_alt, m_step));
       input->setName (name());
       input->setColor(color());
+      input->m_isDataOnly = m_isDataOnly;
       return input;
     }
 
@@ -806,6 +816,7 @@ class StringInput : public ProcessorInput
       std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new StringInput(m_value));
       input->setName (name());
       input->setColor(color());
+      input->m_isDataOnly = m_isDataOnly;
       return input;
     }
 
@@ -891,6 +902,7 @@ class ShapeInput : public ProcessorInput {
       std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new ShapeInput());
       input->setName (name());
       input->setColor(color());
+      input->m_isDataOnly = m_isDataOnly;
       return input;
     }
 
@@ -1000,6 +1012,7 @@ class Vec4Input : public ProcessorInput {
       std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new Vec4Input(m_value, m_min, m_max, m_alt, m_step));
       input->setName (name());
       input->setColor(color());
+      input->m_isDataOnly = m_isDataOnly;
       return input;
     }
 
@@ -1133,6 +1146,7 @@ class Vec3Input : public ProcessorInput
       std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new Vec3Input(m_value, m_min, m_max, m_step));
       input->setName (name());
       input->setColor(color());
+      input->m_isDataOnly = m_isDataOnly;
       return input;
     }
 
