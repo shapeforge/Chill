@@ -50,8 +50,11 @@ namespace chill {
     bool   m_selecting = false;
     bool   m_show_grid = true;
 
-    bool   m_IceSLDocking = true;
-    void toggleIceSLDocking() { m_IceSLDocking = !m_IceSLDocking;}
+    
+    bool   m_docking_icesl = true;
+    ImVec2 m_offset_icesl = ImVec2(0.5, 0.5); //offset of icesl window position compare to chill window left up position compared to the windows size
+    ImVec2 m_ratio_icesl = ImVec2(0.5, 0.5); //ratio of icesl window size compare to chill window size
+    void updateIceSLPosRatio();
 
 #ifdef WIN32
     HWND m_chill_hwnd = NULL;
