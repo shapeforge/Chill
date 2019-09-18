@@ -298,6 +298,7 @@ namespace chill
             m_graphPath = fullpath;
           }
         }
+        /*
         if (ImGui::MenuItem("Save current graph", "Ctrl+Shift+S")) {
           std::string graph_filename = getCurrentGraph()->name() + ".graph";
           fullpath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_GRAPHS);
@@ -308,6 +309,7 @@ namespace chill
             file.close();
           }
         }
+        */
 
         if (ImGui::MenuItem("Export to IceSL lua")) {
           std::string graph_filename = getMainGraph()->name() + ".lua";
