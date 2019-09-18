@@ -456,7 +456,7 @@ namespace chill
 
     
     bool wasDirty = false;
-    for (std::shared_ptr<Processor> processor : m_graphs.top()->processors()) {
+    for (std::shared_ptr<Processor> processor : *m_graphs.top()->processors()) {
       if (processor->isDirty()) {
         wasDirty = true;
         processor->setDirty(false);
@@ -481,7 +481,7 @@ namespace chill
       selected.clear();
       text_editing = false;
 
-      for (std::shared_ptr<Processor> processor : m_graphs.top()->processors()) {
+      for (std::shared_ptr<Processor> processor : *m_graphs.top()->processors()) {
         ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * w_scale;
 
         ImVec2 size = processor->m_size * window->FontWindowScale;
@@ -729,17 +729,10 @@ namespace chill
       comment->draw();
     }
 
-    // Draw the nodes
-    for (std::shared_ptr<Processor> processor : currentGraph->processors()) {
-      ImVec2 position = offset + processor->m_position * w_scale;
-      ImGui::SetCursorPos(position);
-      processor->draw();
-    }
-
     // Draw the pipes
     float pipe_width = style.pipe_line_width * w_scale;
     int pipe_res = static_cast<int>(20 * w_scale);
-    for (std::shared_ptr<Processor> processor : currentGraph->processors()) {
+    for (std::shared_ptr<Processor> processor : *currentGraph->processors()) {
       for (std::shared_ptr<ProcessorOutput> output : processor->outputs()) {
         for (std::shared_ptr<ProcessorInput> input : output->m_links) {
           ImVec2 A = input->getPosition()  + w_pos - ImVec2(pipe_width / 4.F, 0.F);
@@ -773,6 +766,20 @@ namespace chill
         }
       }
     }
+
+    std::sort(
+      currentGraph->processors()->begin(), currentGraph->processors()->end(),
+      [](std::shared_ptr<Processor> p1, std::shared_ptr<Processor> p2) { return p2->m_selected; }
+    );
+
+    // Draw the nodes
+    for (std::shared_ptr<Processor> processor : *currentGraph->processors()) {
+      ImVec2 position = offset + processor->m_position * w_scale;
+      ImGui::SetCursorPos(position);
+      processor->draw();
+    }
+
+
 
     // Draw new pipe
     if (linking) {
@@ -1039,7 +1046,7 @@ namespace chill
         return !(min.x < A.x || B.x < max.x || min.y < A.y || B.y < max.y);
       };
 
-      for (std::shared_ptr<Processor> procui : n_e->getCurrentGraph()->processors()) {
+      for (std::shared_ptr<Processor> procui : *n_e->getCurrentGraph()->processors()) {
         ImVec2 pos_min = procui->getPosition();
         ImVec2 pos_max = pos_min + procui->m_size;
         procui->m_selected = isInside(pos_min, pos_max, A, B);

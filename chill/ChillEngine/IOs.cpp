@@ -214,7 +214,15 @@ bool ProcessorInput::draw() {
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, style.socket_border_width * w_scale);
 
   if (w_scale > 0.7F) {
+
+    if (!owner()->m_selected) {
+      ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+    }
     updt |= drawTweak();
+
+    if (!owner()->m_selected) {
+      ImGui::PopItemFlag();
+    }
     //ImGui::SameLine();
     //ImGui::Text(name());
   }

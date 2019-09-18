@@ -171,16 +171,16 @@ class ProcessingGraph : public Processor
      *  Get the list of processors in the graph.
      *  @return The list of processors within the graph.
      */
-    const std::vector<std::shared_ptr<Processor>> processors()
+    std::vector<std::shared_ptr<Processor>>* processors()
     {
-      return m_processors;
+      return &m_processors;
     }
 
     /**
      *  Get the list of comments in the graph.
      *  @return The list of comments within the graph.
      */
-    const std::vector<std::shared_ptr<VisualComment>> comments()
+    std::vector<std::shared_ptr<VisualComment>> comments()
     {
       return m_comments;
     }
