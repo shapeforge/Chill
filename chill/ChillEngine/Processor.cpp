@@ -144,9 +144,11 @@ std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInp
     std::shared_ptr<ProcessorOutput> from = to->m_link;
     if (from) {
       from->m_links.erase(std::remove(from->m_links.begin(), from->m_links.end(), to), from->m_links.end());
+      from->owner()->setDirty();
     }
 
     to->m_link = std::shared_ptr<ProcessorOutput>(nullptr);
+    to->owner()->setDirty();
   }
 
   void Processor::disconnect(std::shared_ptr<ProcessorOutput> from) {
@@ -155,9 +157,11 @@ std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInp
     for (std::shared_ptr<ProcessorInput> to : from->m_links) {
       if (to) {
         to->m_link = std::shared_ptr<ProcessorOutput>(nullptr);
+        to->owner()->setDirty();
       }
     }
     from->m_links.clear();
+    from->owner()->setDirty();
   }
 
   bool Processor::areConnected(Processor * from, Processor * to)
@@ -209,8 +213,6 @@ std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInp
 };
 
 bool chill::Processor::draw() {
-  m_dirty = false;
-
   ImGui::PushID(int(getUniqueID()));
 
   ImGuiWindow* window = ImGui::GetCurrentWindow();

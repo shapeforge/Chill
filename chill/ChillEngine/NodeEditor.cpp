@@ -453,20 +453,23 @@ namespace chill
     ImVec2 offset = (m_offset * w_scale + (w_size - w_pos) / 2.0F);
 
     
-
+    bool wasDirty = false;
     for (std::shared_ptr<Processor> processor : m_graphs.top()->processors()) {
       if (processor->isDirty()) {
-        if (m_auto_export) {
-          exportIceSL(m_iceSLTempExportPath);
-//          exportIceSL(g_iceSLExportPath);
-        }
+        wasDirty = true;
+        processor->setDirty(false);
+      }
+    }
 
-        if (m_auto_save) {
-          std::ofstream file;
-          file.open(m_graphPath);
-          m_graphs.top()->save(file);
-        }
-        break;
+    if (wasDirty) {
+      if (m_auto_export) {
+        exportIceSL(m_iceSLTempExportPath);
+      }
+
+      if (m_auto_save) {
+        std::ofstream file;
+        file.open(m_graphPath);
+        m_graphs.top()->save(file);
       }
     }
 
