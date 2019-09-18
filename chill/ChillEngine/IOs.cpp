@@ -1,6 +1,5 @@
 #include "IOs.h"
 
-
 #include "NodeEditor.h"
 
 #include "Processor.h"
@@ -349,10 +348,7 @@ bool chill::PathInput::drawTweak() {
 
   if (!m_link) {
     ImGui::SetCursorPos(cursor + ImVec2(item_width * 1.F / 4.F, 0));
-    value_changed = ImGui::InputText(("##" + std::to_string(getUniqueID())).c_str(), string, 512);
-    if (value_changed) {
-      m_value = string;
-    }
+    ImGui::Text(fs::path(string).filename().generic_string().c_str());
 
     ImGui::SetCursorPos(cursor);
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(73/255.F, 193/255.F, 194/255.F, 1));
@@ -364,6 +360,7 @@ bool chill::PathInput::drawTweak() {
       if (!fullpath.empty()) {
         std::replace(fullpath.begin(), fullpath.end(), '\\', '/');
         m_value = fullpath.c_str();
+        value_changed = true;
       }
     }
     ImGui::PopStyleColor(2);

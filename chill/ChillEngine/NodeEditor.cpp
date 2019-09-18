@@ -13,12 +13,6 @@
 #include <GL/glut.h>
 #endif
 
-#ifdef WIN32
-namespace fs = std::experimental::filesystem;
-#else
-namespace fs = std::filesystem;
-#endif
-
 //LIBSL_WIN32_FIX
 
 namespace chill

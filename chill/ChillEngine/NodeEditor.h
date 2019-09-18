@@ -14,13 +14,16 @@
 #include "Processor.h"
 #include "ProcessingGraph.h"
 
+
+
+namespace chill {
+
 #ifdef WIN32
 namespace fs = std::experimental::filesystem;
 #else
 namespace fs = std::filesystem;
 #endif
 
-namespace chill {
   class NodeEditor : public UI {
 
 
