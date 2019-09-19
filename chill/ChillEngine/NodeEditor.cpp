@@ -1055,14 +1055,16 @@ namespace chill
         ImVec2 pos_min = procui->getPosition();
         ImVec2 pos_max = pos_min + procui->m_size;
         procui->m_selected = isInside(pos_min, pos_max, A, B);
-        selected.push_back(std::shared_ptr<SelectableUI>(procui));
+        if (procui->m_selected)
+          selected.push_back(std::shared_ptr<SelectableUI>(procui));
       }
 
       for (std::shared_ptr<VisualComment> comui : n_e->getCurrentGraph()->comments()) {
         ImVec2 pos_min = comui->getPosition();
         ImVec2 pos_max = pos_min + comui->m_size;
         comui->m_selected = isInside(pos_min, pos_max, A, B);
-        selected.push_back(std::shared_ptr<SelectableUI>(comui));
+        if (comui->m_selected)
+          selected.push_back(std::shared_ptr<SelectableUI>(comui));
       }
     }
   }
