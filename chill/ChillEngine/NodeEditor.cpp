@@ -623,7 +623,7 @@ namespace chill
       } // ! RIGHT CLICK
 
 #if 0
-      { // MOUSE WHEEL
+      { // MOUSE WHEEL to enter sub-graph
         if (io.MouseWheel > 0 && w_scale == 2.0F && !hovered.empty()) {
           for (std::shared_ptr<SelectableUI> object : hovered) {
             std::shared_ptr<ProcessingGraph> pg = std::static_pointer_cast<ProcessingGraph>(object);
@@ -723,6 +723,7 @@ namespace chill
     }
     ProcessingGraph* currentGraph = m_graphs.top();
 
+    // Draw visual comment
     for (std::shared_ptr<VisualComment> comment : currentGraph->comments()) {
       ImVec2 position = offset + comment->m_position * w_scale;
       ImGui::SetCursorPos(position);
@@ -895,12 +896,13 @@ namespace chill
 
   //-------------------------------------------------------
   void NodeEditor::menus() {
-    NodeEditor* n_e = Instance();
 
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-
-
     ImGuiIO io = ImGui::GetIO();
+
+    float w_scale = window->FontWindowScale;
+
+    window->FontWindowScale = 1.0F;
 
     // Draw menus
     if (Instance()->m_graph_menu) {
@@ -916,7 +918,6 @@ namespace chill
 
       ImVec2 w_pos = window->Pos;
       ImVec2 w_size = window->Size;
-      float w_scale = window->FontWindowScale;
 
       // mouse to screen
       ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
@@ -968,7 +969,7 @@ namespace chill
       Instance()->m_node_menu = false;
       if (ImGui::MenuItem("Copy", "CTRL+C"))
       {
-        buffer = n_e->getCurrentGraph()->copySubset(selected);
+        buffer = getCurrentGraph()->copySubset(selected);
       }
       /*
       if (ImGui::MenuItem("Group"))
@@ -985,7 +986,7 @@ namespace chill
       */
       if (ImGui::MenuItem("Delete")) {
         for (std::shared_ptr<SelectableUI> item : selected) {
-          n_e->getCurrentGraph()->remove(item);
+          getCurrentGraph()->remove(item);
         }
       }
       if (ImGui::MenuItem("Unlink")) {
@@ -1005,11 +1006,13 @@ namespace chill
       ImGui::EndPopup();
     }
     ImGui::PopStyleVar();
+
+    window->FontWindowScale = w_scale;
   }
 
   //-------------------------------------------------------
   void NodeEditor::selectProcessors() {
-    Instance()->m_selecting = true;
+    m_selecting = true;
 
     NodeEditor* n_e = Instance();
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -1022,8 +1025,8 @@ namespace chill
 
     ImGuiIO io = ImGui::GetIO();
 
-    ImVec2 A = (io.MousePos - (w_pos + w_size) / 2.0F) / w_scale - Instance()->m_offset;
-    ImVec2 B = (io.MouseClickedPos[0] - (w_pos + w_size) / 2.0F) / w_scale - Instance()->m_offset;
+    ImVec2 A = (io.MousePos - (w_pos + w_size) / 2.0F) / w_scale - m_offset;
+    ImVec2 B = (io.MouseClickedPos[0] - (w_pos + w_size) / 2.0F) / w_scale - m_offset;
 
     if (A.x > B.x) std::swap(A.x, B.x);
     if (A.y > B.y) std::swap(A.y, B.y);
@@ -1032,7 +1035,7 @@ namespace chill
       draw_list->AddRect(
         io.MouseClickedPos[0],
         io.MousePos,
-        Instance()->style.processor_selected_color
+        style.processor_selected_color
       );
 
       if (!io.KeysDown[LIBSL_KEY_SHIFT]) {
