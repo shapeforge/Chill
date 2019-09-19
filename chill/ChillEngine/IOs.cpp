@@ -41,7 +41,6 @@ bool ProcessorOutput::draw() {
   ImGui::PushStyleColor(ImGuiCol_Button, color());
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color());
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, color() & 0xAAFFFFFF);
-
   ImGui::PushStyleColor(ImGuiCol_DragDropTarget, style.pipe_selected_color);
 
   int id = int(getUniqueID());
@@ -49,7 +48,6 @@ bool ProcessorOutput::draw() {
 
   ImGui::PushStyleColor(ImGuiCol_Border, 0x00000000);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, style.socket_border_width * w_scale);
-
   if (ImGui::Button("", ImVec2(radius, radius) * 2)) {
     NodeEditor::Instance()->setSelectedOutput(owner()->output(name()));
   }
@@ -70,11 +68,7 @@ bool ProcessorOutput::draw() {
   }
   ImGui::PopID();
 
-  ImGui::PopStyleColor();
-  ImGui::PopStyleColor();
-  ImGui::PopStyleColor();
-  ImGui::PopStyleColor();
-  ImGui::PopStyleColor();
+  ImGui::PopStyleColor(5);
 
   return false;
 }
@@ -143,79 +137,75 @@ bool ProcessorInput::draw() {
   ImVec2 pos = ImGui::GetCursorPos();
 
     
-    ImGui::SetCursorPos(ImVec2(pos.x - radius - style.processor_border_width * w_scale / 2, pos.y));
-    setPosition(ImVec2(pos.x, pos.y + radius));
+  ImGui::SetCursorPos(ImVec2(pos.x - radius - style.processor_border_width * w_scale / 2, pos.y));
+  setPosition(ImVec2(pos.x, pos.y + radius));
 
-    if (!m_isDataOnly) {
-        ImGui::PushStyleColor(ImGuiCol_Text, color());
-        ImGui::PushStyleColor(ImGuiCol_Button, color());
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color());
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, color() & 0xAAFFFFFF);
-        ImGui::PushStyleColor(ImGuiCol_DragDropTarget, style.pipe_selected_color);
-    }
-    else {
-      ImGui::PushStyleColor(ImGuiCol_Text, 0X00000000);
-      ImGui::PushStyleColor(ImGuiCol_Button, 0X00000000);
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, 0X00000000);
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive, 0X00000000);
-      ImGui::PushStyleColor(ImGuiCol_DragDropTarget, 0X00000000);
-    }
+  if (!m_isDataOnly) {
+    ImGui::PushStyleColor(ImGuiCol_Text, color());
+    ImGui::PushStyleColor(ImGuiCol_Button, color());
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color());
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, color() & 0xAAFFFFFF);
+    ImGui::PushStyleColor(ImGuiCol_DragDropTarget, style.pipe_selected_color);
+  }
+  else {
+    ImGui::PushStyleColor(ImGuiCol_Text, 0X00000000);
+    ImGui::PushStyleColor(ImGuiCol_Button, 0X00000000);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, 0X00000000);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, 0X00000000);
+    ImGui::PushStyleColor(ImGuiCol_DragDropTarget, 0X00000000);
+  }
 
-    int id = int(getUniqueID());
+  int id = int(getUniqueID());
 
-    bool active = false;
+  bool active = false;
 
-    ImGui::PushID(id);
+  ImGui::PushID(id);
 
-    ImGui::PushStyleColor(ImGuiCol_Border, 0X00000000);
-    if (ImGui::Button("", ImVec2(radius, radius) * 2)) {
+  ImGui::PushStyleColor(ImGuiCol_Border, 0X00000000);
+  if (ImGui::Button("", ImVec2(radius, radius) * 2)) {
+    active = true;
+  }
+  ImGui::PopStyleColor();
+
+  // Drag and Drop Target
+  if (ImGui::BeginDragDropTarget()) {
+    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_pipe_output"))
+    {
       active = true;
     }
-    ImGui::PopStyleColor();
+    ImGui::EndDragDropTarget();
+  }
 
-    // Drag and Drop Target
-    if (ImGui::BeginDragDropTarget()) {
-      if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_pipe_output"))
-      {
-        active = true;
-      }
-      ImGui::EndDragDropTarget();
+  // Drag and Drop Source
+  if (ImGui::BeginDragDropSource()) {
+    if (!m_link) {
+      ImGui::SetDragDropPayload("_pipe_input", nullptr, 0, ImGuiCond_Once);
     }
-
-    // Drag and Drop Source
-    if (ImGui::BeginDragDropSource()) {
-      if (!m_link) {
-        ImGui::SetDragDropPayload("_pipe_input", nullptr, 0, ImGuiCond_Once);
-      }
-      else {
-        ImGui::SetDragDropPayload("_pipe_output", nullptr, 0, ImGuiCond_Once);
-      }
-      if (!NodeEditor::Instance()->getSelectedOutput()) {
-        active = true;
-      }
-      ImGui::EndDragDropSource();
+    else {
+      ImGui::SetDragDropPayload("_pipe_output", nullptr, 0, ImGuiCond_Once);
     }
-
-    ImGui::PopID();
-
-    if (active && !m_isDataOnly) {
-      updt = true;
-      if (!m_link || NodeEditor::Instance()->getSelectedOutput()) {
-        // start a new link
-        NodeEditor::Instance()->setSelectedInput(owner()->input(name()));
-      }
-      else {
-        // move the actual link
-        NodeEditor::Instance()->setSelectedOutput(m_link->owner()->output(m_link->name()));
-        Processor::disconnect(owner()->input(name()));
-      }
+    if (!NodeEditor::Instance()->getSelectedOutput()) {
+      active = true;
     }
+    ImGui::EndDragDropSource();
+  }
+  ImGui::PopID();
 
-    ImGui::PopStyleColor(5);
+  if (active && !m_isDataOnly) {
+    updt = true;
+    if (!m_link || NodeEditor::Instance()->getSelectedOutput()) {
+      // start a new link
+      NodeEditor::Instance()->setSelectedInput(owner()->input(name()));
+    }
+    else {
+      // move the actual link
+      NodeEditor::Instance()->setSelectedOutput(m_link->owner()->output(m_link->name()));
+      Processor::disconnect(owner()->input(name()));
+    }
+  }
+  ImGui::PopStyleColor(5);
  
-
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, style.socket_border_width * w_scale);
-
   if (w_scale > 0.7F) {
 
     if (!owner()->m_selected) {
@@ -229,7 +219,6 @@ bool ProcessorInput::draw() {
     //ImGui::SameLine();
     //ImGui::Text(name());
   }
-
   ImGui::PopStyleVar();
   return updt;
 }
@@ -384,10 +373,12 @@ bool chill::PathInput::drawTweak() {
         value_changed = true;
       }
     }
+    ImGui::PopItemWidth();
     ImGui::PopStyleColor(2);
   } else {
     ImGui::Text("%s", name());
   }
+  ImGui::PopItemWidth();
   return value_changed || m_value != before;
 }
 

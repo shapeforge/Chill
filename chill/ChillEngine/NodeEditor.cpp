@@ -149,7 +149,7 @@ namespace chill
   //-------------------------------------------------------
 
   NodeEditor::NodeEditor() {
-    m_graphs.push(new ProcessingGraph());
+    m_graphs.push(std::shared_ptr<ProcessingGraph>(new ProcessingGraph()));
   }
 
   //-------------------------------------------------------
@@ -162,6 +162,7 @@ namespace chill
       if (fs::exists(filename.c_str())) {
         GraphSaver test;
         test.execute(filename.c_str());
+
       }
     }
     return s_instance;
@@ -273,7 +274,7 @@ namespace chill
           if (!fullpath.empty()) {
             std::ofstream file;
             file.open(fullpath);
-            setMainGraph(new ProcessingGraph());
+            setMainGraph(std::shared_ptr<ProcessingGraph>(new ProcessingGraph()));
             getMainGraph()->save(file);
             file.close();
             m_graphPath = fullpath;
@@ -535,12 +536,11 @@ namespace chill
       else {
         if (io.MouseDoubleClicked[0]) {
           for (std::shared_ptr<SelectableUI> hovproc : hovered) {
-            if (ProcessingGraph* v = dynamic_cast<ProcessingGraph*>(hovproc.get())) {
-              if (!v->m_edit) {
-                m_graphs.push(v);
-                m_offset = m_graphs.top()->getBarycenter() * -1.0F;
-                break;
-              }
+            std::shared_ptr<ProcessingGraph> v = std::static_pointer_cast<ProcessingGraph>(hovproc);
+            if (v && !v->m_edit) {
+              m_graphs.push(v);
+              m_offset = m_graphs.top()->getBarycenter() * -1.0F;
+              break;
             }
           }
         }
@@ -721,7 +721,7 @@ namespace chill
     {
       drawGrid();
     }
-    ProcessingGraph* currentGraph = m_graphs.top();
+    std::shared_ptr<ProcessingGraph> currentGraph = m_graphs.top();
 
     // Draw visual comment
     for (std::shared_ptr<VisualComment> comment : currentGraph->comments()) {

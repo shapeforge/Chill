@@ -19,6 +19,10 @@ class GraphSaver {
       luabind::open(m_LuaState);
       registerBindings(m_LuaState);
     }
+
+    ~GraphSaver() {
+      lua_close(m_LuaState);
+    }
     
     void execute(const char*);
 

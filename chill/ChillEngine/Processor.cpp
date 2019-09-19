@@ -282,10 +282,7 @@ bool chill::Processor::draw() {
       if (ImGui::ButtonEx((name() + "##" + std::to_string(getUniqueID())).c_str(), title_size - ImVec2(2 * button_size, 0), ImGuiButtonFlags_PressedOnDoubleClick)) {
         m_edit = true;
       }
-      ImGui::PopStyleColor();
-      ImGui::PopStyleColor();
-      ImGui::PopStyleColor();
-      ImGui::PopStyleColor();
+      ImGui::PopStyleColor(5);
     } else {
       char title[32];
       strncpy(title, name().c_str(), 32);
@@ -482,9 +479,9 @@ bool chill::Multiplexer::draw() {
   }
   ImGui::EndGroup();
 
+  ImGui::PopStyleVar();
+  ImGui::PopStyleVar();
   ImGui::PopID();
-  ImGui::PopStyleVar();
-  ImGui::PopStyleVar();
 
   return m_edit;
 }

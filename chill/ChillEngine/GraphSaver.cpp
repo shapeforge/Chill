@@ -151,6 +151,10 @@ class Lua_Processor {
 
   public:
 
+    ~Lua_Processor() {
+      std::cout << "luap" << std::endl;
+    }
+
     //-------------------------------------------------------
 
     Lua_Processor() {
@@ -217,13 +221,13 @@ class Lua_Graph : public Lua_Processor {
     //-------------------------------------------------------
 
     Lua_Graph() {
-      m_Ptr = static_cast<std::shared_ptr<Processor>>(std::shared_ptr<ProcessingGraph>(new ProcessingGraph()));
+      m_Ptr = std::shared_ptr<Processor>(new ProcessingGraph());
     }
 
     //-------------------------------------------------------
 
     Lua_Graph(const std::string& _name) {
-      m_Ptr = static_cast<std::shared_ptr<Processor>>(std::shared_ptr<ProcessingGraph>(new ProcessingGraph(_name)));
+      m_Ptr = std::shared_ptr<Processor>(new ProcessingGraph(_name));
     }
 
     //-------------------------------------------------------
@@ -321,7 +325,7 @@ static void lua_connect(
 //-------------------------------------------------------
 
 static void setAsMainGraph(Lua_Graph graph) {
-  NodeEditor::Instance()->setMainGraph(std::static_pointer_cast<ProcessingGraph>(graph.ptr()).get());
+  NodeEditor::Instance()->setMainGraph(std::static_pointer_cast<ProcessingGraph>(graph.ptr()));
 }
 
 //-------------------------------------------------------
@@ -347,6 +351,7 @@ void GraphSaver::registerBindings(lua_State *L_) {
       .def(luabind::constructor<const luabind::object&>())
       .def("add", &Lua_Processor::addInput)
       .def("add", &Lua_Processor::addOutput),
+      
       luabind::class_<Lua_Graph, Lua_Processor>("Graph")
       .def(luabind::constructor<>())
       .def(luabind::constructor<const std::string&>())
@@ -354,16 +359,20 @@ void GraphSaver::registerBindings(lua_State *L_) {
       .def("add", &Lua_Graph::addInput)
       .def("add", &Lua_Graph::addOutput)
       .def("add", &Lua_Graph::addProcessor),
+
       luabind::class_<Lua_Node, Lua_Processor>("Node")
       .def(luabind::constructor<>())
       .def(luabind::constructor<const std::string&>())
       .def(luabind::constructor<const luabind::object&>()),
+
       luabind::class_<Lua_Input>("Input")
       .def(luabind::constructor<>())
       .def(luabind::constructor<const luabind::object&>()),
+
       luabind::class_<Lua_Output>("Output")
       .def(luabind::constructor<>())
       .def(luabind::constructor<const luabind::object&>()),
+
       luabind::def("connect", &lua_connect),
       luabind::def("set_graph", &setAsMainGraph)
       ];

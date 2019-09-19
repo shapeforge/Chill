@@ -79,12 +79,12 @@ namespace fs = std::filesystem;
     static bool scriptPath(const std::string& name, std::string& _path);
     inline void SetIceslPath();
 
-    ProcessingGraph* getCurrentGraph() {
+    std::shared_ptr<ProcessingGraph> getCurrentGraph() {
       return m_graphs.top();
     }
 
-    ProcessingGraph* getMainGraph() {
-      std::vector<ProcessingGraph*> memory = std::vector<ProcessingGraph*>();
+    std::shared_ptr<ProcessingGraph> getMainGraph() {
+      std::vector<std::shared_ptr<ProcessingGraph>> memory = std::vector<std::shared_ptr<ProcessingGraph>>();
       while (!m_graphs.empty()) {
         memory.push_back(m_graphs.top());
         m_graphs.pop();
@@ -97,9 +97,9 @@ namespace fs = std::filesystem;
       return memory.back();
     }
 
-    void setMainGraph(ProcessingGraph* _graph) {
+    void setMainGraph(std::shared_ptr<ProcessingGraph> _graph) {
       while (!m_graphs.empty()) m_graphs.pop();
-      m_graphs.push(_graph);
+      m_graphs.emplace(_graph);
     }
 
     void setSelectedInput(std::shared_ptr<ProcessorInput> _input) {
@@ -197,7 +197,7 @@ namespace fs = std::filesystem;
 
       static NodeEditor* s_instance;
 
-      std::stack<chill::ProcessingGraph*> m_graphs;
+      std::stack<std::shared_ptr<chill::ProcessingGraph>> m_graphs;
 
       std::shared_ptr<ProcessorInput>  m_selected_input;
       std::shared_ptr<ProcessorOutput> m_selected_output;
