@@ -607,7 +607,7 @@ class PathInput : public ProcessorInput {
     //-------------------------------------------------------
 
     template <typename ...>
-    PathInput(std::string _value = "", bool _alt = false, std::string _filter = "", ...) : PathInput() {
+    PathInput(std::string _value = "", bool _alt = false, std::vector<const char *> _filter = {""}, ...) : PathInput() {
       m_value  = _value;
       m_alt    = _alt;
       m_filter = _filter;
@@ -621,16 +621,30 @@ class PathInput : public ProcessorInput {
 
       m_value  = s >= 1 ? _params[0] : "";
       m_alt    = s >= 2 ? _params[1] == "true" : false;
-      m_filter = s >= 3 ? _params[2] : "";
 
-      std::regex quote("(^[\'\"]|[\'\"]$)");
-      std::string unquoted;
+      if (s >= 3) {
+        bool inside = false;
+        std::string * filter = new std::string();
+        for (int i = 0; i < _params[2].size(); ++i) {
+          if (_params[2][i] == '\'') {
+            inside = !inside;
+            continue;
+          }
+          
+          if (!inside && !filter->empty()) {
+            m_filter.push_back(filter->c_str());
+            filter = new std::string();
+          }
+          
+          if (inside)
+            *filter += _params[2][i];
+        }
+      }
+      else {
+        m_filter.push_back("*.*");
+      }
 
-      regex_replace(std::back_inserter(unquoted), m_value.begin(), m_value.end(), quote, "$2");
-      m_value = unquoted;
-
-      regex_replace(std::back_inserter(unquoted), m_filter.begin(), m_filter.end(), quote, "$2");
-      m_filter = unquoted;
+      std::cerr << std::endl;
     }
 
     //-------------------------------------------------------
@@ -670,7 +684,7 @@ class PathInput : public ProcessorInput {
     //-------------------------------------------------------
 
     std::string m_value;
-    std::string m_filter;
+    std::vector<const char*> m_filter;
     bool m_alt;
 };
 
