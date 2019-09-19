@@ -22,6 +22,7 @@ namespace chill {
     setName(_processor.name());
     setOwner(_processor.owner());
     setColor(_processor.color());
+    m_program = loadFileIntoString((NodeEditor::NodesFolder() + m_nodepath).c_str());
 
     for (auto input : _processor.inputs()) {
       addInput(input->clone());
@@ -69,7 +70,7 @@ namespace chill {
 
     std::string code = "--[[ " + name() + " ]]--\n";
     code += "setfenv(1, _G0)  --go back to global initialization\n";
-    code += "__currentNodeId = " + std::to_string(reinterpret_cast<int64_t>(this)) + "\n";
+    code += "__currentNodeId = " + std::to_string(getUniqueID()) + "\n";
 
     if (isDirty() || isEmiter()) {
       code += "setDirty(__currentNodeId)\n";
@@ -82,7 +83,7 @@ namespace chill {
       }
       // input
       else {
-        std::string s2 = std::to_string(reinterpret_cast<int64_t>(input->m_link->owner()));
+        std::string s2 = std::to_string(input->m_link->owner()->getUniqueID());
         code += "__input[\"" + std::string(input->name()) + "\"] = {" + input->m_link->name() + s2 + "," + s2 + "}\n";
       }
     }
@@ -98,7 +99,7 @@ setfenv(1, _Gcurrent)    --set it\n\
 
     for (auto input : inputs()) {
       if (input->m_link) {
-        std::string s2 = std::to_string(reinterpret_cast<int64_t>(input->m_link->owner()));
+        std::string s2 = std::to_string(input->m_link->owner()->getUniqueID());
         code += ", " + s2;
       }
     }

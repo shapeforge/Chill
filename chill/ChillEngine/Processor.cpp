@@ -24,6 +24,7 @@ std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInp
     m_name  = copy.m_name;
     m_color = copy.m_color;
     m_owner = copy.m_owner;
+    
 
     for (std::shared_ptr<ProcessorInput> input : copy.m_inputs) {
       addInput(input->clone());

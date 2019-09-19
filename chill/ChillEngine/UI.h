@@ -68,7 +68,7 @@ public:
   }
 
   inline int64_t getUniqueID() {
-    return int64_t(this);
+    return reinterpret_cast<int64_t>(this);
   }
 };
 

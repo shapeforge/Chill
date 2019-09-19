@@ -128,7 +128,7 @@ class ProcessorOutput : public IO {
     //-------------------------------------------------------
 
     virtual void save(std::ofstream& _stream) {
-      _stream << "o_" << int64_t(this) << " = Output({" <<
+      _stream << "o_" << getUniqueID() << " = Output({" <<
                  "name = '" << name() << "', " <<
                  "type = '" << IOType::ToString(type()) << "'" <<
                  "})" << std::endl;
@@ -172,7 +172,7 @@ class ProcessorInput : public IO {
     //-------------------------------------------------------
 
     virtual void save(std::ofstream& _stream) {
-      _stream << "i_" << int64_t(this) << " = Input({" <<
+      _stream << "i_" << getUniqueID() << " = Input({" <<
                  "name = '" << name() << "', " <<
                  "type = '" << IOType::ToString(type()) << "'" <<
                  "})" << std::endl;
@@ -199,6 +199,7 @@ class UndefInput : public ProcessorInput
 {
   public:
     UndefInput() {
+      setType(IOType::UNDEF);
       setColor(color_undef);
     }
 
@@ -238,8 +239,61 @@ class UndefOutput : public ProcessorOutput
     //-------------------------------------------------------
 
     UndefOutput() {
+      setType(IOType::UNDEF);
       setColor(color_undef);
     }
+};
+
+//-------------------------------------------------------
+
+// IO_IMPLICT
+class ImplicitInput : public ProcessorInput
+{
+public:
+  ImplicitInput() {
+    setType(IOType::IMPLICIT);
+    setColor(color_undef);
+  }
+
+  //-------------------------------------------------------
+
+  std::shared_ptr<ProcessorInput> clone() {
+    std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new ImplicitInput());
+    input->setName(name());
+    input->setColor(color());
+    input->m_isDataOnly = m_isDataOnly;
+    return input;
+  }
+
+  //-------------------------------------------------------
+
+  // For compatibility (shouldn't be called)
+  template <typename ...>
+  ImplicitInput(...) : ImplicitInput() {}
+
+  //-------------------------------------------------------
+
+  bool drawTweak();
+};
+
+//-------------------------------------------------------
+
+class ImplicitOutput : public ProcessorOutput
+{
+public:
+  std::shared_ptr<ProcessorOutput> clone() {
+    std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new ImplicitOutput());
+    output->setName(name());
+    output->setColor(color());
+    return output;
+  }
+
+  //-------------------------------------------------------
+
+  ImplicitOutput() {
+    setType(IOType::IMPLICIT);
+    setColor(color_undef);
+  }
 };
 
 //-------------------------------------------------------
@@ -284,7 +338,7 @@ class BoolInput : public ProcessorInput
     bool drawTweak();
 
     void save(std::ofstream& _stream) {
-      _stream << "i_" << int64_t(this) << " = Input({" <<
+      _stream << "i_" << getUniqueID() << " = Input({" <<
                  "name = '" << name() << "', " <<
                  "type = '" << IOType::ToString(type()) << "', " <<
                  "value = " << (m_value ? "true" : "false") <<
@@ -391,7 +445,7 @@ class IntInput : public ProcessorInput {
     //-------------------------------------------------------
 
     void save(std::ofstream& _stream) {
-      _stream << "i_" << int64_t(this) << " = Input({" <<
+      _stream << "i_" << getUniqueID() << " = Input({" <<
                  "name = '" << name() << "'" <<
                  ", type = '" << IOType::ToString(type()) << "'" <<
                  ", value = " << m_value <<
@@ -505,7 +559,7 @@ class ListInput : public ProcessorInput {
     //-------------------------------------------------------
 
     void save(std::ofstream& _stream) {
-      _stream << "i_" << int64_t(this) << " = Input({" <<
+      _stream << "i_" << getUniqueID() << " = Input({" <<
                  "name = '" << name() << "'" <<
                  ", type = '" << IOType::ToString(type()) << "'" <<
                  ", value = " << m_value <<
@@ -596,7 +650,7 @@ class PathInput : public ProcessorInput {
     //-------------------------------------------------------
 
     void save(std::ofstream& _stream) {
-      _stream << "i_" << int64_t(this) << " = Input({" <<
+      _stream << "i_" << getUniqueID() << " = Input({" <<
                  "name = '" << name() << "', " <<
                  "type = '" << IOType::ToString(type()) << "', " <<
                  "value = '" << m_value << "'" <<
@@ -712,7 +766,7 @@ class ScalarInput : public ProcessorInput {
     // -----------------------------------------------------
 
     void save(std::ofstream& _stream) {
-      _stream << "i_" << int64_t(this) << " = Input({" <<
+      _stream << "i_" << getUniqueID() << " = Input({" <<
                  "name = '" << name() << "'" <<
                  ", type = '" << IOType::ToString(type()) << "'" <<
                  ", value = " << m_value <<
@@ -827,7 +881,7 @@ class StringInput : public ProcessorInput
     // -----------------------------------------------------
 
     void save(std::ofstream& _stream) {
-      _stream << "i_" << int64_t(this) << " = Input({" <<
+      _stream << "i_" << getUniqueID() << " = Input({" <<
                  "name = '" << name() << "', " <<
                  "type = '" << IOType::ToString(type()) << "', " <<
                  "value = '" << m_value << "'" <<
@@ -909,7 +963,7 @@ class ShapeInput : public ProcessorInput {
     // -----------------------------------------------------
 
     void save(std::ofstream& _stream) {
-      _stream << "i_" << int64_t(this) << " = Input({" <<
+      _stream << "i_" << getUniqueID() << " = Input({" <<
                  "name = '" << name() << "'" <<
                  ", type = '" << IOType::ToString(type()) << "'" <<
                  "})" << std::endl;
@@ -1023,7 +1077,7 @@ class Vec4Input : public ProcessorInput {
     // -----------------------------------------------------
 
     void save(std::ofstream& _stream) {
-      _stream << "i_" << int64_t(this) << " = Input({" <<
+      _stream << "i_" << getUniqueID() << " = Input({" <<
                  "name = '" << name() << "'" <<
                  ", type = '" << IOType::ToString(type()) << "'" <<
                  ", value = {" << m_value[0] << ", " << m_value[1] << ", " << m_value[2] << ", " << m_value[3] << "}" <<
@@ -1157,7 +1211,7 @@ class Vec3Input : public ProcessorInput
     // -----------------------------------------------------
 
     void save(std::ofstream& _stream) {
-      _stream << "i_" << int64_t(this) << " = Input({" <<
+      _stream << "i_" << getUniqueID() << " = Input({" <<
                  "name = '" << name() << "'" <<
                  ", type = '" << IOType::ToString(type()) << "'" <<
                  ", value = {" << m_value[0] << "," << m_value[1] << "," << m_value[2] << "}" <<
@@ -1220,6 +1274,9 @@ std::shared_ptr<ProcessorInput> ProcessorInput::create(const std::string& _name,
     break;
   case IOType::INTEGER:
     input = std::shared_ptr<ProcessorInput>(new IntInput(_args...));
+    break;
+  case IOType::IMPLICIT:
+    input = std::shared_ptr<ProcessorInput>(new ImplicitInput(_args...));
     break;
   case IOType::LIST:
     input = std::shared_ptr<ProcessorInput>(new ListInput(_args...));

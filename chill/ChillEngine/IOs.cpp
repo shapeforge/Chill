@@ -90,6 +90,9 @@ std::shared_ptr<ProcessorOutput> ProcessorOutput::create(const std::string& _nam
   case IOType::INTEGER:
     output = std::shared_ptr<ProcessorOutput>(new IntOutput());
     break;
+  case IOType::IMPLICIT:
+    output = std::shared_ptr<ProcessorOutput>(new ImplicitOutput());
+    break;
   case IOType::PATH:
     output = std::shared_ptr<ProcessorOutput>(new PathOutput());
     break;
@@ -240,6 +243,16 @@ std::string ProcessorInput::getLuaValue() {
 //-------------------------------------------------------
 
 bool chill::UndefInput::drawTweak() {
+  ImGui::SameLine();
+
+  ImGui::Text("%s", name());
+
+  return false;
+}
+
+//-------------------------------------------------------
+
+bool chill::ImplicitInput::drawTweak() {
   ImGui::SameLine();
 
   ImGui::Text("%s", name());
