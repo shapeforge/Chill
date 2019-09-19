@@ -768,10 +768,12 @@ namespace chill
       }
     }
 
-    std::sort(
-      currentGraph->processors()->begin(), currentGraph->processors()->end(),
-      [](std::shared_ptr<Processor> p1, std::shared_ptr<Processor> p2) { return p2->m_selected; }
-    );
+    if (selected.size() == 1) { // ToDo : """this is a QUICK FIX""" Make this work for N nodes
+      std::sort(
+        currentGraph->processors()->begin(), currentGraph->processors()->end(),
+        [](std::shared_ptr<Processor> p1, std::shared_ptr<Processor> p2) { return p2->m_selected; }
+      );
+    }
 
     // Draw the nodes
     for (std::shared_ptr<Processor> processor : *currentGraph->processors()) {
