@@ -2,6 +2,7 @@
 	path = libs/LibSL
 	url = https://github.com/sylefeb/LibSL
 	branch = imgui_latest
+	ignore = dirty
 
 [submodule "chill-nodes"]
 	path = chill-nodes
@@ -12,3 +13,4 @@
 	path = libs/tinyfiledialogs
 	url = https://github.com/native-toolkit/tinyfiledialogs
 	branch = master
+	ignore = dirty
