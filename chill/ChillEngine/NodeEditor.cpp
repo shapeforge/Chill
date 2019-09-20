@@ -138,16 +138,13 @@ namespace chill
     
     if (_uMsg == WM_ACTIVATE) {
       if (_wParam == WA_ACTIVE ) {
-        SetWindowPos(NodeEditor::Instance()->m_icesl_hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
-        BringWindowToTop(NodeEditor::Instance()->m_chill_hwnd);
-        SetWindowPos(NodeEditor::Instance()->m_chill_hwnd, NodeEditor::Instance()->m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
-        NodeEditor::Instance()->showIceSL();
+        //SetWindowPos(NodeEditor::Instance()->m_chill_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        BringWindowToTop(NodeEditor::Instance()->m_icesl_hwnd);
+        //BringWindowToTop(NodeEditor::Instance()->m_icesl_hwnd);
+        //SetForegroundWindow(NodeEditor::Instance()->m_chill_hwnd);
+        //SetWindowPos(NodeEditor::Instance()->m_chill_hwnd, NodeEditor::Instance()->m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
+        //NodeEditor::Instance()->showIceSL();
       }
-    }
-
-    if (_uMsg == WM_SETFOCUS) {
-      BringWindowToTop(NodeEditor::Instance()->m_chill_hwnd);
-      NodeEditor::Instance()->showIceSL();
     }
 
     if (_uMsg == WM_MOVE) {
@@ -368,7 +365,10 @@ namespace chill
         if (ImGui::MenuItem("Docking of IceSL", "Ctrl + D", &tempsdockbool)) {
           dock();
         }
-        const char* items[] = { "layout-1", "layout-2", "layout-3", "layout-4" };
+        const char* items[sizeof(layouts) / sizeof(layouts[0])];
+        for (int i = 0; i < sizeof(layouts) / sizeof(layouts[0]); i++) {
+          items[i] = layouts[i].Name;
+        }
         static int item_current = 0;
         if (ImGui::Combo("combo", &item_current, items, IM_ARRAYSIZE(items))) {
           setLayout(item_current);
@@ -1684,23 +1684,15 @@ namespace chill
 
   void NodeEditor::setLayout(int l) {
 #ifdef WIN32
-    if (l < 4) {
-      if (m_layout == 3) {
-        layouts[m_layout].offset_icesl = m_offset_icesl;
-        layouts[m_layout].ratio_icesl = m_ratio_icesl;
-      }
+    if (l < sizeof(layouts) / sizeof(layouts[0]) ) {
       m_offset_icesl = layouts[l].offset_icesl;
       m_ratio_icesl = layouts[l].ratio_icesl;
-
-      if (!layouts[l].resizable) {
-        SetWindowLong(m_icesl_hwnd, GWL_STYLE, GetWindowLong(m_icesl_hwnd, GWL_STYLE)|WS_CHILD);
-      }
-      else {
-        SetWindowLong(m_icesl_hwnd, GWL_STYLE, GetWindowLong(m_icesl_hwnd, GWL_STYLE)&~WS_CHILD);
-      }
       m_layout = l;
-      setDefaultAppsPos(NULL);
-      moveIceSLWindowAlongChill();
+
+
+      if(m_docking_icesl){
+        moveIceSLWindowAlongChill();
+      }
     }
   }
 #endif
@@ -1711,6 +1703,7 @@ namespace chill
     if (m_docking_icesl) {
       SetWindowLong(m_icesl_hwnd, GWL_STYLE, (GetWindowLong(m_icesl_hwnd, GWL_STYLE) | WS_CHILD) &~WS_POPUPWINDOW &~WS_SIZEBOX  &~WS_CAPTION);
       SetWindowLong(m_chill_hwnd, GWL_STYLE, GetWindowLong(m_chill_hwnd, GWL_STYLE) | WS_CLIPCHILDREN );
+      setLayout(m_layout);
     }
     else {
       SetWindowLong(m_icesl_hwnd, GWL_STYLE, (GetWindowLong(m_icesl_hwnd, GWL_STYLE) &~ WS_CHILD) | WS_POPUPWINDOW | WS_SIZEBOX | WS_CAPTION);
