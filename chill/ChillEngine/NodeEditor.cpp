@@ -49,6 +49,63 @@ namespace chill
   }
 
   //---------------------------------------------------
+  std::string recursiveFileMenuSelecter(const std::string& _current_dir, std::string filter = "")
+  {
+    std::vector<std::string> files;
+    std::vector<std::string> directories;
+
+    listLuaFileInDir(files, _current_dir);
+    listFolderinDir(directories, _current_dir);
+
+    std::string nameDir = "";
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7F, 0.7F, 1.0F, 1.0F));
+    ForIndex(i, directories.size()) {
+      const char* dir_name = directories[static_cast<unsigned>(i)].c_str();
+      if (!nameDir.empty()) break;
+
+      if (dir_name[0] != '.') {
+        if (!filter.empty()){
+          nameDir = recursiveFileMenuSelecter(Resources::toPath(_current_dir, directories[i]), filter);
+        } else {
+          if (ImGui::CollapsingHeader((std::string(dir_name) + "##" + _current_dir).c_str() )) {
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            ImGui::BeginGroup();
+            nameDir = recursiveFileMenuSelecter(Resources::toPath(_current_dir, directories[i]), filter);
+            ImGui::EndGroup();
+
+          }
+        }
+      }
+    }
+    ImGui::PopStyleColor();
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0F, 1.0F, 1.0F, 1.0F));
+    ForIndex(i, files.size()) {
+      std::string name = removeExtensionFromFileName(files[i]);
+      std::string low_name = name;
+      std::locale loc;
+
+      for(auto& elem : low_name)
+          elem = std::tolower(elem,loc);
+
+      // If don't match the filter, we skip
+      if (low_name.find(filter) == std::string::npos) {
+        continue;
+      }
+
+      bool test = ImGui::MenuItem(name.c_str());
+
+      if (test) {
+        nameDir = Resources::toPath(_current_dir, files[i]);
+      }
+
+    }
+    ImGui::PopStyleColor();
+    return nameDir;
+  }
+
+  //---------------------------------------------------
   std::string recursiveFileSelecter(const std::string& _current_dir, std::string filter = "")
   {
     std::vector<std::string> files;
@@ -99,7 +156,6 @@ namespace chill
 
     }
     ImGui::PopStyleColor();
-    std::cout << nameDir << std::endl;
     return nameDir;
   }
 
@@ -109,6 +165,18 @@ namespace chill
     if (_path[nfsize + 1] == '/') nfsize++;
     std::string name = _path.substr(nfsize);
     return name;
+  }
+
+  //-------------------------------------------------------
+  bool addNodeLeftMenu(ImVec2 _pos, std::string filter = "") {
+    NodeEditor* n_e = NodeEditor::Instance();
+    std::string node = recursiveFileMenuSelecter(NodeEditor::NodesFolder(), filter);
+    if (!node.empty()) {
+      std::shared_ptr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>(relativePath(node));
+      proc->setPosition(_pos);
+      return true;
+    }
+    return false;
   }
 
   //-------------------------------------------------------
@@ -411,10 +479,9 @@ namespace chill
   }
 
   //-------------------------------------------------------
+  char leftMenuSearch[64] = "";
   void NodeEditor::drawLeftMenu()
   {
-    char name[32];
-
     ImGui::Begin("GraphInfo", &m_visible,
       ImGuiWindowFlags_NoTitleBar |
       ImGuiWindowFlags_NoCollapse |
@@ -427,6 +494,8 @@ namespace chill
       ImGuiWindowFlags_NoBringToFrontOnFocus
     );
 
+#if 0
+    char name[32];
 
     if (ImGui::CollapsingHeader("Graph tree")) {
       ImVec2 size(100, 20);
@@ -495,6 +564,17 @@ namespace chill
       ImGui::NewLine();
       
     }
+#endif
+
+    ImVec2 s2g = ImVec2(-100, -50) - Instance()->m_offset;
+
+    ImGui::InputTextWithHint("##", "search", leftMenuSearch,  64);
+
+    std::locale loc;
+    for( auto& elem: leftMenuSearch)
+       elem = std::tolower(elem, loc);
+    addNodeLeftMenu(s2g, leftMenuSearch);
+
 
     ImGui::End();
   }
