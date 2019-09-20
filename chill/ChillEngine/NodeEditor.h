@@ -64,10 +64,11 @@ namespace fs = std::filesystem;
     void dock();
 
     int m_layout = 0;
-    Layout layouts[3] = { 
+    Layout layouts[2] = { 
       // {"name", pos, size, resizable },
       {"preview",ImVec2(0.75, 0.75),ImVec2(0.25, 0.25),false},
       {"side by side",ImVec2(2.0/3.0, 0.05),ImVec2(1.0/3.0, 0.95),false}
+      //{"side by side",ImVec2(1.0/3.0, 0.05),ImVec2(2.0/3.0, 0.95),false}
       
     };
     void setLayout(int l);

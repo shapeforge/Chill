@@ -742,6 +742,7 @@ namespace chill
       if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['d' - 96] && io.KeysDownDuration['d' - 96] == 0.F) {
         dock();
       }
+      /*
       if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['1' - 96] && io.KeysDownDuration['1' - 96] == 0.F) {
         setLayout(1);
       }
@@ -751,6 +752,7 @@ namespace chill
       if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['3' - 96] && io.KeysDownDuration['3' - 96] == 0.F) {
         setLayout(3);
       }
+      */
         
 
       if (buffer) {
@@ -1422,6 +1424,7 @@ namespace chill
         // place apps in default pos
 #ifdef WIN32
         Instance()->setDefaultAppsPos(NULL);
+        Instance()->dock();
 #else
         nodeEditor->setDefaultAppsPos();
 #endif
@@ -1494,7 +1497,9 @@ namespace chill
     SetWindowLongPtr(Instance()->m_icesl_hwnd, GWL_STYLE, GetWindowLongPtr(Instance()->m_icesl_hwnd, GWL_STYLE) | WS_CHILD);
     SetWindowLongPtr(Instance()->m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(Instance()->m_chill_hwnd, GWL_STYLE) | WS_CLIPCHILDREN);
     Instance()->setLayout(Instance()->m_layout);
-    Instance()->dock();
+    
+    BringWindowToTop(m_icesl_hwnd);
+    BringWindowToTop(m_chill_hwnd);
   }
 
 #else

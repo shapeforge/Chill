@@ -481,7 +481,7 @@ bool chill::Vec4Input::drawTweak() {
       ImGui::PopItemWidth();
     }
     else {
-      const char* format = "%0.3f";
+      const char* format = "%0.4g";
       value_changed = ImGui::DragFloat4(label.c_str(), m_value, m_step, m_min, m_max, format);
     }
   }
@@ -517,7 +517,7 @@ bool Vec3Input::drawTweak() {
     ImGui::SetCursorPosX(current.x + padding);
 
     std::string label = "##" + std::string(name());
-    const char* format = "%0.3f";
+    const char* format = "%0.4g";
     value_changed = ImGui::DragFloat3(label.c_str(), m_value, m_step, m_min, m_max, format);
   }
 
