@@ -1422,12 +1422,6 @@ namespace chill
         // place apps in default pos
 #ifdef WIN32
         Instance()->setDefaultAppsPos(NULL);
-        
-        SetWindowLong(Instance()->m_icesl_hwnd, GWL_STYLE, GetWindowLong(Instance()->m_icesl_hwnd, GWL_STYLE) | WS_CHILD);
-        SetWindowLong(Instance()->m_chill_hwnd, GWL_STYLE, GetWindowLong(Instance()->m_chill_hwnd, GWL_STYLE) | WS_CLIPCHILDREN);
-        Instance()->dock();
-        Instance()->setLayout(Instance()->m_layout);
-
 #else
         nodeEditor->setDefaultAppsPos();
 #endif
@@ -1460,7 +1454,7 @@ namespace chill
   void NodeEditor::setDefaultAppsPos(HMONITOR hMonitor) {
     // offset to compensate for the window's shadows
     const int magic_offset = 10; // TODO determine automatically?
-    const int magic_x_offset = 8; // TODO  PB:get a correct offset / resolution calculation
+    const int magic_x_offset = 8; // TODO get a correct offset / resolution calculation
 
     // get current monitor info (set to zero in not specified, eg. hMonitor == NULL)
     MONITORINFO monitorInfo;
@@ -1482,27 +1476,25 @@ namespace chill
       app_width = app_width/ rx;
     int app_heigth = desktop_height ; // bottom shadow is around 10px
 
-    
-
     int chill_x_pos = monitorInfo.rcMonitor.left - magic_x_offset;
     int chill_y_pos = monitorInfo.rcMonitor.top;
 
-    // set icesl dimensions
-    /*int icesl_xpos = chill_x_pos + m_offset_icesl.x * (app_width);
-    int icesl_ypos =  m_offset_icesl.y * (app_heigth);
-    int icesl_width = (app_width) * m_ratio_icesl.x;
-    int icesl_height = (app_heigth) * m_ratio_icesl.y;*/
+
     // move chill & icesl to position
     MoveWindow(m_chill_hwnd, chill_x_pos, chill_y_pos, app_width + 2 * magic_x_offset, app_heigth + magic_offset, true);
-    //if (m_docking_icesl)
-    //MoveWindow(m_icesl_hwnd, icesl_xpos, icesl_ypos, icesl_width, icesl_height, true);
+    MoveWindow(m_icesl_hwnd, 0, 0, 1, 1, true);
 
-    // set chill and icesl on top level
-    //BringWindowToTop(m_icesl_hwnd);
-    //if (m_docking_icesl)
-      //SetWindowPos(m_icesl_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE); //Windows voodoo to set window on top without focus
-    
-    
+    /*
+    if (m_docking_icesl) {
+      MoveWindow(m_icesl_hwnd, icesl_xpos, icesl_ypos, icesl_width, icesl_height, true);
+      SetWindowPos(m_icesl_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE); //Windows voodoo to set window on top without focus
+    }
+    */
+
+    SetWindowLongPtr(Instance()->m_icesl_hwnd, GWL_STYLE, GetWindowLongPtr(Instance()->m_icesl_hwnd, GWL_STYLE) | WS_CHILD);
+    SetWindowLongPtr(Instance()->m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(Instance()->m_chill_hwnd, GWL_STYLE) | WS_CLIPCHILDREN);
+    Instance()->setLayout(Instance()->m_layout);
+    Instance()->dock();
   }
 
 #else
@@ -1718,13 +1710,13 @@ namespace chill
 #ifdef WIN32
     m_docking_icesl = !m_docking_icesl;
     if (m_docking_icesl) {
-      SetWindowLong(m_icesl_hwnd, GWL_STYLE, (GetWindowLong(m_icesl_hwnd, GWL_STYLE) | WS_CHILD) &~WS_POPUPWINDOW &~WS_SIZEBOX  &~WS_CAPTION);
-      SetWindowLong(m_chill_hwnd, GWL_STYLE, GetWindowLong(m_chill_hwnd, GWL_STYLE) | WS_CLIPCHILDREN );
+      SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) | WS_CHILD) &~WS_POPUPWINDOW &~WS_SIZEBOX  &~WS_CAPTION);
+      SetWindowLongPtr(m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(m_chill_hwnd, GWL_STYLE) | WS_CLIPCHILDREN );
       setLayout(m_layout);
     }
     else {
-      SetWindowLong(m_icesl_hwnd, GWL_STYLE, (GetWindowLong(m_icesl_hwnd, GWL_STYLE) &~ WS_CHILD) | WS_POPUPWINDOW | WS_SIZEBOX | WS_CAPTION);
-      SetWindowLong(m_chill_hwnd, GWL_STYLE, GetWindowLong(m_chill_hwnd, GWL_STYLE) &~WS_CLIPCHILDREN);
+      SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) &~ WS_CHILD) | WS_POPUPWINDOW | WS_SIZEBOX | WS_CAPTION);
+      SetWindowLongPtr(m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(m_chill_hwnd, GWL_STYLE) &~WS_CLIPCHILDREN);
     }
   }
 #endif 

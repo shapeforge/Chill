@@ -65,9 +65,12 @@ namespace fs = std::filesystem;
 
 
     int m_layout = 0;
-    Layout layouts[3] = { {"2/3-1/3",ImVec2(2.0/3.0, 0.05),ImVec2(1.0/3.0, 0.95),false},
-                          {"1/3-2/3",ImVec2(1.0/3.0, 0.05),ImVec2(2.0/3.0, 0.95),false},
-                          {"popup",ImVec2(0.5, 0.5),ImVec2(0.5, 0.5),false} };
+    Layout layouts[3] = { 
+      // {"name", pos, size, resizable },
+      {"preview",ImVec2(0.75, 0.75),ImVec2(0.25, 0.25),false},
+      {"side by side",ImVec2(2.0/3.0, 0.05),ImVec2(1.0/3.0, 0.95),false}
+      
+    };
     void setLayout(int l);
     ImVec2 m_offset_icesl = ImVec2(0.5, 0.5); //offset of icesl window position compare to chill window left up position compared to the windows size
     ImVec2 m_ratio_icesl = ImVec2(0.5, 0.5); //ratio of icesl window size compare to chill window size
