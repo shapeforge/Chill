@@ -63,7 +63,6 @@ namespace fs = std::filesystem;
     bool m_docking_icesl = true;
     void dock();
 
-
     int m_layout = 0;
     Layout layouts[3] = { 
       // {"name", pos, size, resizable },
