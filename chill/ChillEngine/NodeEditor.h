@@ -24,8 +24,14 @@ namespace fs = std::experimental::filesystem;
 namespace fs = std::filesystem;
 #endif
 
-  class NodeEditor : public UI {
+  struct Layout {
+    char*  Name;
+    ImVec2 offset_icesl;
+    ImVec2 ratio_icesl;
+    bool   resizable;
+  };
 
+  class NodeEditor : public UI {
 
   public:
     const uint default_width = 800;
@@ -52,6 +58,23 @@ namespace fs = std::filesystem;
     bool   m_dragging = false;
     bool   m_selecting = false;
     bool   m_show_grid = true;
+
+    bool m_minimized = false;
+    bool m_docking_icesl = true;
+    void dock();
+
+    int m_layout = 0;
+    Layout layouts[3] = { 
+      // {"name", pos, size, resizable },
+      {"preview",ImVec2(0.75, 0.75),ImVec2(0.25, 0.25),false},
+      {"side by side",ImVec2(2.0/3.0, 0.05),ImVec2(1.0/3.0, 0.95),false}
+      
+    };
+    void setLayout(int l);
+    ImVec2 m_offset_icesl = ImVec2(0.5, 0.5); //offset of icesl window position compare to chill window left up position compared to the windows size
+    ImVec2 m_ratio_icesl = ImVec2(0.5, 0.5); //ratio of icesl window size compare to chill window size
+    void updateIceSLPosRatio();
+    void showIceSL();
 
 #ifdef WIN32
     HWND m_chill_hwnd = NULL;
