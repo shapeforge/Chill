@@ -266,6 +266,10 @@ public:
   }
 
   //-------------------------------------------------------
+  template <typename ...>
+  ImplicitInput(std::vector<std::string>) : ImplicitInput() {}
+
+  //-------------------------------------------------------
 
   // For compatibility (shouldn't be called)
   template <typename ...>
