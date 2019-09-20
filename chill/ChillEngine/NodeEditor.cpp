@@ -13,6 +13,9 @@
 #include <GL/glut.h>
 #endif
 
+#undef ForIndex
+#define ForIndex(I, N) for(decltype(N) I=0; I<N; I++)
+
 //LIBSL_WIN32_FIX
 
 namespace chill
@@ -46,52 +49,78 @@ namespace chill
   }
 
   //---------------------------------------------------
-  std::string recursiveFileSelecter(const std::string& _current_dir)
+  std::string recursiveFileSelecter(const std::string& _current_dir, std::string filter = "")
   {
     std::vector<std::string> files;
-    listLuaFileInDir(files, _current_dir);
     std::vector<std::string> directories;
-    std::string nameDir = "";
+
+    listLuaFileInDir(files, _current_dir);
     listFolderinDir(directories, _current_dir);
+
+    std::string nameDir = "";
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7F, 0.7F, 1.0F, 1.0F));
     ForIndex(i, directories.size()) {
-      const char* dir_name = directories[i].c_str();
-      if (dir_name[0] != '.' && ImGui::BeginMenu(dir_name)) {
-        nameDir = recursiveFileSelecter(Resources::toPath(_current_dir, directories[i]));
-        ImGui::EndMenu();
+      const char* dir_name = directories[static_cast<unsigned>(i)].c_str();
+      if (!nameDir.empty()) break;
+
+      if (dir_name[0] != '.') {
+        if (!filter.empty()){
+          nameDir = recursiveFileSelecter(Resources::toPath(_current_dir, directories[i]), filter);
+        } else {
+          if (ImGui::BeginMenu(dir_name)) {
+            nameDir = recursiveFileSelecter(Resources::toPath(_current_dir, directories[i]), filter);
+            ImGui::EndMenu();
+          }
+        }
       }
     }
     ImGui::PopStyleColor();
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0F, 1.0F, 1.0F, 1.0F));
     ForIndex(i, files.size()) {
-      if (ImGui::MenuItem(removeExtensionFromFileName(files[i]).c_str())) {
+      std::string name = removeExtensionFromFileName(files[i]);
+      std::string low_name = name;
+      std::locale loc;
+
+      for(auto& elem : low_name)
+          elem = std::tolower(elem,loc);
+
+      // If don't match the filter, we skip
+      if (low_name.find(filter) == std::string::npos) {
+        continue;
+      }
+
+      bool test = ImGui::MenuItem(name.c_str());
+
+      if (test) {
         nameDir = Resources::toPath(_current_dir, files[i]);
       }
+
     }
     ImGui::PopStyleColor();
-
+    std::cout << nameDir << std::endl;
     return nameDir;
   }
 
   //-------------------------------------------------------
-  std::string relativePath(const std::string& _path)
-  {
-    int nfsize = static_cast<int>(NodeEditor::NodesFolder().size());
+  std::string relativePath(const std::string& _path) {
+    unsigned long nfsize = static_cast<unsigned long>(NodeEditor::NodesFolder().size());
     if (_path[nfsize + 1] == '/') nfsize++;
     std::string name = _path.substr(nfsize);
     return name;
   }
 
   //-------------------------------------------------------
-  void addNodeMenu(ImVec2 _pos) {
+  bool addNodeMenu(ImVec2 _pos, std::string filter = "") {
     NodeEditor* n_e = NodeEditor::Instance();
-    std::string node = recursiveFileSelecter(NodeEditor::NodesFolder());
+    std::string node = recursiveFileSelecter(NodeEditor::NodesFolder(), filter);
     if (!node.empty()) {
       std::shared_ptr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>(relativePath(node));
       proc->setPosition(_pos);
+      return true;
     }
+    return false;
   }
 
   //-------------------------------------------------------
@@ -832,7 +861,7 @@ namespace chill
     if (selected.size() == 1) { // ToDo : """this is a QUICK FIX""" Make this work for N nodes
       std::sort(
         currentGraph->processors()->begin(), currentGraph->processors()->end(),
-        [](std::shared_ptr<Processor> p1, std::shared_ptr<Processor> p2) { return p2->m_selected; }
+        [](std::shared_ptr<Processor> /*p1*/, std::shared_ptr<Processor> p2) { return p2->m_selected; }
       );
     }
 
@@ -958,6 +987,7 @@ namespace chill
   }
 
   //-------------------------------------------------------
+  char search[64] = "";
   void NodeEditor::menus() {
 
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -970,6 +1000,7 @@ namespace chill
     // Draw menus
     if (Instance()->m_graph_menu) {
       ImGui::OpenPopup("graph_menu");
+      search[0] = '\0';
     }
     if (Instance()->m_node_menu) {
       ImGui::OpenPopup("node_menu");
@@ -989,10 +1020,16 @@ namespace chill
 
       Instance()->m_graph_menu = false;
 
+      ImGui::InputTextWithHint("##", "search", search,  64);
+
       /*
       if (ImGui::BeginMenu("Add", "SPACE")) {
       */
-        addNodeMenu(s2g);
+
+      std::locale loc;
+      for( auto& elem: search)
+         elem = std::tolower(elem, loc);
+      addNodeMenu(s2g, search);
       /*
         ImGui::EndMenu();
       }
@@ -1658,7 +1695,7 @@ namespace chill
 #elif __linux__
       // TODO Linux modal window
       //std::system( ("echo -e " + std::string(modalText) + " | xmessage -file -").c_str() );
-      std::system( ("xmessage \""+ std::string(modalText) + "\"").c_str() );
+      std::system( ("xmessage \""+ std::string(modalText) + "\" -title \"" + std::string(modalTitle) + "\"").c_str() );
       m_iceslPath = openFileDialog(OFD_FILTER_ALL).c_str();
       std::cerr << Console::yellow << "IceSL location specified: " << m_iceslPath << Console::gray << std::endl;
 #endif
@@ -1689,11 +1726,11 @@ namespace chill
   }
 
   void NodeEditor::showIceSL() {
-    if (m_icesl_hwnd != NULL && m_docking_icesl) {
 #ifdef WIN32
+    if (m_icesl_hwnd != nullptr && m_docking_icesl) {
       SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-#endif
     }
+#endif
   }
 
   void NodeEditor::setLayout(int l) {
@@ -1708,8 +1745,8 @@ namespace chill
         moveIceSLWindowAlongChill();
       }
     }
-  }
 #endif
+  }
 
   void NodeEditor::dock() {
 #ifdef WIN32
@@ -1723,6 +1760,6 @@ namespace chill
       SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) &~ WS_CHILD) | WS_POPUPWINDOW | WS_SIZEBOX | WS_CAPTION);
       SetWindowLongPtr(m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(m_chill_hwnd, GWL_STYLE) &~WS_CLIPCHILDREN);
     }
-  }
 #endif 
+  }
 }

@@ -146,15 +146,7 @@ class Lua_Output {
 //-------------------------------------------------------
 
 class Lua_Processor {
-  protected:
-    std::shared_ptr<Processor> m_Ptr;
-
   public:
-
-    ~Lua_Processor() {
-      std::cout << "luap" << std::endl;
-    }
-
     //-------------------------------------------------------
 
     Lua_Processor() {
@@ -213,6 +205,8 @@ class Lua_Processor {
       m_Ptr->addOutput(output.ptr());
     }
 
+  protected:
+    std::shared_ptr<Processor> m_Ptr;
 }; // class Lua_Processor
 
 class Lua_Graph : public Lua_Processor {

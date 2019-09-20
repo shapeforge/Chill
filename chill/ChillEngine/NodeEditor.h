@@ -81,6 +81,8 @@ namespace fs = std::filesystem;
     HWND m_chill_hwnd = NULL;
     HWND m_icesl_hwnd = NULL;
     PROCESS_INFORMATION m_icesl_p_info;
+#else
+
 #endif
 
     //-------------------------------------------------------

@@ -318,7 +318,7 @@ bool chill::ListInput::drawTweak() {
 
     ImGui::Combo(label.c_str(), &m_value,
                  [](void* data, int idx, const char** out_text) {
-      *out_text = static_cast<const std::vector<std::string>*>(data)->at(idx).c_str();
+      *out_text = static_cast<const std::vector<std::string>*>(data)->at(static_cast<unsigned long>(idx)).c_str();
       return true;
     }, reinterpret_cast<void*> (&m_values),
     static_cast<int>(m_values.size()));
@@ -358,7 +358,8 @@ bool chill::PathInput::drawTweak() {
 
   if (!m_link) {
     ImGui::SetCursorPos(cursor + ImVec2(item_width * 1.F / 4.F, 0));
-    ImGui::Text(fs::path(string).filename().generic_string().c_str());
+    const char* path = fs::path(string).filename().generic_string().c_str();
+    ImGui::Text("%s", path);
 
     ImGui::SetCursorPos(cursor);
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(73/255.F, 193/255.F, 194/255.F, 1));
