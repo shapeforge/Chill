@@ -366,7 +366,7 @@ bool chill::PathInput::drawTweak() {
     ImGui::PushItemWidth(item_width * 1.F / 4.F);
 
     if (ImGui::Button(" ... ##")) {
-      std::string fullpath = openFileDialog(OFD_FILTER_ALL);
+      std::string fullpath = openFileDialog(m_filter);
       if (!fullpath.empty()) {
         std::replace(fullpath.begin(), fullpath.end(), '\\', '/');
         m_value = fullpath.c_str();
