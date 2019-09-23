@@ -410,6 +410,23 @@ namespace chill
             m_graphPath = fullpath;
           }
         }
+        if (ImGui::MenuItem("Load example graph")) {
+          std::string chillFolder;
+          // TODO clean this !
+#ifdef WIN32
+          std::string folderName = "\\chill-models\\";
+#else
+          std::string folderName = "/chill-models/";
+#endif
+          if (scriptPath(folderName, chillFolder)) {
+            fullpath = openFileDialog(chillFolder.c_str(), OFD_FILTER_GRAPHS);
+            if (!fullpath.empty()) {
+              GraphSaver test;
+              test.execute(fullpath.c_str());
+              m_graphPath = fullpath;
+            }
+          }
+        }
         if (ImGui::MenuItem("Save graph", "Ctrl+S")) {
           std::string graph_filename = getMainGraph()->name() + ".graph";
           fullpath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_GRAPHS);
@@ -1676,7 +1693,7 @@ namespace chill
     std::vector<std::string> paths;
 
 #ifdef WIN32
-    paths.push_back(getenv("APPDATA") + std::string("/Chill") + name);
+    paths.push_back(getenv("APPDATA") + std::string("\\ChiLL") + name);
 #elif __linux__
     paths.push_back("/etc/chill" + name);
 #endif
