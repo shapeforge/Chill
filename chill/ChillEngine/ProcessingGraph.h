@@ -205,28 +205,31 @@ class ProcessingGraph : public Processor
       return false;
     }
     
-    ImVec2 getBarycenter(std::vector<std::shared_ptr<SelectableUI>> _elements) {
+    ImVec2 getBarycenter(const std::vector<std::shared_ptr<SelectableUI>>& _elements) {
       ImVec2 position(0, 0);
-      for (std::shared_ptr<SelectableUI> processor : _elements) {
-        position += processor->getPosition();
+      for (std::shared_ptr<SelectableUI> element : _elements) {
+        position += element->getPosition();
       }
       return position / static_cast<float>(_elements.size());
     }
 
     ImVec2 getBarycenter() {
+
       std::vector<std::shared_ptr<SelectableUI>> list;
-      for (auto &proc : m_processors) {
-        list.push_back(std::shared_ptr<SelectableUI>(proc));
+      for (std::shared_ptr<Processor> proc : m_processors) {
+        list.push_back(proc);
       }
-      for (auto &com : m_comments) {
-        list.push_back(std::shared_ptr<SelectableUI>(com));
+      /*
+        for (auto com : m_comments) {
+        list.push_back(com);
       }
+      */
       //      list.insert(list.end(), m_processors.begin(), m_processors.end());
       //      list.insert(list.end(), m_comments.begin(), m_comments.end());
       return getBarycenter(list);
     }
 
-    AABox getBoundingBox(std::vector<std::shared_ptr<SelectableUI>> _elements) {
+    AABox getBoundingBox(const std::vector<std::shared_ptr<SelectableUI>>& _elements) {
       AABox bbox;
       for (std::shared_ptr<SelectableUI> element : _elements) {
         bbox.m_Mins[0] = std::min(bbox.m_Mins[0], element->getPosition().x);

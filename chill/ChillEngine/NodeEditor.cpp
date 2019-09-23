@@ -367,7 +367,7 @@ namespace chill
     }*/
     drawMenuBar();
     ImGui::SetNextWindowPos(ImVec2(0, 20));
-    ImGui::SetNextWindowSize(ImVec2(200, m_size.y));
+    ImGui::SetNextWindowSize(ImVec2(200, m_size.y - 20));
     drawLeftMenu();
 
     ImGui::SetNextWindowPos(ImVec2(200, 20));
@@ -695,7 +695,7 @@ namespace chill
       else {
         if (io.MouseDoubleClicked[0]) {
           for (std::shared_ptr<SelectableUI> hovproc : hovered) {
-            std::shared_ptr<ProcessingGraph> v = std::static_pointer_cast<ProcessingGraph>(hovproc);
+            std::shared_ptr<ProcessingGraph> v = std::dynamic_pointer_cast<ProcessingGraph>(hovproc);
             if (v && !v->m_edit) {
               m_graphs.push(v);
               m_offset = m_graphs.top()->getBarycenter() * -1.0F;
