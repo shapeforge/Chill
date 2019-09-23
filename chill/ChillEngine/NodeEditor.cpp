@@ -493,8 +493,6 @@ namespace chill
 
       ImGuiWindowFlags_NoMove |
       ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoScrollbar |
-      ImGuiWindowFlags_NoScrollWithMouse |
 
       ImGuiWindowFlags_NoBringToFrontOnFocus
     );
