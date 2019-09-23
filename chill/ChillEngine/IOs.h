@@ -713,18 +713,18 @@ class PathOutput : public ProcessorOutput {
 
 // -----------------------------------------------------
 
-// IO_SCALAR
-class ScalarInput : public ProcessorInput {
+// IO_REAL
+class RealInput : public ProcessorInput {
   public:
-    ScalarInput() {
-      setType (IOType::SCALAR);
+    RealInput() {
+      setType (IOType::REAL);
       setColor(color_number);
     }
 
     // -----------------------------------------------------
 
     template <typename ...>
-    ScalarInput(float _value, float _min = min(), float _max = max(), bool _alt = false, float _step = step(), ...) : ScalarInput() {
+    RealInput(float _value, float _min = min(), float _max = max(), bool _alt = false, float _step = step(), ...) : RealInput() {
       m_value = _value;
       m_min   = _min;
       m_max   = _max;
@@ -746,7 +746,7 @@ class ScalarInput : public ProcessorInput {
     // -----------------------------------------------------
 
     template <typename ...>
-    ScalarInput(std::vector<std::string>& _params) : ScalarInput() {
+    RealInput(std::vector<std::string>& _params) : RealInput() {
       size_t s = _params.size();
 
       m_value = s >= 1 ? std::stof(_params[0]) : 0.0f;
@@ -761,7 +761,7 @@ class ScalarInput : public ProcessorInput {
     // -----------------------------------------------------
 
     std::shared_ptr<ProcessorInput> clone() {
-      std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new ScalarInput(m_value, m_min, m_max, m_alt, m_step));
+      std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new RealInput(m_value, m_min, m_max, m_alt, m_step));
       input->setName (name());
       input->setColor(color());
       input->m_isDataOnly = m_isDataOnly;
@@ -772,7 +772,7 @@ class ScalarInput : public ProcessorInput {
 
     // For compatibility (shouldn't be called)
     template <typename ...>
-    ScalarInput(...) : ScalarInput()
+    RealInput(...) : RealInput()
     {
       sl_assert(false);
     }
@@ -819,18 +819,18 @@ class ScalarInput : public ProcessorInput {
 
 // -----------------------------------------------------
 
-class ScalarOutput : public ProcessorOutput
+class RealOutput : public ProcessorOutput
 {
   public:
-    ScalarOutput() {
-      setType (IOType::SCALAR);
+    RealOutput() {
+      setType (IOType::REAL);
       setColor(color_number);
     }
 
     // -----------------------------------------------------
 
     std::shared_ptr<ProcessorOutput> clone() {
-      std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new ScalarOutput());
+      std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new RealOutput());
       output->setName (name());
       output->setColor(color());
       return output;
@@ -1302,8 +1302,8 @@ std::shared_ptr<ProcessorInput> ProcessorInput::create(const std::string& _name,
   case IOType::PATH:
     input = std::shared_ptr<ProcessorInput>(new PathInput(_args...));
     break;
-  case IOType::SCALAR:
-    input = std::shared_ptr<ProcessorInput>(new ScalarInput(_args...));
+  case IOType::REAL:
+    input = std::shared_ptr<ProcessorInput>(new RealInput(_args...));
     break;
   case IOType::SHAPE:
     input = std::shared_ptr<ProcessorInput>(new ShapeInput(_args...));

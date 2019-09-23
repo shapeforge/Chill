@@ -59,11 +59,11 @@ class Lua_Input {
           m_Ptr = ProcessorInput::create(name, type, int_value, int_min, int_max, alt, int_step);
           break;
 
-        case IOType::SCALAR:
+        case IOType::REAL:
           float float_value;
           if (table["value"]) float_value = luabind::object_cast<float>(table["value"]);
-          float_min = table["min"] ? luabind::object_cast<float>(table["min"]) : ScalarInput::min();
-          float_max = table["max"] ? luabind::object_cast<float>(table["max"]) : ScalarInput::max();
+          float_min = table["min"] ? luabind::object_cast<float>(table["min"]) : RealInput::min();
+          float_max = table["max"] ? luabind::object_cast<float>(table["max"]) : RealInput::max();
           float_step = table["step"] ? luabind::object_cast<float>(table["step"]) : 0.f;
           m_Ptr = ProcessorInput::create(name, type, float_value, float_min, float_max, alt, float_step);
           break;

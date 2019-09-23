@@ -90,8 +90,8 @@ std::shared_ptr<ProcessorOutput> ProcessorOutput::create(const std::string& _nam
   case IOType::PATH:
     output = std::shared_ptr<ProcessorOutput>(new PathOutput());
     break;
-  case IOType::SCALAR:
-    output = std::shared_ptr<ProcessorOutput>(new ScalarOutput());
+  case IOType::REAL:
+    output = std::shared_ptr<ProcessorOutput>(new RealOutput());
     break;
   case IOType::SHAPE:
     output = std::shared_ptr<ProcessorOutput>(new ShapeOutput());
@@ -385,7 +385,7 @@ bool chill::PathInput::drawTweak() {
 
 //-------------------------------------------------------
 
-bool chill::ScalarInput::drawTweak() {
+bool chill::RealInput::drawTweak() {
   ImGui::SameLine();
 
   std::string name_str = std::string(name());
