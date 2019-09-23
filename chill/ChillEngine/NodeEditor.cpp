@@ -1584,8 +1584,11 @@ namespace chill
     } else {
       undock();
     }
+
+    #ifdef WIN32
     // start maximized
     ShowWindow(m_chill_hwnd, SW_SHOWMAXIMIZED);
+    #endif
   }
 
   //-------------------------------------------------------
@@ -1831,6 +1834,7 @@ namespace chill
 
   void NodeEditor::maximize()
   {
+    #ifdef WIN32
     // get current monitor info (set to zero in not specified, eg. hMonitor == NULL)
     HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
     MONITORINFO monitorInfo;
@@ -1852,6 +1856,6 @@ namespace chill
       MoveWindow(m_chill_hwnd, 0, 0, desktop_width / 2, desktop_height, true);
       MoveWindow(m_icesl_hwnd, desktop_width / 2 - magic_x_offset, 0, desktop_width / 2 + magic_x_offset, desktop_height, true);
     }
+#endif
   }
-
 }
