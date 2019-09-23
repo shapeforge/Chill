@@ -60,15 +60,19 @@ git submodule foreach git pull origin master
 You can now build the project for your IDE of choice using CMAKE, and then compile.
 
 ## How to Use ChiLL?
-Once ChiLL is opened -- and IceSL alongside it -- you can access a menu containing the different nodes by doing a right-click on the working space.
+Once ChiLL is opened -- and IceSL alongside it -- a menu containing the different nodes  is displayed in the left side-bar of ChiLL.
+
+You can also access the nodes by doing a right-click on the working space.
 
 ![Nodes Menu][node_menu]
 
-Once there, you can select an input-node.
+To create a graph, start by creating a new node on the workspace, using the nodes menu..
 
 ![Using an input-node][input_node]
 
-You can now select an output-node and link the nodes. To do this click and drag a link from the output of the first node to the input of the second node.
+You can now create an emit-node and link the nodes. 
+
+To do this click and drag a link from the output of the first node to the input of the second node.
 
 ![Linking nodes][linking_nodes]
 
