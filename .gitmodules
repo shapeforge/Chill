@@ -1,13 +1,18 @@
+[submodule "chill-nodes"]
+	path = chill-nodes
+	url = https://github.com/shapeforge/chill-nodes
+	branch = master
+
+[submodule "chill-models"]
+	path = chill-models
+	url = https://github.com/shapeforge/chill-models
+	branch = master
+
 [submodule "LibSL"]
 	path = libs/LibSL
 	url = https://github.com/sylefeb/LibSL
 	branch = imgui_latest
 	ignore = dirty
-
-[submodule "chill-nodes"]
-	path = chill-nodes
-	url = https://github.com/shapeforge/chill-nodes
-	branch = master
 
 [submodule "tinyfiledialogs"]
 	path = libs/tinyfiledialogs
