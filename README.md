@@ -133,10 +133,10 @@ ChiLL initial development was mainly supported by the ERC ShapeForge (StG-2012-3
 
 [//]: # (Ressources)
 [banner]: ressources/images/banner/chill_banner_wide_medium.png
-[node_menu]: ressources/images/howto/nodemenu.gif
-[input_node]: ressources/images/howto/inputnode.gif
-[linking_nodes]: ressources/images/howto/linknode.gif
-[live_preview]: ressources/images/howto/preview.gif
+[node_menu]: ressources/images/guide/nodemenu.gif
+[input_node]: ressources/images/guide/inputnode.gif
+[linking_nodes]: ressources/images/guide/linknode.gif
+[live_preview]: ressources/images/guide/preview.gif
 
 [//]: # (Release links)
 [win_zip]: https://github.com/shapeforge/Chill/releases/download/0.1.1/chill_0.1.1_win64.zip
