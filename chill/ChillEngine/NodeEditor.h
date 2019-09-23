@@ -52,28 +52,29 @@ namespace fs = std::filesystem;
 
     ImVec2 m_offset = ImVec2(0, 0);
 
-    bool   m_graph_menu = false;
-    bool   m_node_menu = false;
+    bool   m_graph_menu   = false;
+    bool   m_node_menu    = false;
 
-    bool   m_dragging = false;
-    bool   m_selecting = false;
-    bool   m_show_grid = true;
+    bool   m_dragging     = false;
+    bool   m_selecting    = false;
+    bool   m_show_grid    = true;
 
-    bool m_minimized = false;
-    bool m_docking_icesl = true;
+    bool m_minimized         = false;
+
     void dock();
+    void undock();
+    void maximize();
 
     int m_layout = 0;
-    Layout layouts[2] = { 
+    Layout layouts[1] = { 
       // {"name", pos, size, resizable },
-      {"preview",ImVec2(0.75, 0.75),ImVec2(0.25, 0.25),false},
-      {"side by side",ImVec2(2.0/3.0, 0.05),ImVec2(1.0/3.0, 0.95),false}
-      //{"side by side",ImVec2(1.0/3.0, 0.05),ImVec2(2.0/3.0, 0.95),false}
+      {"preview",ImVec2(0.66, 0.66),ImVec2(0.33, 0.33),false},
+      //{"side by side",ImVec2(2.0/3.0, 0.05),ImVec2(1.0/3.0, 0.95),false}
       
     };
     void setLayout(int l);
     ImVec2 m_offset_icesl = ImVec2(0.5, 0.5); //offset of icesl window position compare to chill window left up position compared to the windows size
-    ImVec2 m_ratio_icesl = ImVec2(0.5, 0.5); //ratio of icesl window size compare to chill window size
+    ImVec2 m_ratio_icesl  = ImVec2(0.5, 0.5); //ratio of icesl window size compare to chill window size
     void updateIceSLPosRatio();
     void showIceSL();
 
@@ -91,14 +92,9 @@ namespace fs = std::filesystem;
 
     static void launch();
 
-#ifdef WIN32
-    void setDefaultAppsPos(HMONITOR hMonitor);
-#else
     void setDefaultAppsPos();
-#endif   
 
-    void resizeIceSLWindowAlongChill();
-    void moveIceSLWindowAlongChill();
+    void moveIceSLWindowAlongChill(bool preserve_ratio,bool set_chill_full_width);
 
     static inline std::string ChillFolder();
     static inline std::string NodesFolder();
@@ -164,6 +160,7 @@ namespace fs = std::filesystem;
 
 
     private:
+
       NodeEditor();
       ~NodeEditor() = default;
 
@@ -233,7 +230,10 @@ namespace fs = std::filesystem;
       std::shared_ptr<ProcessingGraph> buffer;
 
       bool text_editing;
-      bool linking;
+      bool linking;    
+      
+      bool m_icesl_start_docked = false; // loadSettings uses this to request starting in docked mode
+      bool m_icesl_is_docked    = false; // NOTE: only dock/undock are allowed to manipulate this
 
   };
 }

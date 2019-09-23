@@ -239,15 +239,14 @@ namespace chill
     }
 
     if (_uMsg == WM_MOVE) {
-      NodeEditor::Instance()->moveIceSLWindowAlongChill();
+      NodeEditor::Instance()->moveIceSLWindowAlongChill(true,false);
 
       // get window placement / style
       WINDOWPLACEMENT wPlacement = { sizeof(WINDOWPLACEMENT) };
       GetWindowPlacement(NodeEditor::Instance()->m_chill_hwnd, &wPlacement);
       
       if (wPlacement.showCmd == SW_MAXIMIZE) {
-        // set default pos
-        NodeEditor::Instance()->setDefaultAppsPos(hMonitor);
+        NodeEditor::Instance()->maximize();
       }
     }
 
@@ -318,7 +317,7 @@ namespace chill
   void NodeEditor::mainOnResize(uint width, uint height)
   {
     Instance()->m_size = ImVec2(static_cast<float>(width), static_cast<float>(height));
-    Instance()->resizeIceSLWindowAlongChill();
+    Instance()->moveIceSLWindowAlongChill(false,false);
   }
 
   //-------------------------------------------------------
@@ -377,11 +376,8 @@ namespace chill
 
     //for docking
     updateIceSLPosRatio();
-    if (m_docking_icesl) {
-      showIceSL();
-    }
+    showIceSL();
 
-   
     return true;
   }
 
@@ -455,18 +451,27 @@ namespace chill
 
 #ifdef WIN32
       if (ImGui::BeginMenu("Window")) {
-        bool tempsdockbool = m_docking_icesl;
-        if (ImGui::MenuItem("Docking of IceSL", "Ctrl + D", &tempsdockbool)) {
-          dock();
+
+        bool docking = m_icesl_is_docked;
+        if (ImGui::MenuItem("Dock IceSL in view", "Ctrl + D", &docking)) {
+          if (docking) { // just changed
+            dock();
+          } else {
+            undock();
+          }
         }
-        const char* items[sizeof(layouts) / sizeof(layouts[0])];
-        for (int i = 0; i < sizeof(layouts) / sizeof(layouts[0]); i++) {
-          items[i] = layouts[i].Name;
+
+        if (m_icesl_is_docked) {
+          const char *items[sizeof(layouts) / sizeof(layouts[0])];
+          for (int i = 0; i < sizeof(layouts) / sizeof(layouts[0]); i++) {
+            items[i] = layouts[i].Name;
+          }
+          static int item_current = 0;
+          if (ImGui::Combo("##combo", &item_current, items, IM_ARRAYSIZE(items))) {
+            setLayout(item_current);
+          }
         }
-        static int item_current = 0;
-        if (ImGui::Combo("combo", &item_current, items, IM_ARRAYSIZE(items))) {
-          setLayout(item_current);
-        }
+
         ImGui::EndMenu();
       }
 #endif
@@ -849,7 +854,11 @@ namespace chill
         }
       }
       if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['d' - 96] && io.KeysDownDuration['d' - 96] == 0.F) {
-        dock();
+        if (!m_icesl_is_docked) {
+          dock();
+        } else {
+          undock();
+        }
       }
       /*
       if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['1' - 96] && io.KeysDownDuration['1' - 96] == 0.F) {
@@ -1282,7 +1291,10 @@ namespace chill
       if (Instance()->m_auto_export) {
         Instance()->exportIceSL(Instance()->m_iceSLTempExportPath);
       }
-   
+      // we give a default size, otherwise SetWindowLong gives unpredictable results (white window)
+      MoveWindow(Instance()->m_icesl_hwnd, 0, 0, 800, 600, true);
+
+
     } else {
       // process creation failed
       std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
@@ -1410,7 +1422,7 @@ namespace chill
     f << "auto_save " << m_auto_save << std::endl;
     f << "auto_export " << m_auto_export << std::endl;
     f << "auto_launch_icesl " << m_auto_icesl << std::endl;
-    f << "docking_icesl " << m_docking_icesl << std::endl;
+    f << "icesl_is_docked " << m_icesl_is_docked << std::endl;
     f << "ratio_iceslx " << m_ratio_icesl.x << std::endl;
     f << "ratio_icesly " << m_ratio_icesl.y << std::endl;
     f << "offset_iceslx " << m_offset_icesl.x << std::endl;
@@ -1440,8 +1452,8 @@ namespace chill
         if (setting == "auto_launch_icesl") {
           m_auto_icesl = (std::stoi(value) ? true : false);
         }
-        if (setting == "docking_icesl") {
-          m_docking_icesl = !(std::stoi(value) ? true : false);
+        if (setting == "icesl_is_docked") {
+          m_icesl_start_docked = (std::stoi(value) ? true : false);
         }
         if (setting == "ratio_iceslx") {
           m_ratio_icesl.x = (std::stof(value));
@@ -1539,12 +1551,7 @@ namespace chill
         launchIcesl();
 
         // place apps in default pos
-#ifdef WIN32
-        Instance()->setDefaultAppsPos(NULL);
-        Instance()->dock();
-#else
         nodeEditor->setDefaultAppsPos();
-#endif
       }
 
       // main loop
@@ -1570,118 +1577,94 @@ namespace chill
   }
 
   //-------------------------------------------------------
-#ifdef WIN32
-  void NodeEditor::setDefaultAppsPos(HMONITOR hMonitor) {
-    // offset to compensate for the window's shadows
-    const int magic_offset = 10; // TODO determine automatically?
-    const int magic_x_offset = 8; // TODO get a correct offset / resolution calculation
 
-    // get current monitor info (set to zero in not specified, eg. hMonitor == NULL)
-    MONITORINFO monitorInfo;
-    memset(&monitorInfo, 0, sizeof(MONITORINFO));
-    monitorInfo.cbSize = sizeof(MONITORINFO);
-    if (hMonitor != NULL) {
-      GetMonitorInfo(hMonitor, &monitorInfo);;
-    }
-
-    // get desktop dimmensions
-    int desktop_width, desktop_height = 0;
-    getDesktopRes(desktop_width, desktop_height);
-
-    // set chill dimensions to be 1/2 - 1/2 with icesl
-    float rx = m_ratio_icesl.x + m_offset_icesl.x;
-    float ry = m_ratio_icesl.y + m_offset_icesl.y;
-    int app_width = (desktop_width);
-    if(rx > 1.0)
-      app_width = app_width/ rx;
-    int app_heigth = desktop_height ; // bottom shadow is around 10px
-
-    int chill_x_pos = monitorInfo.rcMonitor.left - magic_x_offset;
-    int chill_y_pos = monitorInfo.rcMonitor.top;
-
-
-    // move chill & icesl to position
-    MoveWindow(m_chill_hwnd, chill_x_pos, chill_y_pos, app_width + 2 * magic_x_offset, app_heigth + magic_offset, true);
-    MoveWindow(m_icesl_hwnd, 0, 0, 1, 1, true);
-
-    /*
-    if (m_docking_icesl) {
-      MoveWindow(m_icesl_hwnd, icesl_xpos, icesl_ypos, icesl_width, icesl_height, true);
-      SetWindowPos(m_icesl_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE); //Windows voodoo to set window on top without focus
-    }
-    */
-
-    SetWindowLongPtr(Instance()->m_icesl_hwnd, GWL_STYLE, GetWindowLongPtr(Instance()->m_icesl_hwnd, GWL_STYLE) | WS_CHILD);
-    SetWindowLongPtr(Instance()->m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(Instance()->m_chill_hwnd, GWL_STYLE) | WS_CLIPCHILDREN);
-    Instance()->setLayout(Instance()->m_layout);
-    
-    BringWindowToTop(m_icesl_hwnd);
-    BringWindowToTop(m_chill_hwnd);
-  }
-
-#else
   void NodeEditor::setDefaultAppsPos() {
-
-    // TODO linux move chill window
-
-    // TODO linux move icesl window
-  }
-#endif
-
-  //-------------------------------------------------------
-
-  void NodeEditor::resizeIceSLWindowAlongChill() {
-#ifdef WIN32
-    if (m_icesl_hwnd != NULL && m_docking_icesl) {
-
-      const int magic_offset = 8; // TODO determine automatically?
-      const int magic_x_offset = 15;
-
-      // get current windows dimensions
-      RECT chillRect;
-      GetWindowRect(m_chill_hwnd, &chillRect);
-
-      RECT iceslRect;
-      GetWindowRect(m_icesl_hwnd, &iceslRect);
-
-      int icesl_xpos = chillRect.left + m_offset_icesl.x * (chillRect.right - chillRect.left) -  magic_x_offset;
-      int icesl_ypos = chillRect.top + m_offset_icesl.y * (chillRect.bottom - chillRect.top);
-      int icesl_width = (chillRect.right - chillRect.left) * m_ratio_icesl.x + 3;
-      int icesl_height = (chillRect.bottom - chillRect.top) * m_ratio_icesl.y;
-
-      // snap IceSL window to Chill, preserve width
-      BringWindowToTop(m_chill_hwnd);
-      MoveWindow(m_icesl_hwnd, icesl_xpos, icesl_ypos, icesl_width, icesl_height, true);
-      SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE); //Windows voodoo to set window on top without focus
+    if (m_icesl_start_docked) {
+      dock();
+    } else {
+      undock();
     }
-#endif
+    // start maximized
+    ShowWindow(m_chill_hwnd, SW_SHOWMAXIMIZED);
   }
 
   //-------------------------------------------------------
 
-  void NodeEditor::moveIceSLWindowAlongChill() {
+  void NodeEditor::moveIceSLWindowAlongChill(bool preserve_ratio,bool set_chill_full_width) {
 #ifdef WIN32
-    if (m_icesl_hwnd != NULL && m_docking_icesl) {
-      const int magic_offset = 8; // TODO determine automatically?
-      const int magic_x_offset = 15;
 
-      // get current windows dimensions
-      RECT chillRect;
-      GetWindowRect(m_chill_hwnd, &chillRect);
+    static bool already_entered = false;
 
-      RECT iceslRect;
-      GetWindowRect(m_icesl_hwnd, &iceslRect);
-
-      int icesl_xpos = chillRect.left + m_offset_icesl.x * (chillRect.right - chillRect.left) - magic_x_offset;
-      int icesl_ypos = chillRect.top + m_offset_icesl.y * (chillRect.bottom - chillRect.top);
-      int icesl_width = (chillRect.right - chillRect.left) * m_ratio_icesl.x + 3;
-      int icesl_height = (chillRect.bottom - chillRect.top) * m_ratio_icesl.y;
-
-      // snap IceSL window to Chill, preserve width
-      BringWindowToTop(m_chill_hwnd);
-      MoveWindow(m_icesl_hwnd, icesl_xpos, icesl_ypos, icesl_width , icesl_height, true);
-      SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE); //Windows voodoo to set window on top without focus
+    if (already_entered) {
+      return; // prevent windows re-entrant call on MoveWindow
     }
+    already_entered = true;
+
+    if (m_icesl_hwnd != NULL) {
+
+      const int magic_x_offset = 15; // TODO determine automatically?
+
+      if (m_icesl_is_docked) {
+
+        // get current windows dimensions
+        RECT chillRect;
+        GetWindowRect(m_chill_hwnd, &chillRect);
+
+        RECT iceslRect;
+        GetWindowRect(m_icesl_hwnd, &iceslRect);
+
+        if (set_chill_full_width) {
+          chillRect.right = iceslRect.right;
+          MoveWindow(m_chill_hwnd, chillRect.left, chillRect.top, chillRect.right - chillRect.left, chillRect.bottom - chillRect.top, true);
+        }
+
+        int icesl_xpos = chillRect.left + m_offset_icesl.x * (chillRect.right - chillRect.left) - magic_x_offset;
+        int icesl_ypos = chillRect.top + m_offset_icesl.y * (chillRect.bottom - chillRect.top);
+        int icesl_width = (chillRect.right - chillRect.left) * m_ratio_icesl.x + 3;
+        int icesl_height = (chillRect.bottom - chillRect.top) * m_ratio_icesl.y;
+
+        // snap IceSL window to Chill, preserve width
+        BringWindowToTop(m_chill_hwnd);
+        MoveWindow(m_icesl_hwnd, icesl_xpos, icesl_ypos, icesl_width, icesl_height, true);
+        SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
+      } else {
+
+        // get current windows dimensions
+        RECT chillRect;
+        GetWindowRect(m_chill_hwnd, &chillRect);
+
+        RECT iceslRect;
+        GetWindowRect(m_icesl_hwnd, &iceslRect);
+
+        int total_width = max(iceslRect.right, chillRect.right) - chillRect.left + magic_x_offset;
+        if (total_width - magic_x_offset*2 < (chillRect.right - chillRect.left)) {
+          // icesl does not extend beyond the right border of chill, we have to resize chill with the chosen ratio
+          // NOTE: this happens when un-docking
+          MoveWindow(m_chill_hwnd,
+            chillRect.left,
+            chillRect.top,
+            total_width / 2,
+            chillRect.bottom - chillRect.top, true);
+          MoveWindow(m_icesl_hwnd,
+            chillRect.left + total_width / 2 - magic_x_offset,
+            chillRect.top,
+            total_width / 2 + magic_x_offset,
+            chillRect.bottom - chillRect.top, true);
+        } else {
+          // snap IceSL window to Chill, preserve width
+          MoveWindow(m_icesl_hwnd,
+            chillRect.right - magic_x_offset,
+            chillRect.top,
+            preserve_ratio ? (iceslRect.right - iceslRect.left) : total_width - (chillRect.right - chillRect.left),
+            chillRect.bottom - chillRect.top, true);
+        }
+      }
+
+    }
+
+    already_entered = false;
+
 #endif
   }
   
@@ -1784,31 +1767,34 @@ namespace chill
 
 
   void NodeEditor::updateIceSLPosRatio() {
-    if (m_docking_icesl && !m_minimized && m_layout == 3) {
 #ifdef WIN32
-      RECT rect_icesl;
-      RECT rect_chill;
-      if (GetWindowRect(m_icesl_hwnd, &rect_icesl) && GetWindowRect(m_chill_hwnd, &rect_chill))
-      {
-        int width_icesl = rect_icesl.right - rect_icesl.left;
-        int height_icesl = rect_icesl.bottom - rect_icesl.top;
-        int width_chill = rect_chill.right - rect_chill.left;
-        int height_chill = rect_chill.bottom - rect_chill.top;
+    if (m_icesl_is_docked) {
+      if (!m_minimized && m_layout == 3) {
+        RECT rect_icesl;
+        RECT rect_chill;
+        if (GetWindowRect(m_icesl_hwnd, &rect_icesl) && GetWindowRect(m_chill_hwnd, &rect_chill)) {
+          int width_icesl = rect_icesl.right - rect_icesl.left;
+          int height_icesl = rect_icesl.bottom - rect_icesl.top;
+          int width_chill = rect_chill.right - rect_chill.left;
+          int height_chill = rect_chill.bottom - rect_chill.top;
 
-        m_ratio_icesl.x = float(width_icesl) / float(width_chill);
-        m_ratio_icesl.y = float(height_icesl) / float(height_chill);
+          m_ratio_icesl.x = float(width_icesl) / float(width_chill);
+          m_ratio_icesl.y = float(height_icesl) / float(height_chill);
 
-        m_offset_icesl.x = float(rect_icesl.left - rect_chill.left) / float(width_chill);
-        m_offset_icesl.y = float(rect_icesl.top - rect_chill.top) / float(height_chill);
+          m_offset_icesl.x = float(rect_icesl.left - rect_chill.left) / float(width_chill);
+          m_offset_icesl.y = float(rect_icesl.top - rect_chill.top) / float(height_chill);
+        }
       }
-#endif
     }
+#endif
   }
 
   void NodeEditor::showIceSL() {
 #ifdef WIN32
-    if (m_icesl_hwnd != nullptr && m_docking_icesl) {
-      SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    if (m_icesl_is_docked) {
+      if (m_icesl_hwnd != nullptr) {
+        SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+      }
     }
 #endif
   }
@@ -1819,27 +1805,53 @@ namespace chill
       m_offset_icesl = layouts[l].offset_icesl;
       m_ratio_icesl = layouts[l].ratio_icesl;
       m_layout = l;
-
-
-      if(m_docking_icesl){
-        moveIceSLWindowAlongChill();
-      }
     }
 #endif
   }
 
   void NodeEditor::dock() {
 #ifdef WIN32
-    m_docking_icesl = !m_docking_icesl;
-    if (m_docking_icesl) {
-      SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) | WS_CHILD) &~WS_POPUPWINDOW &~WS_SIZEBOX  &~WS_CAPTION);
-      SetWindowLongPtr(m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(m_chill_hwnd, GWL_STYLE) | WS_CLIPCHILDREN );
-      setLayout(m_layout);
-    }
-    else {
-      SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) &~ WS_CHILD) | WS_POPUPWINDOW | WS_SIZEBOX | WS_CAPTION);
-      SetWindowLongPtr(m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(m_chill_hwnd, GWL_STYLE) &~WS_CLIPCHILDREN);
-    }
+    bool set_chill_full_width = !m_icesl_is_docked;
+    m_icesl_is_docked = true;
+    SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) | WS_CHILD) & ~WS_POPUPWINDOW & ~WS_SIZEBOX & ~WS_CAPTION);
+    SetWindowLongPtr(m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(m_chill_hwnd, GWL_STYLE) | WS_CLIPCHILDREN);
+    setLayout(m_layout);
+    moveIceSLWindowAlongChill(true, set_chill_full_width);
 #endif 
   }
+
+  void NodeEditor::undock() {
+#ifdef WIN32
+    m_icesl_is_docked = false;
+    SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) & ~WS_CHILD & ~WS_SIZEBOX) | WS_POPUPWINDOW | WS_CAPTION);
+    SetWindowLongPtr(m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(m_chill_hwnd, GWL_STYLE) & ~WS_CLIPCHILDREN);
+    moveIceSLWindowAlongChill(true,false);
+#endif 
+  }
+
+  void NodeEditor::maximize()
+  {
+    // get current monitor info (set to zero in not specified, eg. hMonitor == NULL)
+    HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
+    MONITORINFO monitorInfo;
+    memset(&monitorInfo, 0, sizeof(MONITORINFO));
+    monitorInfo.cbSize = sizeof(MONITORINFO);
+    if (hMonitor != NULL) {
+      GetMonitorInfo(hMonitor, &monitorInfo);;
+    }
+
+    // get desktop dimmensions
+    int desktop_width, desktop_height = 0;
+    getDesktopRes(desktop_width, desktop_height);
+
+    if (m_icesl_is_docked) {
+      MoveWindow(m_chill_hwnd, 0, 0, desktop_width, desktop_height, true);
+      moveIceSLWindowAlongChill(true,false);
+    } else {
+      const int magic_x_offset = 15; // TODO determine automatically?
+      MoveWindow(m_chill_hwnd, 0, 0, desktop_width / 2, desktop_height, true);
+      MoveWindow(m_icesl_hwnd, desktop_width / 2 - magic_x_offset, 0, desktop_width / 2 + magic_x_offset, desktop_height, true);
+    }
+  }
+
 }
