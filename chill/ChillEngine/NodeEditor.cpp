@@ -933,7 +933,9 @@ namespace chill
           ImVec2 A = input->getPosition()  + w_pos - ImVec2(pipe_width / 4.F, 0.F);
           ImVec2 B = output->getPosition() + w_pos + ImVec2(pipe_width / 4.F, 0.F);
 
-          ImVec2 bezier(100 * w_scale, 0.0F);
+          float dist = sqrt( (A-B).x * (A-B).x + (A-B).y * (A-B).y);
+
+          ImVec2 bezier( (dist < 100.0F ? dist : 100.F) * w_scale, 0.0F);
 
           ImGui::GetWindowDrawList()->AddBezierCurve(
             A,
@@ -946,18 +948,21 @@ namespace chill
             pipe_res
           );
 
-          ImVec2 center = (A + B) / 2.F;
-          ImVec2 vec = (A*2.F - bezier) - (B*2.F + bezier);
-          ImVec2 norm_vec = (vec / sqrt(vec.x*vec.x + vec.y*vec.y)) * 2.0F*pipe_width;
+
+          if (dist / w_scale > 125.0F && w_scale > 0.5F) {
+            ImVec2 center = (A + B) / 2.F;
+            ImVec2 vec = (A*2.F - bezier) - (B*2.F + bezier);
+            ImVec2 norm_vec = (vec / sqrt(vec.x*vec.x + vec.y*vec.y)) * 1.5F*pipe_width;
 
 
-          ImVec2 U = center + norm_vec * 2.F;
-          std::swap(norm_vec.x, norm_vec.y);
-          ImVec2 V = center + norm_vec;
-          ImVec2 W = center - norm_vec;
-          std::swap(V.x, W.x);
+            ImVec2 U = center + norm_vec * 1.5F;
+            std::swap(norm_vec.x, norm_vec.y);
+            ImVec2 V = center + norm_vec;
+            ImVec2 W = center - norm_vec;
+            std::swap(V.x, W.x);
 
-          ImGui::GetWindowDrawList()->AddTriangleFilled(U, V, W, input->color());
+            ImGui::GetWindowDrawList()->AddTriangleFilled(U, V, W, input->color());
+          }
         }
       }
     }

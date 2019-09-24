@@ -49,26 +49,35 @@ git clone https://github.com/shapeforge/Chill.git
 Initialize and fetch the submodules dependencies.
 
 ```Shell
-git submodule init
-git submodule update
-git submodule foreach git pull origin master
+git submodule update --init --recursive
+
+git submodule update --recursive --remote 	# with git 1.8.2 or above
+# or
+git submodule update --recursive			# with git 1.7.3 or above
 ```
 
->**Note**
->If you have some trouble compiling Chill for Linux, try to **checkout LibSL** to the **unix_compile branch**.
+Then you can, if you want, fetch the latest changes of each submodule.
+
+```Shell
+git pull --recurse-submodules
+```
 
 You can now build the project for your IDE of choice using CMAKE, and then compile.
 
 ## How to Use ChiLL?
-Once ChiLL is opened -- and IceSL alongside it -- you can access a menu containing the different nodes by doing a right-click on the working space.
+Once ChiLL is opened -- and IceSL alongside it -- a menu containing the different nodes  is displayed in the left side-bar of ChiLL.
+
+You can also access the nodes by doing a right-click on the working space.
 
 ![Nodes Menu][node_menu]
 
-Once there, you can select an input-node.
+To create a graph, start by creating a new node on the workspace, using the nodes menu..
 
 ![Using an input-node][input_node]
 
-You can now select an output-node and link the nodes. To do this click and drag a link from the output of the first node to the input of the second node.
+You can now create an emit-node and link the nodes. 
+
+To do this click and drag a link from the output of the first node to the input of the second node.
 
 ![Linking nodes][linking_nodes]
 
@@ -129,10 +138,10 @@ ChiLL initial development was mainly supported by the ERC ShapeForge (StG-2012-3
 
 [//]: # (Ressources)
 [banner]: ressources/images/banner/chill_banner_wide_medium.png
-[node_menu]: ressources/images/howto/nodemenu.gif
-[input_node]: ressources/images/howto/inputnode.gif
-[linking_nodes]: ressources/images/howto/linknode.gif
-[live_preview]: ressources/images/howto/preview.gif
+[node_menu]: ressources/images/guide/nodemenu.gif
+[input_node]: ressources/images/guide/inputnode.gif
+[linking_nodes]: ressources/images/guide/linknode.gif
+[live_preview]: ressources/images/guide/preview.gif
 
 [//]: # (Release links)
 [win_zip]: https://github.com/shapeforge/Chill/releases/download/0.1.1/chill_0.1.1_win64.zip
