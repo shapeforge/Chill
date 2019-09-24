@@ -49,13 +49,18 @@ git clone https://github.com/shapeforge/Chill.git
 Initialize and fetch the submodules dependencies.
 
 ```Shell
-git submodule init
-git submodule update
-git submodule foreach git pull origin master
+git submodule update --init --recursive
+
+git submodule update --recursive --remote 	# with git 1.8.2 or above
+# or
+git submodule update --recursive			# with git 1.7.3 or above
 ```
 
->**Note**
->If you have some trouble compiling Chill for Linux, try to **checkout LibSL** to the **unix_compile branch**.
+Then you can, if you want, fetch the latest changes of each submodule.
+
+```Shell
+git pull --recurse-submodules
+```
 
 You can now build the project for your IDE of choice using CMAKE, and then compile.
 
