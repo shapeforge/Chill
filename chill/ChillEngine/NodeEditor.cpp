@@ -225,7 +225,7 @@ namespace chill
     _In_ LPARAM _lParam)
   {
     // get current monitor hwnd
-    HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
+    //HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
     
     if (_uMsg == WM_ACTIVATE) {
       if (_wParam != WA_ACTIVE ) {
@@ -1856,6 +1856,7 @@ namespace chill
   {
     #ifdef WIN32
     // get current monitor info (set to zero in not specified, eg. hMonitor == NULL)
+    /*
     HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
     MONITORINFO monitorInfo;
     memset(&monitorInfo, 0, sizeof(MONITORINFO));
@@ -1863,6 +1864,7 @@ namespace chill
     if (hMonitor != NULL) {
       GetMonitorInfo(hMonitor, &monitorInfo);;
     }
+    */
 
     // get desktop dimmensions
     int desktop_width, desktop_height = 0;
