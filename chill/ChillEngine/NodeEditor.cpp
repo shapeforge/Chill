@@ -865,7 +865,7 @@ namespace chill
       
       if (!selected.empty()) {
         if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c' - 96] && io.KeysDownDuration['c' - 96] == 0.F) {
-          buffer = getCurrentGraph()->copySubset(selected);
+          copy();
         }
       }
       if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['d' - 96] && io.KeysDownDuration['d' - 96] == 0.F) {
@@ -895,9 +895,7 @@ namespace chill
           // screen to grid
           ImVec2 s2g = m2s / w_scale - m_offset;
 
-          std::shared_ptr<SelectableUI> copy_buff = buffer->clone();
-          getCurrentGraph()->expandGraph(buffer, s2g);
-          buffer = std::static_pointer_cast<ProcessingGraph>(copy_buff);
+          paste(s2g);
         }
       }
       if (io.KeysDown[LIBSL_KEY_DELETE]) {
@@ -1151,9 +1149,7 @@ namespace chill
           // screen to grid
           ImVec2 s2g = m2s / w_scale - m_offset;
 
-          std::shared_ptr<SelectableUI> copy_buff = buffer->clone();
-          getCurrentGraph()->expandGraph(buffer, s2g);
-          buffer = std::static_pointer_cast<ProcessingGraph>(copy_buff);
+          paste(s2g);
         }
       }
       /*
@@ -1178,7 +1174,7 @@ namespace chill
       Instance()->m_node_menu = false;
       if (ImGui::MenuItem("Copy", "CTRL+C"))
       {
-        buffer = getCurrentGraph()->copySubset(selected);
+        copy();
       }
       /*
       if (ImGui::MenuItem("Group"))
@@ -1275,6 +1271,27 @@ namespace chill
       }
     }
   }
+
+
+  //-------------------------------------------------------
+  void NodeEditor::copy() {
+    buffer = getCurrentGraph()->copySubset(selected);
+  }
+
+
+  //-------------------------------------------------------
+  void NodeEditor::paste(ImVec2 s2g) {
+    std::shared_ptr<SelectableUI> copy_buff = buffer->clone();
+    getCurrentGraph()->expandGraph(buffer, s2g);
+    for (std::shared_ptr<SelectableUI> ui : *((std::shared_ptr<ProcessingGraph>)buffer)->processors())
+    {
+      ui->m_selected = true;
+    }
+    selected.clear();
+    selected.push_back(buffer);
+    buffer = std::static_pointer_cast<ProcessingGraph>(copy_buff);
+  }
+
 
   //-------------------------------------------------------
   void NodeEditor::launchIcesl() {
