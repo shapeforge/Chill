@@ -137,11 +137,11 @@ Feel free to join us in improving ChiLL!
 ChiLL initial development was mainly supported by the ERC ShapeForge (StG-2012-307877) and [Inria](https://www.inria.fr/en/).
 
 [//]: # (Ressources)
-[banner]: ../ressources/images/banner/chill_banner_wide_medium.png
-[node_menu]: ../ressources/images/guide/nodemenu.gif
-[input_node]: ../ressources/images/guide/inputnode.gif
-[linking_nodes]: ../ressources/images/guide/linknode.gif
-[live_preview]: ../ressources/images/guide/preview.gif
+[banner]: https://github.com/shapeforge/Chill/raw/master/ressources/images/banner/chill_banner_wide_medium.png
+[node_menu]: https://github.com/shapeforge/Chill/raw/master/ressources/images/guide/nodemenu.gif
+[input_node]: https://github.com/shapeforge/Chill/raw/master/ressources/images/guide/inputnode.gif
+[linking_nodes]: https://github.com/shapeforge/Chill/raw/master/ressources/images/guide/linknode.gif
+[live_preview]: https://github.com/shapeforge/Chill/raw/master/ressources/images/guide/preview.gif
 
 [//]: # (Release links)
 [win_zip]: https://github.com/shapeforge/Chill/releases/download/0.1.1/chill_0.1.1_win64.zip
