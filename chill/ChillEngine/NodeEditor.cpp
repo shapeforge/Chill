@@ -228,10 +228,10 @@ namespace chill
     HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
     
     if (_uMsg == WM_ACTIVATE) {
-      if (_wParam == WA_ACTIVE ) {
+      if (_wParam != WA_ACTIVE ) {
         //SetWindowPos(NodeEditor::Instance()->m_chill_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        BringWindowToTop(NodeEditor::Instance()->m_icesl_hwnd);
         //BringWindowToTop(NodeEditor::Instance()->m_icesl_hwnd);
+        BringWindowToTop(NodeEditor::Instance()->m_chill_hwnd);
         //SetForegroundWindow(NodeEditor::Instance()->m_chill_hwnd);
         //SetWindowPos(NodeEditor::Instance()->m_chill_hwnd, NodeEditor::Instance()->m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
         //NodeEditor::Instance()->showIceSL();
@@ -1875,6 +1875,7 @@ namespace chill
       const int magic_x_offset = 15; // TODO determine automatically?
       MoveWindow(m_chill_hwnd, 0, 0, desktop_width / 2, desktop_height, true);
       MoveWindow(m_icesl_hwnd, desktop_width / 2 - magic_x_offset, 0, desktop_width / 2 + magic_x_offset, desktop_height, true);
+      SetActiveWindow(m_chill_hwnd);
     }
 #endif
   }
