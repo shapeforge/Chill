@@ -741,49 +741,7 @@ namespace chill
           m_dragging = false;
         }
 
-        if (io.MouseClicked[0]) {
-          // if no processor hovered, clear
-          if (!io.KeysDown[LIBSL_KEY_SHIFT] && hovered.empty()) {
-            for (std::shared_ptr<SelectableUI> selproc : selected) {
-              selproc->m_selected = false;
-            }
-            selected.clear();
-          }
-          else {
-
-
-            for (std::shared_ptr<SelectableUI> hovproc : hovered) {
-              if (io.KeysDown[LIBSL_KEY_SHIFT]) {
-                if (hovproc->m_selected) {
-                  hovproc->m_selected = false;
-                  selected.erase(std::find(selected.begin(), selected.end(), hovproc));
-                }
-                else {
-                  hovproc->m_selected = true;
-                  selected.push_back(hovproc);
-                }
-              }
-              else {
-                bool sel_and_hov = false;
-                for (std::shared_ptr<SelectableUI> selproc : selected) {
-                  if (selproc == hovproc) {
-                    sel_and_hov = true;
-                    break;
-                  }
-                }
-                if (!sel_and_hov) {
-                  for (std::shared_ptr<SelectableUI> selproc : selected) {
-                    selproc->m_selected = false;
-                  }
-                  selected.clear();
-
-                  hovproc->m_selected = true;
-                  selected.push_back(hovproc);
-                }
-              }
-            }
-          }
-        }
+        
 
       } // ! LEFT CLICK
 
@@ -863,18 +821,9 @@ namespace chill
         */
       }
       
-      if (!selected.empty()) {
-        if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c' - 96] && io.KeysDownDuration['c' - 96] == 0.F) {
-          copy();
-        }
-      }
-      if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['d' - 96] && io.KeysDownDuration['d' - 96] == 0.F) {
-        if (!m_icesl_is_docked) {
-          dock();
-        } else {
-          undock();
-        }
-      }
+      shortcutsAction();
+
+      
       /*
       if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['1' - 96] && io.KeysDownDuration['1' - 96] == 0.F) {
         setLayout(1);
@@ -888,21 +837,7 @@ namespace chill
       */
         
 
-      if (buffer) {
-        if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['v' - 96] && io.KeysDownDuration['v' - 96] == 0.F) {
-          // mouse to screen
-          ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
-          // screen to grid
-          ImVec2 s2g = m2s / w_scale - m_offset;
-
-          paste(s2g);
-        }
-      }
-      if (io.KeysDown[LIBSL_KEY_DELETE]) {
-        for (std::shared_ptr<SelectableUI> item : selected) {
-          getCurrentGraph()->remove(item);
-        }
-      }
+      
 
       // update the offset used for display
       offset = (m_offset * w_scale + (w_size - w_pos) / 2.0F);
@@ -1149,7 +1084,7 @@ namespace chill
           // screen to grid
           ImVec2 s2g = m2s / w_scale - m_offset;
 
-          paste(s2g);
+          paste();
         }
       }
       /*
@@ -1272,6 +1207,87 @@ namespace chill
     }
   }
 
+  //-------------------------------------------------------
+  void NodeEditor::shortcutsAction() {
+    ImGuiIO      io = ImGui::GetIO();
+
+
+    //ctrl + c
+    if (!selected.empty()) {
+      if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c' - 96] && io.KeysDownDuration['c' - 96] == 0.F) {
+        copy();
+      }
+    }
+
+    //ctrl + d docking
+    if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['d' - 96] && io.KeysDownDuration['d' - 96] == 0.F) {
+      if (!m_icesl_is_docked) {
+        dock();
+      }
+      else {
+        undock();
+      }
+    }
+
+    // crtl + v
+    if (buffer) {
+      if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['v' - 96] && io.KeysDownDuration['v' - 96] == 0.F) {
+        paste();
+      }
+    }
+
+    //del 
+    if (io.KeysDown[LIBSL_KEY_DELETE]) {
+      for (std::shared_ptr<SelectableUI> item : selected) {
+        getCurrentGraph()->remove(item);
+      }
+    }
+
+
+    if (io.MouseClicked[0]) {
+      // if no processor hovered, clear
+      if (!io.KeysDown[LIBSL_KEY_CTRL] && hovered.empty()) {
+        for (std::shared_ptr<SelectableUI> selproc : selected) {
+          selproc->m_selected = false;
+        }
+        selected.clear();
+      }
+      else {
+        for (std::shared_ptr<SelectableUI> hovproc : hovered) {
+          if (io.KeysDown[LIBSL_KEY_CTRL]) {
+            if (hovproc->m_selected) {
+              hovproc->m_selected = false;
+              selected.erase(std::find(selected.begin(), selected.end(), hovproc));
+            }
+            else {
+              hovproc->m_selected = true;
+              selected.push_back(hovproc);
+            }
+          }
+          else {
+            bool sel_and_hov = false;
+            for (std::shared_ptr<SelectableUI> selproc : selected) {
+              if (selproc == hovproc) {
+                sel_and_hov = true;
+                break;
+              }
+            }
+            if (!sel_and_hov) {
+              for (std::shared_ptr<SelectableUI> selproc : selected) {
+                selproc->m_selected = false;
+              }
+              selected.clear();
+
+              hovproc->m_selected = true;
+              selected.push_back(hovproc);
+            }
+          }
+        }
+      }
+    }
+
+  }
+
 
   //-------------------------------------------------------
   void NodeEditor::copy() {
@@ -1280,7 +1296,17 @@ namespace chill
 
 
   //-------------------------------------------------------
-  void NodeEditor::paste(ImVec2 s2g) {
+  void NodeEditor::paste() {
+    ImGuiIO      io = ImGui::GetIO();
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImVec2 w_pos = window->Pos;
+    ImVec2 w_size = window->Size;
+    float w_scale = window->FontWindowScale;
+    // mouse to screen
+    ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
+    // screen to grid
+    ImVec2 s2g = m2s / w_scale - m_offset;
+
     std::shared_ptr<SelectableUI> copy_buff = buffer->clone();
     getCurrentGraph()->expandGraph(buffer, s2g);
     for (std::shared_ptr<SelectableUI> ui : *((std::shared_ptr<ProcessingGraph>)buffer)->processors())
