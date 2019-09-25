@@ -264,6 +264,30 @@ namespace chill
 
   //-------------------------------------------------------
 
+  void NodeEditor::loadGraph(const fs::path* _path, bool _setAsAutoSavePath = false) {
+    GraphSaver loader;
+    loader.execute(_path);
+
+    if (_setAsAutoSavePath) {
+      m_graphPath = fs::path(*_path);
+    }
+
+
+    // Recenter the view and adjust zoom
+    auto bbox = getMainGraph()->getBoundingBox();
+    auto center = bbox.center();
+
+    ImGuiWindow* window = m_graphWindow;
+
+    if (window) {
+      m_offset = ImVec2(center[0], center[1]) - window->Pos;
+      m_zoom =  min(window->Size[0] / bbox.extent()[0], window->Size[1] / bbox.extent()[1])  * 0.8F;
+    }
+  }
+
+
+  //-------------------------------------------------------
+
   NodeEditor::NodeEditor() {
     m_graphs.push(std::shared_ptr<ProcessingGraph>(new ProcessingGraph()));
   }
@@ -274,11 +298,10 @@ namespace chill
     if (!s_instance) {
       s_instance = new NodeEditor();
 
-      std::string filename = Instance()->ChillFolder() + "/init.graph";
-      if (fs::exists(filename.c_str())) {
-        GraphSaver test;
-        test.execute(filename.c_str());
-
+      std::string filepath = Instance()->ChillFolder() + "/init.graph";
+      if (fs::exists(filepath.c_str())) {
+        const fs::path path = fs::path(filepath);
+        s_instance->loadGraph(&path);
       }
     }
     return s_instance;
@@ -405,9 +428,8 @@ namespace chill
         if (ImGui::MenuItem("Load graph")) {
           fullpath = openFileDialog(OFD_FILTER_GRAPHS);
           if (!fullpath.empty()) {
-            GraphSaver test;
-            test.execute(fullpath.c_str());
-            m_graphPath = fullpath;
+            const fs::path path = fs::path(fullpath);
+            loadGraph(&path, true);
           }
         }
         if (ImGui::MenuItem("Load example graph")) {
@@ -421,9 +443,8 @@ namespace chill
           if (scriptPath(folderName, chillFolder)) {
             fullpath = openFileDialog(chillFolder.c_str(), OFD_FILTER_GRAPHS);
             if (!fullpath.empty()) {
-              GraphSaver test;
-              test.execute(fullpath.c_str());
-              m_graphPath = fullpath;
+              const fs::path path = fs::path(fullpath);
+              loadGraph(&path);
             }
           }
         }
@@ -454,7 +475,8 @@ namespace chill
         if (ImGui::MenuItem("Export to IceSL lua")) {
           std::string graph_filename = getMainGraph()->name() + ".lua";
           m_iceSLExportPath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_LUA);
-          exportIceSL(m_iceSLExportPath);
+          const fs::path path = m_iceSLExportPath;
+          exportIceSL(&path);
         }
         ImGui::EndMenu();
       }
@@ -602,6 +624,7 @@ namespace chill
   //-------------------------------------------------------
   void NodeEditor::drawGraph()
   {
+
     linking = m_selected_input || m_selected_output;
 
     ImGui::PushStyleColor(ImGuiCol_WindowBg, style.graph_bg_color);
@@ -620,16 +643,18 @@ namespace chill
       ImGuiWindowFlags_NoBringToFrontOnFocus
     );
 
+
+
     zoom();
 
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImGuiWindow* window = m_graphWindow = ImGui::GetCurrentWindow();
     ImGuiIO      io     = ImGui::GetIO();
 
     ImVec2 w_pos  = window->Pos;
     ImVec2 w_size = window->Size;
-    float w_scale = window->FontWindowScale;
+    window->FontWindowScale = m_zoom;
 
-    ImVec2 offset = (m_offset * w_scale + (w_size - w_pos) / 2.0F);
+    ImVec2 offset = (m_offset * m_zoom + (w_size - w_pos) / 2.0F);
 
     
     bool wasDirty = false;
@@ -642,7 +667,7 @@ namespace chill
 
     if (wasDirty) {
       if (m_auto_export) {
-        exportIceSL(m_iceSLTempExportPath);
+        exportIceSL(&m_iceSLTempExportPath);
       }
 
       if (m_auto_save) {
@@ -659,10 +684,10 @@ namespace chill
       text_editing = false;
 
       for (std::shared_ptr<Processor> processor : *m_graphs.top()->processors()) {
-        ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * w_scale;
+        ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * m_zoom;
 
-        ImVec2 size = processor->m_size * window->FontWindowScale;
-        ImVec2 min_pos = offset + w_pos + processor->m_position * w_scale - socket_size;
+        ImVec2 size = processor->m_size * m_zoom;
+        ImVec2 min_pos = offset + w_pos + processor->m_position * m_zoom - socket_size;
         ImVec2 max_pos = min_pos + size + socket_size * 2;
 
         if (ImGui::IsMouseHoveringRect(min_pos, max_pos)) {
@@ -679,10 +704,10 @@ namespace chill
       }
 
       for (std::shared_ptr<VisualComment> comment : m_graphs.top()->comments()) {
-        ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * w_scale;
+        ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * m_zoom;
 
-        ImVec2 size = comment->m_title_size * w_scale;
-        ImVec2 min_pos = offset + w_pos + comment->m_position * w_scale - socket_size;
+        ImVec2 size = comment->m_title_size * m_zoom;
+        ImVec2 min_pos = offset + w_pos + comment->m_position * m_zoom - socket_size;
         ImVec2 max_pos = min_pos + size + socket_size * 2;
 
         if (ImGui::IsMouseHoveringRect(min_pos, max_pos)) {
@@ -775,21 +800,21 @@ namespace chill
       if (m_dragging) {
         if (!io.KeysDown[LIBSL_KEY_CTRL]) {
           for (std::shared_ptr<SelectableUI> object : selected) {
-            object->translate(io.MouseDelta / w_scale);
+            object->translate(io.MouseDelta / m_zoom);
           }
         }
         else {
           for (std::shared_ptr<SelectableUI> object : selected) {
             std::shared_ptr<VisualComment> com = std::static_pointer_cast<VisualComment>(object);
             if (com)
-              object->m_size += io.MouseDelta / w_scale;
+              object->m_size += io.MouseDelta / m_zoom;
           }
         }
       }
 
       // Move the whole canvas
       if (io.MouseDown[2] && ImGui::IsWindowHovered()) {
-        m_offset += io.MouseDelta / w_scale;
+        m_offset += io.MouseDelta / m_zoom;
       }
 
       // Keyboard
@@ -840,7 +865,7 @@ namespace chill
       
 
       // update the offset used for display
-      offset = (m_offset * w_scale + (w_size - w_pos) / 2.0F);
+      offset = (m_offset * m_zoom + (w_size - w_pos) / 2.0F);
     } // ! if window hovered
 
     // Draw the grid
@@ -852,14 +877,14 @@ namespace chill
 
     // Draw visual comment
     for (std::shared_ptr<VisualComment> comment : currentGraph->comments()) {
-      ImVec2 position = offset + comment->m_position * w_scale;
+      ImVec2 position = offset + comment->m_position * m_zoom;
       ImGui::SetCursorPos(position);
       comment->draw();
     }
 
     // Draw the pipes
-    float pipe_width = style.pipe_line_width * w_scale;
-    int pipe_res = static_cast<int>(20 * w_scale);
+    float pipe_width = style.pipe_line_width * m_zoom;
+    int pipe_res = static_cast<int>(20 * m_zoom);
     for (std::shared_ptr<Processor> processor : *currentGraph->processors()) {
       for (std::shared_ptr<ProcessorOutput> output : processor->outputs()) {
         for (std::shared_ptr<ProcessorInput> input : output->m_links) {
@@ -868,7 +893,7 @@ namespace chill
 
           float dist = sqrt( (A-B).x * (A-B).x + (A-B).y * (A-B).y);
 
-          ImVec2 bezier( (dist < 100.0F ? dist : 100.F) * w_scale, 0.0F);
+          ImVec2 bezier( (dist < 100.0F ? dist : 100.F) * m_zoom, 0.0F);
 
           ImGui::GetWindowDrawList()->AddBezierCurve(
             A,
@@ -882,7 +907,7 @@ namespace chill
           );
 
 
-          if (dist / w_scale > 125.0F && w_scale > 0.5F) {
+          if (dist / m_zoom > 125.0F && m_zoom > 0.5F) {
             ImVec2 center = (A + B) / 2.F;
             ImVec2 vec = (A*2.F - bezier) - (B*2.F + bezier);
             ImVec2 norm_vec = (vec / sqrt(vec.x*vec.x + vec.y*vec.y)) * 1.5F*pipe_width;
@@ -909,7 +934,7 @@ namespace chill
 
     // Draw the nodes
     for (std::shared_ptr<Processor> processor : *currentGraph->processors()) {
-      ImVec2 position = offset + processor->m_position * w_scale;
+      ImVec2 position = offset + processor->m_position * m_zoom;
       ImGui::SetCursorPos(position);
       processor->draw();
     }
@@ -930,7 +955,7 @@ namespace chill
         B += ImVec2(pipe_width / 4.F, 0.F);
       }
 
-      ImVec2 bezier(100.0F * w_scale, 0.0F);
+      ImVec2 bezier(100.0F * m_zoom, 0.0F);
       ImGui::GetWindowDrawList()->AddBezierCurve(
         A,
         A - bezier,
@@ -945,13 +970,19 @@ namespace chill
       ImGui::GetWindowDrawList()->AddCircleFilled(B, pipe_width / 2.0F, style.pipe_selected_color);
     }
 
-    menus();
 
-    ImGui::End(); // Graph
+
+
 
     ImGui::PopStyleVar();
     ImGui::PopStyleVar();
     ImGui::PopStyleColor();
+
+    window->FontWindowScale = 1.0F;
+    menus();
+    window->FontWindowScale = m_zoom;
+
+    ImGui::End(); // Graph
   }
 
   //-------------------------------------------------------
@@ -962,9 +993,9 @@ namespace chill
     // Make sure the wheel is only io.MouseWheel, 1 and -1
     io.MouseWheel = io.MouseWheel > 0.001F ? 1.0F : io.MouseWheel < -0.001F ? -1.0F : 0.0F;
 
-    float old_scale = window->FontWindowScale;
+    float old_scale = m_zoom;
     float new_scale = ImClamp(
-      window->FontWindowScale + c_zoom_motion_scale * io.MouseWheel * sqrt(old_scale),
+      m_zoom + c_zoom_motion_scale * io.MouseWheel * sqrt(old_scale),
       0.1F,
       2.0F);
 
@@ -974,7 +1005,7 @@ namespace chill
       new_scale = 2.0F;
     }
 
-    window->FontWindowScale = new_scale;
+    m_zoom = new_scale;
 
     if (io.MouseWheel < 0 || 0 < io.MouseWheel) {
       // mouse to screen
@@ -992,15 +1023,15 @@ namespace chill
   void NodeEditor::drawGrid() {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-    ImVec2 offset = (m_offset * window->FontWindowScale + (window->Size - window->Pos) / 2.F);
+    ImVec2 offset = (m_offset * m_zoom + (window->Size - window->Pos) / 2.F);
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     const ImU32& grid_Color      = style.graph_grid_color;
     const float& grid_Line_width = style.graph_grid_line_width;
 
-    const int subdiv = window->FontWindowScale >= 1.0F ? 10 : 100;
+    const int subdiv = m_zoom >= 1.0F ? 10 : 100;
 
-    int grid_size  = static_cast<int>(window->FontWindowScale * subdiv);
+    int grid_size  = static_cast<int>(m_zoom * subdiv);
     int offset_x   = static_cast<int>(offset.x);
     int offset_y   = static_cast<int>(offset.y);
 
@@ -1035,10 +1066,6 @@ namespace chill
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImGuiIO io = ImGui::GetIO();
 
-    float w_scale = window->FontWindowScale;
-
-    window->FontWindowScale = 1.0F;
-
     // Draw menus
     if (Instance()->m_graph_menu) {
       ImGui::OpenPopup("graph_menu");
@@ -1058,7 +1085,7 @@ namespace chill
       // mouse to screen
       ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
       // screen to grid
-      ImVec2 s2g = m2s / w_scale - Instance()->m_offset;
+      ImVec2 s2g = m2s / m_zoom - Instance()->m_offset;
 
       Instance()->m_graph_menu = false;
 
@@ -1082,7 +1109,7 @@ namespace chill
           // mouse to screen
           ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
           // screen to grid
-          ImVec2 s2g = m2s / w_scale - m_offset;
+          ImVec2 s2g = m2s / m_zoom - m_offset;
 
           paste();
         }
@@ -1146,8 +1173,6 @@ namespace chill
       ImGui::EndPopup();
     }
     ImGui::PopStyleVar();
-
-    window->FontWindowScale = w_scale;
   }
 
   //-------------------------------------------------------
@@ -1161,12 +1186,11 @@ namespace chill
 
     ImVec2  w_pos = window->Pos;
     ImVec2 w_size = window->Size;
-    float w_scale = window->FontWindowScale;
 
     ImGuiIO io = ImGui::GetIO();
 
-    ImVec2 A = (io.MousePos - (w_pos + w_size) / 2.0F) / w_scale - m_offset;
-    ImVec2 B = (io.MouseClickedPos[0] - (w_pos + w_size) / 2.0F) / w_scale - m_offset;
+    ImVec2 A = (io.MousePos - (w_pos + w_size) / 2.0F) / m_zoom - m_offset;
+    ImVec2 B = (io.MouseClickedPos[0] - (w_pos + w_size) / 2.0F) / m_zoom - m_offset;
 
     if (A.x > B.x) std::swap(A.x, B.x);
     if (A.y > B.y) std::swap(A.y, B.y);
@@ -1301,11 +1325,11 @@ namespace chill
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImVec2 w_pos = window->Pos;
     ImVec2 w_size = window->Size;
-    float w_scale = window->FontWindowScale;
+
     // mouse to screen
     ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
     // screen to grid
-    ImVec2 s2g = m2s / w_scale - m_offset;
+    ImVec2 s2g = m2s / m_zoom - m_offset;
 
     std::shared_ptr<SelectableUI> copy_buff = buffer->clone();
     getCurrentGraph()->expandGraph(buffer, s2g);
@@ -1394,10 +1418,10 @@ namespace chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::exportIceSL(const fs::path filename) {
-    if (!filename.empty()) {
+  void NodeEditor::exportIceSL(const fs::path* filename) {
+    if (!filename->empty()) {
       std::ofstream file;
-      file.open(filename);
+      file.open(*filename);
 
       // TODO: CLEAN THIS !!!
 
@@ -1583,7 +1607,7 @@ namespace chill
     nodeEditor->SetIceslPath();
 
     // create the temp file
-    nodeEditor->exportIceSL(Instance()->m_iceSLTempExportPath.string());
+    nodeEditor->exportIceSL(&(Instance()->m_iceSLTempExportPath));
 
     try {
       // create window

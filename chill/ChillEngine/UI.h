@@ -63,8 +63,12 @@ public:
     m_position += _delta;
   }
 
-  inline const ImVec2 getPosition() {
+  inline const ImVec2& getPosition() {
     return m_position;
+  }
+
+  inline const ImVec2& getSize() {
+    return m_size;
   }
 
   inline int64_t getUniqueID() {

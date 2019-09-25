@@ -330,8 +330,8 @@ void print(const std::string& string) {
 
 //-------------------------------------------------------
 
-void GraphSaver::execute(const char* path) {
-  luaL_dofile(m_LuaState, path);
+void GraphSaver::execute(const fs::path* path) {
+  luaL_dofile(m_LuaState, path->c_str());
 }
 
 //-------------------------------------------------------

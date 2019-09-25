@@ -229,15 +229,24 @@ class ProcessingGraph : public Processor
       return getBarycenter(list);
     }
 
-    AABox getBoundingBox(const std::vector<std::shared_ptr<SelectableUI>>& _elements) {
-      AABox bbox;
+    AASquare getBoundingBox(const std::vector<std::shared_ptr<SelectableUI>>& _elements) {
+      AASquare bbox;
       for (std::shared_ptr<SelectableUI> element : _elements) {
         bbox.m_Mins[0] = std::min(bbox.m_Mins[0], element->getPosition().x);
         bbox.m_Mins[1] = std::min(bbox.m_Mins[1], element->getPosition().y);
-        bbox.m_Maxs[0] = std::max(bbox.m_Maxs[0], element->getPosition().x);
-        bbox.m_Maxs[1] = std::max(bbox.m_Maxs[1], element->getPosition().y);
+        bbox.m_Maxs[0] = std::max(bbox.m_Maxs[0], element->getPosition().x + element->getSize().x);
+        bbox.m_Maxs[1] = std::max(bbox.m_Maxs[1], element->getPosition().y + element->getSize().y);
       }
       return bbox;
+    }
+
+
+    AASquare getBoundingBox() {
+      std::vector<std::shared_ptr<SelectableUI>> list;
+      for (std::shared_ptr<Processor> proc : m_processors) {
+        list.push_back(proc);
+      }
+      return getBoundingBox(list);
     }
 };
 }

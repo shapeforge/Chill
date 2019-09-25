@@ -42,10 +42,9 @@ namespace fs = std::filesystem;
     bool m_auto_export = true;
     bool m_auto_icesl = true;
 
-    std::string m_iceslPath;
-
-    std::string m_graphPath = "";
-    std::string m_iceSLExportPath = "";
+    fs::path m_iceslPath           = "";
+    fs::path m_graphPath           = "";
+    fs::path m_iceSLExportPath     = "";
     fs::path m_iceSLTempExportPath = fs::temp_directory_path() / (std::to_string(std::time(nullptr)) + ".lua");
 
     std::string m_settingsFileName = "/chill-settings.txt";
@@ -211,10 +210,12 @@ namespace fs = std::filesystem;
       static void closeIcesl();
 
       // export the graph to a .lua file for IceSL
-      void exportIceSL(const fs::path filename_);
+      void exportIceSL(const fs::path* _path);
 
       void saveSettings();
       void loadSettings();
+
+      void loadGraph(const fs::path* _path, bool _setAsAutoSavePath);
 
       // Get current screen size
       static void getScreenRes(int& width, int& height);
@@ -233,6 +234,9 @@ namespace fs = std::filesystem;
       std::vector<std::shared_ptr<SelectableUI>>     hovered;
       std::vector<std::shared_ptr<SelectableUI>>     selected;
       std::shared_ptr<ProcessingGraph> buffer;
+
+      float m_zoom = 1.0F;
+      ImGuiWindow* m_graphWindow = nullptr;
 
       bool text_editing;
       bool linking;    

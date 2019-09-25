@@ -227,8 +227,8 @@ namespace chill {
       remove(select);
     }
 
-    AABox bbox = getBoundingBox(subset);
-    ImVec2 barycenter = getBarycenter(subset);
+    auto bbox = getBoundingBox(subset);
+    auto barycenter = getBarycenter(subset);
 
     innerGraph->setPosition(barycenter);
     groupInputs->setPosition (ImVec2(bbox.minCorner()[0] - style.processor_width * 2, barycenter.y));

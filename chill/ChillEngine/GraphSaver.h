@@ -3,6 +3,7 @@ extern "C" {
 #include <lualib.h>
 }
 
+#include <filesystem>
 #include <string>
 
 #include <LibSL.h>
@@ -11,6 +12,12 @@ extern "C" {
 #include <luabind/object.hpp>
 
 namespace chill {
+
+#ifdef WIN32
+namespace fs = std::experimental::filesystem;
+#else
+namespace fs = std::filesystem;
+#endif
 
 class GraphSaver {
   public:
@@ -24,7 +31,7 @@ class GraphSaver {
       lua_close(m_LuaState);
     }
     
-    void execute(const char*);
+    void execute(const fs::path*);
 
     void registerBindings(lua_State*);
 
