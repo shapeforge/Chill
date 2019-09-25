@@ -191,6 +191,11 @@ namespace fs = std::filesystem;
       static void mainMouseMoved(uint _x, uint _y);
       static void mainMousePressed(uint _x, uint _y, uint _button, uint _flags);
 
+      void shortcutsAction();
+
+      void copy();
+      void paste();
+
       bool draw();
       void drawMenuBar();
       void drawLeftMenu();

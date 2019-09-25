@@ -225,13 +225,13 @@ namespace chill
     _In_ LPARAM _lParam)
   {
     // get current monitor hwnd
-    HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
+    //HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
     
     if (_uMsg == WM_ACTIVATE) {
-      if (_wParam == WA_ACTIVE ) {
+      if (_wParam != WA_ACTIVE ) {
         //SetWindowPos(NodeEditor::Instance()->m_chill_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        BringWindowToTop(NodeEditor::Instance()->m_icesl_hwnd);
         //BringWindowToTop(NodeEditor::Instance()->m_icesl_hwnd);
+        BringWindowToTop(NodeEditor::Instance()->m_chill_hwnd);
         //SetForegroundWindow(NodeEditor::Instance()->m_chill_hwnd);
         //SetWindowPos(NodeEditor::Instance()->m_chill_hwnd, NodeEditor::Instance()->m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
         //NodeEditor::Instance()->showIceSL();
@@ -741,49 +741,7 @@ namespace chill
           m_dragging = false;
         }
 
-        if (io.MouseClicked[0]) {
-          // if no processor hovered, clear
-          if (!io.KeysDown[LIBSL_KEY_SHIFT] && hovered.empty()) {
-            for (std::shared_ptr<SelectableUI> selproc : selected) {
-              selproc->m_selected = false;
-            }
-            selected.clear();
-          }
-          else {
-
-
-            for (std::shared_ptr<SelectableUI> hovproc : hovered) {
-              if (io.KeysDown[LIBSL_KEY_SHIFT]) {
-                if (hovproc->m_selected) {
-                  hovproc->m_selected = false;
-                  selected.erase(std::find(selected.begin(), selected.end(), hovproc));
-                }
-                else {
-                  hovproc->m_selected = true;
-                  selected.push_back(hovproc);
-                }
-              }
-              else {
-                bool sel_and_hov = false;
-                for (std::shared_ptr<SelectableUI> selproc : selected) {
-                  if (selproc == hovproc) {
-                    sel_and_hov = true;
-                    break;
-                  }
-                }
-                if (!sel_and_hov) {
-                  for (std::shared_ptr<SelectableUI> selproc : selected) {
-                    selproc->m_selected = false;
-                  }
-                  selected.clear();
-
-                  hovproc->m_selected = true;
-                  selected.push_back(hovproc);
-                }
-              }
-            }
-          }
-        }
+        
 
       } // ! LEFT CLICK
 
@@ -863,18 +821,9 @@ namespace chill
         */
       }
       
-      if (!selected.empty()) {
-        if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c' - 96] && io.KeysDownDuration['c' - 96] == 0.F) {
-          buffer = getCurrentGraph()->copySubset(selected);
-        }
-      }
-      if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['d' - 96] && io.KeysDownDuration['d' - 96] == 0.F) {
-        if (!m_icesl_is_docked) {
-          dock();
-        } else {
-          undock();
-        }
-      }
+      shortcutsAction();
+
+      
       /*
       if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['1' - 96] && io.KeysDownDuration['1' - 96] == 0.F) {
         setLayout(1);
@@ -888,23 +837,7 @@ namespace chill
       */
         
 
-      if (buffer) {
-        if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['v' - 96] && io.KeysDownDuration['v' - 96] == 0.F) {
-          // mouse to screen
-          ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
-          // screen to grid
-          ImVec2 s2g = m2s / w_scale - m_offset;
-
-          std::shared_ptr<SelectableUI> copy_buff = buffer->clone();
-          getCurrentGraph()->expandGraph(buffer, s2g);
-          buffer = std::static_pointer_cast<ProcessingGraph>(copy_buff);
-        }
-      }
-      if (io.KeysDown[LIBSL_KEY_DELETE]) {
-        for (std::shared_ptr<SelectableUI> item : selected) {
-          getCurrentGraph()->remove(item);
-        }
-      }
+      
 
       // update the offset used for display
       offset = (m_offset * w_scale + (w_size - w_pos) / 2.0F);
@@ -1151,9 +1084,7 @@ namespace chill
           // screen to grid
           ImVec2 s2g = m2s / w_scale - m_offset;
 
-          std::shared_ptr<SelectableUI> copy_buff = buffer->clone();
-          getCurrentGraph()->expandGraph(buffer, s2g);
-          buffer = std::static_pointer_cast<ProcessingGraph>(copy_buff);
+          paste();
         }
       }
       /*
@@ -1178,7 +1109,7 @@ namespace chill
       Instance()->m_node_menu = false;
       if (ImGui::MenuItem("Copy", "CTRL+C"))
       {
-        buffer = getCurrentGraph()->copySubset(selected);
+        copy();
       }
       /*
       if (ImGui::MenuItem("Group"))
@@ -1275,6 +1206,118 @@ namespace chill
       }
     }
   }
+
+  //-------------------------------------------------------
+  void NodeEditor::shortcutsAction() {
+    ImGuiIO      io = ImGui::GetIO();
+
+
+    //ctrl + c
+    if (!selected.empty()) {
+      if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c' - 96] && io.KeysDownDuration['c' - 96] == 0.F) {
+        copy();
+      }
+    }
+
+    //ctrl + d docking
+    if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['d' - 96] && io.KeysDownDuration['d' - 96] == 0.F) {
+      if (!m_icesl_is_docked) {
+        dock();
+      }
+      else {
+        undock();
+      }
+    }
+
+    // crtl + v
+    if (buffer) {
+      if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['v' - 96] && io.KeysDownDuration['v' - 96] == 0.F) {
+        paste();
+      }
+    }
+
+    //del 
+    if (io.KeysDown[LIBSL_KEY_DELETE]) {
+      for (std::shared_ptr<SelectableUI> item : selected) {
+        getCurrentGraph()->remove(item);
+      }
+    }
+
+
+    if (io.MouseClicked[0]) {
+      // if no processor hovered, clear
+      if (!io.KeysDown[LIBSL_KEY_CTRL] && hovered.empty()) {
+        for (std::shared_ptr<SelectableUI> selproc : selected) {
+          selproc->m_selected = false;
+        }
+        selected.clear();
+      }
+      else {
+        for (std::shared_ptr<SelectableUI> hovproc : hovered) {
+          if (io.KeysDown[LIBSL_KEY_CTRL]) {
+            if (hovproc->m_selected) {
+              hovproc->m_selected = false;
+              selected.erase(std::find(selected.begin(), selected.end(), hovproc));
+            }
+            else {
+              hovproc->m_selected = true;
+              selected.push_back(hovproc);
+            }
+          }
+          else {
+            bool sel_and_hov = false;
+            for (std::shared_ptr<SelectableUI> selproc : selected) {
+              if (selproc == hovproc) {
+                sel_and_hov = true;
+                break;
+              }
+            }
+            if (!sel_and_hov) {
+              for (std::shared_ptr<SelectableUI> selproc : selected) {
+                selproc->m_selected = false;
+              }
+              selected.clear();
+
+              hovproc->m_selected = true;
+              selected.push_back(hovproc);
+            }
+          }
+        }
+      }
+    }
+
+  }
+
+
+  //-------------------------------------------------------
+  void NodeEditor::copy() {
+    buffer = getCurrentGraph()->copySubset(selected);
+  }
+
+
+  //-------------------------------------------------------
+  void NodeEditor::paste() {
+    ImGuiIO      io = ImGui::GetIO();
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImVec2 w_pos = window->Pos;
+    ImVec2 w_size = window->Size;
+    float w_scale = window->FontWindowScale;
+    // mouse to screen
+    ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
+    // screen to grid
+    ImVec2 s2g = m2s / w_scale - m_offset;
+
+    std::shared_ptr<SelectableUI> copy_buff = buffer->clone();
+    getCurrentGraph()->expandGraph(buffer, s2g);
+    for (std::shared_ptr<SelectableUI> ui : *((std::shared_ptr<ProcessingGraph>)buffer)->processors())
+    {
+      ui->m_selected = true;
+    }
+    selected.clear();
+    selected.push_back(buffer);
+    buffer = std::static_pointer_cast<ProcessingGraph>(copy_buff);
+  }
+
 
   //-------------------------------------------------------
   void NodeEditor::launchIcesl() {
@@ -1856,6 +1899,7 @@ namespace chill
   {
     #ifdef WIN32
     // get current monitor info (set to zero in not specified, eg. hMonitor == NULL)
+    /*
     HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
     MONITORINFO monitorInfo;
     memset(&monitorInfo, 0, sizeof(MONITORINFO));
@@ -1863,6 +1907,7 @@ namespace chill
     if (hMonitor != NULL) {
       GetMonitorInfo(hMonitor, &monitorInfo);;
     }
+    */
 
     // get desktop dimmensions
     int desktop_width, desktop_height = 0;
@@ -1875,6 +1920,7 @@ namespace chill
       const int magic_x_offset = 15; // TODO determine automatically?
       MoveWindow(m_chill_hwnd, 0, 0, desktop_width / 2, desktop_height, true);
       MoveWindow(m_icesl_hwnd, desktop_width / 2 - magic_x_offset, 0, desktop_width / 2 + magic_x_offset, desktop_height, true);
+      SetActiveWindow(m_chill_hwnd);
     }
 #endif
   }
