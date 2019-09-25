@@ -1346,7 +1346,7 @@ namespace chill
   //-------------------------------------------------------
   void NodeEditor::launchIcesl() {
 
-    const char* icesl_path = Instance()->m_iceslPath.c_str();
+    fs::path icesl_path = Instance()->m_iceslPath;
     std::string icesl_params = " " + Instance()->m_iceSLTempExportPath.string();
 
 #ifdef WIN32
@@ -1358,7 +1358,7 @@ namespace chill
     ZeroMemory(&Instance()->m_icesl_p_info, sizeof(Instance()->m_icesl_p_info));
 
     // create the process
-    auto icesl_process = CreateProcess(icesl_path, // @lpApplicationName - application name / path 
+    auto icesl_process = CreateProcess(icesl_path.string().c_str(), // @lpApplicationName - application name / path 
       LPSTR(icesl_params.c_str()), // @lpCommandLine - command line for the application
       NULL, // @lpProcessAttributes - SECURITY_ATTRIBUTES for the process
       NULL, // @lpThreadAttributes - SECURITY_ATTRIBUTES for the thread
@@ -1376,7 +1376,7 @@ namespace chill
       EnumWindows(EnumWindowsFromPid /*sets g_icesl_hwnd*/, Instance()->m_icesl_p_info.dwProcessId);
       sl_assert(Instance()->m_icesl_hwnd != NULL);
       if (Instance()->m_auto_export) {
-        Instance()->exportIceSL(Instance()->m_iceSLTempExportPath);
+        Instance()->exportIceSL(&(Instance()->m_iceSLTempExportPath));
       }
       // we give a default size, otherwise SetWindowLong gives unpredictable results (white window)
       MoveWindow(Instance()->m_icesl_hwnd, 0, 0, 800, 600, true);
@@ -1501,7 +1501,7 @@ namespace chill
     //filename += g_settingsFileName;
 
     // remove space from icesl path for storage in txt file
-    std::string cleanedIceslPath = m_iceslPath;
+    std::string cleanedIceslPath = m_iceslPath.string();
     std::replace(cleanedIceslPath.begin(), cleanedIceslPath.end(), ' ', '#');
 
     std::ofstream f(filename);
@@ -1826,7 +1826,7 @@ namespace chill
       m_iceslPath = getenv("HOME") + std::string("/icesl/bin/IceSL-slicer");
 #endif
     }
-    if (!LibSL::System::File::exists(m_iceslPath.c_str())) {
+    if (!fs::exists(m_iceslPath)) {
       std::cerr << Console::red << "IceSL executable not found. Please specify the location of IceSL's executable." << Console::gray << std::endl;
 
       const char * modalTitle = "IceSL was not found...";
