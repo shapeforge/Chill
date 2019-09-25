@@ -390,7 +390,7 @@ class IntInput : public ProcessorInput {
     //-------------------------------------------------------
 
     template <typename ...>
-    IntInput(int _value, int _min = min(), int _max = max(), bool _alt = false, int _step = step(), ...) : IntInput()
+    IntInput(int _value = 0, int _min = min(), int _max = max(), bool _alt = false, int _step = step(), ...) : IntInput()
     {
       m_value = _value;
       m_min   = _min;
@@ -724,7 +724,7 @@ class RealInput : public ProcessorInput {
     // -----------------------------------------------------
 
     template <typename ...>
-    RealInput(float _value, float _min = min(), float _max = max(), bool _alt = false, float _step = step(), ...) : RealInput() {
+    RealInput(float _value = 0.0F, float _min = min(), float _max = max(), bool _alt = false, float _step = step(), ...) : RealInput() {
       m_value = _value;
       m_min   = _min;
       m_max   = _max;
