@@ -195,6 +195,10 @@ namespace fs = std::filesystem;
       void copy();
       void paste();
 
+      void undo();
+      void redo();
+      void modify();
+
       bool draw();
       void drawMenuBar();
       void drawLeftMenu();
@@ -227,6 +231,9 @@ namespace fs = std::filesystem;
       static NodeEditor* s_instance;
 
       std::stack<std::shared_ptr<chill::ProcessingGraph>> m_graphs;
+
+      std::deque <std::shared_ptr<ProcessingGraph>> m_undo;
+      std::deque <std::shared_ptr<ProcessingGraph>> m_redo;
 
       std::shared_ptr<ProcessorInput>  m_selected_input;
       std::shared_ptr<ProcessorOutput> m_selected_output;
