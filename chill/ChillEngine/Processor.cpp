@@ -263,14 +263,14 @@ bool chill::Processor::draw() {
   float button_size = style.processor_title_height / 1.2F * w_scale;
 
   // draw title
-  ImVec2 title_size(style.processor_width, style.processor_title_height);
-  title_size *= w_scale;
-
-  draw_list->AddRectFilled(min_pos, min_pos + title_size,
-    m_color,
-    rounding_corners, style.processor_rounded_corners & 3);
+  
 
   if (w_scale > 0.7F) {
+	  ImVec2 title_size(style.processor_width, style.processor_title_height);
+	  title_size *= w_scale;
+	  draw_list->AddRectFilled(min_pos, min_pos + title_size,
+		  m_color,
+		  rounding_corners, style.processor_rounded_corners & 3);
     if (!m_edit) {
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
@@ -292,10 +292,23 @@ bool chill::Processor::draw() {
         m_edit = false;
       }
     }
-    
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + padding);
   } else {
+	  ImVec2 title_size(style.processor_width, style.processor_title_height);
+	  title_size *= w_scale;
+	  draw_list->AddRectFilled(min_pos, max_pos,
+		  m_color,
+		  rounding_corners, style.processor_rounded_corners & 3);
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + title_size[1] + padding);
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
+	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 255));
+	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 255));
+	ImGui::SetWindowFontScale(1.0f);
+	ImGui::ButtonEx((name() + "##" + std::to_string(getUniqueID())).c_str(), title_size - ImVec2(2 * button_size, 0));
+	ImGui::SetWindowFontScale( w_scale);
+	ImGui::PopStyleColor(5);
   }
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 20);
