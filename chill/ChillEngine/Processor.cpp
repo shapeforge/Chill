@@ -305,8 +305,12 @@ bool chill::Processor::draw() {
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
 	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 255));
 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 255));
-	ImGui::SetWindowFontScale(1.0f);
-	ImGui::ButtonEx((name() + "##" + std::to_string(getUniqueID())).c_str(), title_size - ImVec2(2 * button_size, 0));
+	ImGui::SetWindowFontScale(min(1.3f,2* w_scale));
+	ImVec2 size = max_pos - min_pos - border;
+	
+	//todo Compute this in a better way
+	size[1] = size[1] / 3.5;
+	ImGui::ButtonEx((name() + "##" + std::to_string(getUniqueID())).c_str(), size);
 	ImGui::SetWindowFontScale( w_scale);
 	ImGui::PopStyleColor(5);
   }
