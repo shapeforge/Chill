@@ -40,3 +40,6 @@ Chill_Installer/
 
 #SourcePath
 SourcePath.h
+
+#SDL2 dll exception
+!**/lib/**/SDL2*
