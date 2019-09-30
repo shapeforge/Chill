@@ -34,6 +34,7 @@ ADD_LIBRARY( ChillEngine STATIC
 
 	Resources.h
 	SourcePath.h
+	input.h
   )
 
 TARGET_LINK_LIBRARIES(ChillEngine
