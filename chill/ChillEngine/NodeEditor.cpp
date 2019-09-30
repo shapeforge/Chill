@@ -656,27 +656,6 @@ namespace chill
 
     ImVec2 offset = (m_offset * m_zoom + (w_size - w_pos) / 2.0F);
 
-    
-    bool wasDirty = false;
-    for (std::shared_ptr<Processor> processor : *m_graphs.top()->processors()) {
-      if (processor->isDirty()) {
-        wasDirty = true;
-        processor->setDirty(false);
-      }
-    }
-
-    if (wasDirty) {
-      if (m_auto_export) {
-        exportIceSL(&m_iceSLTempExportPath);
-      }
-
-      if (m_auto_save) {
-        std::ofstream file;
-        file.open(m_graphPath);
-        m_graphs.top()->save(file);
-      }
-    }
-
     if (ImGui::IsWindowHovered()) {
       // clear data
       hovered.clear();
@@ -846,7 +825,7 @@ namespace chill
         */
       }
       
-      shortcutsAction();
+      
 
       
       /*
@@ -978,7 +957,34 @@ namespace chill
     ImGui::PopStyleVar();
     ImGui::PopStyleColor();
 
+  
+
+
+    bool wasDirty = false;
+    for (std::shared_ptr<Processor> processor : *m_graphs.top()->processors()) {
+      if (processor->isDirty()) {
+        wasDirty = true;
+        processor->setDirty(false);
+      }
+    }
+
+    if (wasDirty) {
+      modify();
+      if (m_auto_export) {
+        exportIceSL(&m_iceSLTempExportPath);
+      }
+
+      if (m_auto_save) {
+        std::ofstream file;
+        file.open(m_graphPath);
+        m_graphs.top()->save(file);
+      }
+    }
+    
+    
     window->FontWindowScale = 1.0F;
+    //DO NOT CHANGE ORDER OF THE FOLLOWING TWO FUNCTIONS !
+    shortcutsAction();
     menus();
     window->FontWindowScale = m_zoom;
 
@@ -1106,11 +1112,6 @@ namespace chill
 
       if (buffer) {
         if (ImGui::MenuItem("Paste", "CTRL+V")) {
-          // mouse to screen
-          ImVec2 m2s = io.MousePos - (w_pos + w_size) / 2.0F;
-          // screen to grid
-          ImVec2 s2g = m2s / m_zoom - m_offset;
-
           paste();
         }
       }
@@ -1267,6 +1268,16 @@ namespace chill
       }
     }
 
+    //undo redo
+    if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['z' - 96] && io.KeysDownDuration['z' - 96] == 0.F) {
+      if (io.KeysDown[LIBSL_KEY_SHIFT]) {
+        redo();
+      }
+      else {
+        undo();
+      }
+    }
+
 
     if (io.MouseClicked[0]) {
       // if no processor hovered, clear
@@ -1322,7 +1333,7 @@ namespace chill
   //-------------------------------------------------------
   void NodeEditor::paste() {
     ImGuiIO      io = ImGui::GetIO();
-    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImGuiWindow* window =m_graphWindow;
     ImVec2 w_pos = window->Pos;
     ImVec2 w_size = window->Size;
 
@@ -1333,15 +1344,50 @@ namespace chill
 
     std::shared_ptr<SelectableUI> copy_buff = buffer->clone();
     getCurrentGraph()->expandGraph(buffer, s2g);
+    for (std::shared_ptr<SelectableUI> selproc : selected) {
+      selproc->m_selected = false;
+    }
+    selected.clear();
     for (std::shared_ptr<SelectableUI> ui : *((std::shared_ptr<ProcessingGraph>)buffer)->processors())
     {
       ui->m_selected = true;
     }
-    selected.clear();
     selected.push_back(buffer);
     buffer = std::static_pointer_cast<ProcessingGraph>(copy_buff);
   }
 
+  //-------------------------------------------------------
+  void NodeEditor::undo() {
+    if (m_undo.size()>1) {
+      m_redo.push_back(m_undo.back());
+      m_undo.pop_back();
+      std::shared_ptr<ProcessingGraph> graph = m_undo.back();
+      setMainGraph(graph);
+    }
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::redo() {
+    if (m_redo.size() > 0) {
+      m_undo.push_back(m_redo.back());
+      std::shared_ptr<ProcessingGraph> graph = m_redo.back();
+      m_redo.pop_back();
+      setMainGraph(graph);
+    }
+  }
+
+  //-------------------------------------------------------
+  void NodeEditor::modify() {
+    m_redo.clear();
+    // duplication du graph
+    std::shared_ptr<ProcessingGraph> duplicate = std::static_pointer_cast<ProcessingGraph> (getMainGraph()->clone());
+    for (std::shared_ptr<Processor> processor : *duplicate->processors()) {
+      if (processor->isDirty()) {
+        processor->setDirty(false);
+      }
+    }
+    m_undo.push_back(duplicate);
+  }
 
   //-------------------------------------------------------
   void NodeEditor::launchIcesl() {
