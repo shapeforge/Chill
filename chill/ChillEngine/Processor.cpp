@@ -294,25 +294,27 @@ bool chill::Processor::draw() {
     }
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + padding);
   } else {
+
 	  ImVec2 title_size(style.processor_width, style.processor_title_height);
 	  title_size *= w_scale;
+    ImVec2 cursor = ImGui::GetCursorPos() + ImVec2(0, 2*padding + title_size.y);
 	  draw_list->AddRectFilled(min_pos, max_pos,
 		  m_color,
 		  rounding_corners, style.processor_rounded_corners & 3);
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + title_size[1] + padding);
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
-	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 255));
-	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 255));
-	ImGui::SetWindowFontScale(min(1.3f,2* w_scale));
-	ImVec2 size = max_pos - min_pos - border;
+	  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+	  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
+	  ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
+	  ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 255));
+	  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 255));
+	  ImGui::SetWindowFontScale(min(1.3f,2* w_scale));
 	
-	//todo Compute this in a better way
-	size[1] = size[1] / 3.5;
-	ImGui::ButtonEx((name() + "##" + std::to_string(getUniqueID())).c_str(), size);
-	ImGui::SetWindowFontScale( w_scale);
-	ImGui::PopStyleColor(5);
+    ImVec2 textSize = ImGui::CalcTextSize(name().c_str());
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (m_size[0]*w_scale - textSize[0])/2.0);
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (m_size[1] * w_scale - textSize[1]) / 2.0);
+	  ImGui::Text( "%s" ,name().c_str(), m_size );
+    ImGui::SetCursorPos(cursor);
+	  ImGui::SetWindowFontScale(w_scale);
+	  ImGui::PopStyleColor(5);
   }
   ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2);
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 20);
