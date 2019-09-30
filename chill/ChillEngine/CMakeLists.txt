@@ -37,8 +37,9 @@ ADD_LIBRARY( ChillEngine STATIC
   )
 
 TARGET_LINK_LIBRARIES(ChillEngine
-        tinyfiledialogs
-        lua
+	${SDL2_LIBRARIES}
+	tinyfiledialogs
+    lua
 	luabind
 	LibSL
 	LibSL_gl
@@ -49,4 +50,4 @@ SET_PROPERTY(TARGET ChillEngine APPEND PROPERTY
  			${CMAKE_CURRENT_SOURCE_DIR}
 )
 SET_TARGET_PROPERTIES(ChillEngine PROPERTIES DEBUG_POSTFIX "-d")
-set_target_properties(ChillEngine PROPERTIES ENABLE_EXPORTS ON)
+SET_TARGET_PROPERTIES(ChillEngine PROPERTIES ENABLE_EXPORTS ON)
