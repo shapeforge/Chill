@@ -1347,7 +1347,8 @@ namespace chill
   void NodeEditor::launchIcesl() {
 
     fs::path icesl_path = Instance()->m_iceslPath;
-    std::string icesl_params = " " + Instance()->m_iceSLTempExportPath.string();
+    fs::path icesl_params = " ";
+    icesl_params += Instance()->m_iceSLTempExportPath;
 
 #ifdef WIN32
     // CreateProcess init
@@ -1390,7 +1391,9 @@ namespace chill
       Instance()->m_icesl_hwnd = NULL;
     }
 #elif __linux__
-  std::system( (icesl_path + icesl_params + " &").c_str() );
+    icesl_path += icesl_params;
+    icesl_path += " &";
+    std::system(icesl_path.string().c_str());
 #endif
   }
 
