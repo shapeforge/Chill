@@ -1,5 +1,7 @@
 #include "VisualComment.h"
 
+#include <algorithm>
+
 chill::VisualComment::VisualComment(VisualComment &copy) {
   m_name    = copy.m_name;
   m_color   = copy.m_color;
@@ -10,8 +12,8 @@ chill::VisualComment::VisualComment(VisualComment &copy) {
 
 bool chill::VisualComment::draw() {
 
-  m_size.y = max(50, m_size.y);
-  m_size.x = max(50, m_size.x);
+  m_size.y = std::max(50.F, m_size.y);
+  m_size.x = std::max(50.F, m_size.x);
   ImGui::PushID(int(getUniqueID()));
 
   ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -51,7 +53,7 @@ bool chill::VisualComment::draw() {
 
   ImGui::BeginGroup();
   // draw title
-  m_title_size = ImVec2(m_size.x, min(50, m_size.y));
+  m_title_size = ImVec2(m_size.x, std::min(50.F, m_size.y));
   ImVec2 title_size = m_title_size* w_scale;
 
   draw_list->AddRectFilled(min_pos, min_pos + title_size,

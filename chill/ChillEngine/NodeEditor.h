@@ -2,18 +2,25 @@
 
 #include <vector>
 #include <stack>
+#include <algorithm>
 
 #include <iostream>
 #include <fstream>
 #include <filesystem>
 
-#include <LibSL/LibSL.h>
-#include <LibSL/LibSL_gl.h>
+#include <SDL.h>
+
+//#include <Windows.h> // TODO should be included with SDL?
 
 #include "UI.h"
 #include "Processor.h"
 #include "ProcessingGraph.h"
 
+
+namespace chill {
+  typedef unsigned int uint;
+  typedef unsigned char uchar;
+}
 
 
 namespace chill {
@@ -77,7 +84,7 @@ namespace fs = std::filesystem;
     void updateIceSLPosRatio();
     void showIceSL();
 
-#ifdef WIN32
+#ifdef WIN320
     HWND m_chill_hwnd = NULL;
     HWND m_icesl_hwnd = NULL;
     PROCESS_INFORMATION m_icesl_p_info;

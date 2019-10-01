@@ -2,6 +2,8 @@
 
 #include "Processor.h"
 
+#include <tuple>
+
 namespace chill
 {
   /**

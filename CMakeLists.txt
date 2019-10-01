@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
+#SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 
 PROJECT(CHILL)
 
@@ -9,26 +9,21 @@ CONFIGURE_FILE(
   "${CMAKE_CURRENT_SOURCE_DIR}/chill/ChillEngine/SourcePath.h"
  )
 
-if (EMSCRIPTEN)
-
-  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s TOTAL_MEMORY=128000000")
-
-else (EMSCRIPTEN)
-
+IF (WIN32)
+  # only on Windows boxes (must appear at beginning of CMakeLists.txt file)
+  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
+  ADD_DEFINITIONS(-DWIN32)
+ELSE (WIN32)
   # only on Linux boxes (must appear at beginning of CMakeLists.txt file)
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--copy-dt-needed-entries")
-  IF (WIN32)
-    # only on Windows boxes (must appear at beginning of CMakeLists.txt file)
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
-  ENDIF()
-endif (EMSCRIPTEN)
+ENDIF()
 
+###############################
+# SDL2 integration #
+###############################
 if (WIN32)
-  ADD_DEFINITIONS(-DWIN32)
   SET(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2/")
 endif (WIN32)
-
-
 FIND_PACKAGE(SDL2 REQUIRED)
 
 if (SDL2_FOUND)
@@ -43,6 +38,10 @@ ADD_SUBDIRECTORY(libs)
 ADD_SUBDIRECTORY(chill)
 #ADD_SUBDIRECTORY(tests)
 
-
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-
+#IF(WIN32)
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /stdlib=libc++")
+#ELSE()
+#  Set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+#ENDIF()

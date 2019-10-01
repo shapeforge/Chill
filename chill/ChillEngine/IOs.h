@@ -1,9 +1,9 @@
 /** @file */
 #pragma once
 
-#include <regex>
+#include <fstream>
 
-#include "imgui/imgui.h"
+#include <regex>
 
 #include "UI.h"
 #include "IOTypes.h"
@@ -328,7 +328,7 @@ class BoolInput : public ProcessorInput
 
     template <typename ...>
     BoolInput(...) : BoolInput() {
-      sl_assert(false);
+      assert(false);
     }
 
     std::shared_ptr<ProcessorInput> clone() {
@@ -429,7 +429,7 @@ class IntInput : public ProcessorInput {
     // For compatibility (shouldn't be called)
     template <typename ...>
     IntInput(...) {
-      sl_assert(false);
+      assert(false);
     }
 
     //-------------------------------------------------------
@@ -543,7 +543,7 @@ class ListInput : public ProcessorInput {
     // For compatibility (shouldn't be called)
     template <typename ...>
     ListInput(...) {
-      sl_assert(false);
+      assert(false);
     }
 
     //-------------------------------------------------------
@@ -605,7 +605,7 @@ class PathInput : public ProcessorInput {
     // For compatibility (shouldn't be called)
     template <typename ...>
     PathInput(...) : PathInput() {
-      sl_assert(false);
+      assert(false);
     }
 
     //-------------------------------------------------------
@@ -774,7 +774,7 @@ class RealInput : public ProcessorInput {
     template <typename ...>
     RealInput(...) : RealInput()
     {
-      sl_assert(false);
+      assert(false);
     }
 
     // -----------------------------------------------------
@@ -853,7 +853,7 @@ class StringInput : public ProcessorInput
     // For compatibility (shouldn't be called)
     template <typename ...>
     StringInput(...) : StringInput() {
-      sl_assert(false);
+      assert(false);
     }
 
     // -----------------------------------------------------
@@ -961,7 +961,7 @@ class ShapeInput : public ProcessorInput {
 
     template <typename ...>
     ShapeInput(...) : ShapeInput() {
-      sl_assert(false);
+      assert(false);
     }
 
     // -----------------------------------------------------
@@ -1028,7 +1028,7 @@ class Vec4Input : public ProcessorInput {
     // For compatibility (shouldn't be called)
     template <typename ...>
     Vec4Input(...) : Vec4Input() {
-      sl_assert(false);
+      assert(false);
     }
 
     // -----------------------------------------------------
@@ -1209,7 +1209,7 @@ class Vec3Input : public ProcessorInput
     // For compatibility (shouldn't be called)
     template <typename ...>
     Vec3Input(...) : Vec3Input() {
-      sl_assert(false);
+      assert(false);
     }
 
     // -----------------------------------------------------

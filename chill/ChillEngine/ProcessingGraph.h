@@ -1,12 +1,10 @@
 /** @file */
 #pragma once
 
-
+#include <algorithm> 
 #include <set>
 #include <unordered_set>
 #include <vector>
-
-#include <LibSL.h>
 
 #include "IOs.h"
 #include "Processor.h"
@@ -22,6 +20,16 @@ class VisualComment;
 };
 
 namespace chill {
+
+  class BBox2D {
+
+  public:
+    ImVec2 m_min;
+    ImVec2 m_max;
+    ImVec2 center() { return ImVec2(0, 0); }
+    ImVec2 extent() { return ImVec2(0, 0); }
+  };
+
 
 /**
  * Graph class. Contains all nodes and connections.
@@ -80,8 +88,8 @@ class ProcessingGraph : public Processor
      **/
     void addProcessor(std::shared_ptr<Processor>& _processor)
     {
-      sl_assert(&_processor);
-      sl_assert(_processor->owner() != this);
+      assert(&_processor);
+      assert(_processor->owner() != this);
 
       _processor->setOwner(this);
       m_processors.push_back(_processor);
@@ -93,8 +101,8 @@ class ProcessingGraph : public Processor
      *  @param _visualComment The std::shared_ptr related to the comment.
      **/
     void addComment(std::shared_ptr<VisualComment>& _visualComment) {
-      sl_assert(&_visualComment);
-      sl_assert(_visualComment->owner() != this);
+      assert(&_visualComment);
+      assert(_visualComment->owner() != this);
 
       _visualComment->setOwner(this);
       m_comments.push_back(_visualComment);
@@ -229,19 +237,19 @@ class ProcessingGraph : public Processor
       return getBarycenter(list);
     }
 
-    AASquare getBoundingBox(const std::vector<std::shared_ptr<SelectableUI>>& _elements) {
-      AASquare bbox;
+    BBox2D getBoundingBox(const std::vector<std::shared_ptr<SelectableUI>>& _elements) {
+      BBox2D bbox;
       for (std::shared_ptr<SelectableUI> element : _elements) {
-        bbox.m_Mins[0] = std::min(bbox.m_Mins[0], element->getPosition().x);
-        bbox.m_Mins[1] = std::min(bbox.m_Mins[1], element->getPosition().y);
-        bbox.m_Maxs[0] = std::max(bbox.m_Maxs[0], element->getPosition().x + element->getSize().x);
-        bbox.m_Maxs[1] = std::max(bbox.m_Maxs[1], element->getPosition().y + element->getSize().y);
+        bbox.m_min.x = std::min(bbox.m_min.x, element->getPosition().x);
+        bbox.m_min.x = std::min(bbox.m_min.y, element->getPosition().y);
+        bbox.m_max.y = std::max(bbox.m_max.x, element->getPosition().x + element->getSize().x);
+        bbox.m_max.y = std::max(bbox.m_max.y, element->getPosition().y + element->getSize().y);
       }
       return bbox;
     }
 
 
-    AASquare getBoundingBox() {
+    BBox2D getBoundingBox() {
       std::vector<std::shared_ptr<SelectableUI>> list;
       for (std::shared_ptr<Processor> proc : m_processors) {
         list.push_back(proc);

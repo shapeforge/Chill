@@ -19,3 +19,7 @@
 	url = https://github.com/native-toolkit/tinyfiledialogs
 	branch = master
 	ignore = dirty
+	
+[submodule "imgui"]
+	path = libs/imgui
+	url = https://github.com/ocornut/imgui.git

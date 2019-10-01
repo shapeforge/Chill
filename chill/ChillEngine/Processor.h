@@ -3,8 +3,6 @@
 
 //-------------------------------------------------------
 
-#include <LibSL.h>
-
 #include "IOs.h"
 #include "IOTypes.h"
 #include "UI.h"

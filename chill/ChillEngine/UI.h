@@ -1,11 +1,10 @@
 #pragma once
 
-#include <LibSL/LibSL.h>
-#include <LibSL/LibSL_gl.h>
+#include <string>
 
-#include "imgui/imgui.h"
+#include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS true
-#include "imgui/imgui_internal.h"
+#include <imgui_internal.h>
 
 #include "Style.h"
 

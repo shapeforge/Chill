@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(ChillEngine)
 
-include(UseCXX17)
+#include(UseCXX17)
 
 ADD_LIBRARY( ChillEngine STATIC
 	Processor.h
@@ -38,11 +38,10 @@ ADD_LIBRARY( ChillEngine STATIC
 
 TARGET_LINK_LIBRARIES(ChillEngine
 	${SDL2_LIBRARIES}
+	imgui
 	tinyfiledialogs
     lua
 	luabind
-	LibSL
-	LibSL_gl
 )
 
 SET_PROPERTY(TARGET ChillEngine APPEND PROPERTY

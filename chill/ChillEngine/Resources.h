@@ -2,8 +2,8 @@
 //------------------------------------------------------------------
 #pragma once
 
-#include <LibSL/LibSL.h>
-
+//#include <LibSL/LibSL.h>
+/*
 class Resources
 {
   std::string m_Path;
@@ -58,4 +58,5 @@ public:
   }
 
 };
+*/
 

@@ -1,8 +1,6 @@
 #include "FileDialog.h"
 
-#include <LibSL/LibSL.h>
-
-#include "../../libs/tinyfiledialogs/tinyfiledialogs.h"
+#include <tinyfiledialogs.h>
 
 
 //-------------------------------------------------------

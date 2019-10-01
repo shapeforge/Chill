@@ -6,7 +6,6 @@ extern "C" {
 #include <filesystem>
 #include <string>
 
-#include <LibSL.h>
 #include <luabind/luabind.hpp>
 #include <luabind/operator.hpp>
 #include <luabind/object.hpp>

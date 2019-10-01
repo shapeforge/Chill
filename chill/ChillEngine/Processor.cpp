@@ -2,6 +2,9 @@
 #include "ProcessingGraph.h"
 #include "IOs.h"
 
+#include <iostream>
+#include <queue>
+
 namespace chill {
 
 std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInput> _input) {
@@ -306,7 +309,7 @@ bool chill::Processor::draw() {
 	  ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
 	  ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 255));
 	  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 255));
-	  ImGui::SetWindowFontScale(min(1.3f,2* w_scale));
+	  ImGui::SetWindowFontScale(std::min(1.3f,2* w_scale));
 	
     ImVec2 textSize = ImGui::CalcTextSize(name().c_str());
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (m_size[0]*w_scale - textSize[0])/2.0);

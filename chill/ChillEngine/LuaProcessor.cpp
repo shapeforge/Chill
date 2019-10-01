@@ -1,6 +1,5 @@
 #include "LuaProcessor.h"
 
-#include <LibSL/LibSL.h>
 #include <regex>
 
 #include "NodeEditor.h"
@@ -22,7 +21,7 @@ namespace chill {
     setName(_processor.name());
     setOwner(_processor.owner());
     setColor(_processor.color());
-    m_program = loadFileIntoString((NodeEditor::NodesFolder() + m_nodepath).c_str());
+    m_program = ""; // TODO loadFileIntoString((NodeEditor::NodesFolder() + m_nodepath).c_str());
 
     for (auto input : _processor.inputs()) {
       addInput(input->clone());
@@ -36,9 +35,10 @@ namespace chill {
   LuaProcessor::LuaProcessor(const std::string &_path) {
     std::regex e("\\\\");
     m_nodepath = regex_replace(_path, e, "/$2");
-    m_program  = loadFileIntoString((NodeEditor::NodesFolder() + m_nodepath).c_str());
+    m_program = ""; //TODO  loadFileIntoString((NodeEditor::NodesFolder() + m_nodepath).c_str());
 
-    setName(removeExtensionFromFileName(extractFileName(m_nodepath)));
+    // TODO setName(removeExtensionFromFileName(extractFileName(m_nodepath)));
+    setName("");
     Parse();
   }
 
@@ -108,7 +108,7 @@ setfenv(1, _Gcurrent)    --set it\n\
 setDirty(__currentNodeId)\n";
 
 
-    code += loadFileIntoString((NodeEditor::NodesFolder() + m_nodepath).c_str());
+    code += "";// TODO loadFileIntoString((NodeEditor::NodesFolder() + m_nodepath).c_str());
 
     if (getState() == EMITING) {
       for (auto output : outputs()) {

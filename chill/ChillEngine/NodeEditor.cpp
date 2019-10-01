@@ -1,4 +1,5 @@
 ﻿#include "NodeEditor.h"
+
 #include "Processor.h"
 #include "LuaProcessor.h"
 #include "IOs.h"
@@ -9,11 +10,6 @@
 
 #include "SourcePath.h"
 
-#include <SDL.h>
-
-#ifdef USE_GLUT
-#include <GL/glut.h>
-#endif
 
 #undef ForIndex
 #define ForIndex(I, N) for(decltype(N) I=0; I<N; I++)
@@ -71,7 +67,8 @@ namespace chill
 
   void listLuaFileInDir(std::vector<std::string>& _files)
   {
-    listFiles(NodeEditor::NodesFolder().c_str(), _files);
+    //TODO
+    //listFiles(NodeEditor::NodesFolder().c_str(), _files);
   }
 
   void listLuaFileInDir(std::vector<std::string>& _files, const std::string& _dir)
@@ -79,9 +76,11 @@ namespace chill
     for (fs::directory_iterator itr(_dir); itr != fs::directory_iterator(); ++itr)
     {
       fs::path file = itr->path();
+      /* TODO
       if (!is_directory(file) && strcmp(extractExtension(file.filename().generic_string()).c_str(), "lua") == 0) {
         _files.push_back(file.filename().generic_string());
       }
+      */
     }
   }
 
@@ -103,12 +102,12 @@ namespace chill
 
       if (dir_name[0] != '.') {
         if (!filter.empty()){
-          nameDir = recursiveFileMenuSelecter(Resources::toPath(_current_dir, directories[i]), filter);
+          nameDir = recursiveFileMenuSelecter(_current_dir + "/" + directories[i], filter);
         } else {
           if (ImGui::CollapsingHeader((std::string(dir_name) + "##" + _current_dir).c_str() )) {
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             ImGui::BeginGroup();
-            nameDir = recursiveFileMenuSelecter(Resources::toPath(_current_dir, directories[i]), filter);
+            nameDir = recursiveFileMenuSelecter(_current_dir + "/" + directories[i], filter);
             ImGui::EndGroup();
 
           }
@@ -119,7 +118,8 @@ namespace chill
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0F, 1.0F, 1.0F, 1.0F));
     ForIndex(i, files.size()) {
-      std::string name = removeExtensionFromFileName(files[i]);
+      
+      std::string name = ""; // ToDO removeExtensionFromFileName(files[i]); 
       std::string low_name = name;
       std::locale loc;
 
@@ -134,7 +134,7 @@ namespace chill
       bool test = ImGui::MenuItem(name.c_str());
 
       if (test) {
-        nameDir = Resources::toPath(_current_dir, files[i]);
+        nameDir = _current_dir + "/" + files[i];
       }
 
     }
@@ -160,10 +160,10 @@ namespace chill
 
       if (dir_name[0] != '.') {
         if (!filter.empty()){
-          nameDir = recursiveFileSelecter(Resources::toPath(_current_dir, directories[i]), filter);
+          nameDir = recursiveFileSelecter(_current_dir + "/" + directories[i], filter);
         } else {
           if (ImGui::BeginMenu(dir_name)) {
-            nameDir = recursiveFileSelecter(Resources::toPath(_current_dir, directories[i]), filter);
+            nameDir = recursiveFileSelecter(_current_dir + "/" + directories[i], filter);
             ImGui::EndMenu();
           }
         }
@@ -173,7 +173,7 @@ namespace chill
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0F, 1.0F, 1.0F, 1.0F));
     ForIndex(i, files.size()) {
-      std::string name = removeExtensionFromFileName(files[i]);
+      std::string name = ""; // Todo removeExtensionFromFileName(files[i]);
       std::string low_name = name;
       std::locale loc;
 
@@ -188,7 +188,7 @@ namespace chill
       bool test = ImGui::MenuItem(name.c_str());
 
       if (test) {
-        nameDir = Resources::toPath(_current_dir, files[i]);
+        nameDir =_current_dir + "/" + files[i];
       }
 
     }
@@ -229,7 +229,7 @@ namespace chill
   }
 
   //-------------------------------------------------------
-#ifdef WIN32
+#ifdef WIN320
   BOOL CALLBACK EnumWindowsFromPid(HWND hwnd, LPARAM lParam)
   {
     DWORD pID;
@@ -312,13 +312,13 @@ namespace chill
 
     // Recenter the view and adjust zoom
     auto bbox = getMainGraph()->getBoundingBox();
-    auto center = bbox.center();
+    ImVec2 center = bbox.center();
 
     ImGuiWindow* window = m_graphWindow;
 
     if (window) {
-      m_offset = ImVec2(center[0], center[1]) - window->Pos;
-      m_zoom =  min(window->Size[0] / bbox.extent()[0], window->Size[1] / bbox.extent()[1])  * 0.8F;
+      m_offset = center - window->Pos;
+      m_zoom =  std::min(window->Size.x / bbox.extent().x, window->Size.y / bbox.extent().y) * 0.8F;
     }
   }
 
@@ -347,8 +347,10 @@ namespace chill
   //-------------------------------------------------------
 
   void NodeEditor::mainRender() {
+    /* ToDo
     glClearColor(0.F, 0.F, 0.F, 0.F);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    */
 
     Instance()->draw();
 
@@ -362,8 +364,9 @@ namespace chill
   void NodeEditor::setIcon() {
     static bool icon_changed = false;
     if (!icon_changed) {
-#ifdef WIN32
-      HWND hWND = SimpleUI::getHWND();
+#ifdef WIN320
+      //TODO HWND hWND = SimpleUI::getHWND();
+      HWND hWND = NULL;
       HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(16001));
       SendMessage(hWND, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
       SendMessage(hWND, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
@@ -388,10 +391,10 @@ namespace chill
   //-------------------------------------------------------
   void NodeEditor::mainScanCodePressed(uint _sc)
   {
-    if (_sc == LIBSL_KEY_SHIFT) {
+    if (_sc == 0) { // TODO LIBSL_KEY_SHIFT
       ImGui::GetIO().KeyShift = true;
     }
-    if (_sc == LIBSL_KEY_CTRL) {
+    if (_sc == 0) { // TODO LIBSL_KEY_CTRL
       ImGui::GetIO().KeyCtrl = true;
     }
   }
@@ -399,10 +402,10 @@ namespace chill
   //-------------------------------------------------------
   void NodeEditor::mainScanCodeUnpressed(uint _sc)
   {
-    if (_sc == LIBSL_KEY_SHIFT) {
+    if (_sc == 0) {// TODO LIBSL_KEY_SHIFT
       ImGui::GetIO().KeyShift = false;
     }
-    if (_sc == LIBSL_KEY_CTRL) {
+    if (_sc == 0) {// TODO LIBSL_KEY_CTRL
       ImGui::GetIO().KeyCtrl = false;
     }
   }
@@ -814,7 +817,7 @@ namespace chill
 #endif
       // Move selected processors
       if (m_dragging) {
-        if (!io.KeysDown[LIBSL_KEY_CTRL]) {
+        if (!io.KeysDown[0]) { // LIBSL_KEY_CTRL
           for (std::shared_ptr<SelectableUI> object : selected) {
             object->translate(io.MouseDelta / m_zoom);
           }
@@ -1240,7 +1243,7 @@ namespace chill
         style.processor_selected_color
       );
 
-      if (!io.KeysDown[LIBSL_KEY_SHIFT]) {
+      if (!io.KeysDown[0]) { // TODO LIBSL_KEY_SHIFT
         for (std::shared_ptr<SelectableUI> selproc : selected) {
           selproc->m_selected = false;
         }
@@ -1276,13 +1279,13 @@ namespace chill
 
     //ctrl + c
     if (!selected.empty()) {
-      if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['c' - 96] && io.KeysDownDuration['c' - 96] == 0.F) {
+      if (io.KeysDown[0] && io.KeysDown['c' - 96] && io.KeysDownDuration['c' - 96] == 0.F) { // LIBSL_KEY_CTRL
         copy();
       }
     }
 
     //ctrl + d docking
-    if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['d' - 96] && io.KeysDownDuration['d' - 96] == 0.F) {
+    if (io.KeysDown[0] && io.KeysDown['d' - 96] && io.KeysDownDuration['d' - 96] == 0.F) { // LIBSL_KEY_CTRL
       if (!m_icesl_is_docked) {
         dock();
       }
@@ -1293,21 +1296,21 @@ namespace chill
 
     // crtl + v
     if (buffer) {
-      if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['v' - 96] && io.KeysDownDuration['v' - 96] == 0.F) {
+      if (io.KeysDown[0] && io.KeysDown['v' - 96] && io.KeysDownDuration['v' - 96] == 0.F) { // LIBSL_KEY_CTRL
         paste();
       }
     }
 
     //del 
-    if (io.KeysDown[LIBSL_KEY_DELETE]) {
+    if (io.KeysDown[0]) { // LIBSL_KEY_DELETE
       for (std::shared_ptr<SelectableUI> item : selected) {
         getCurrentGraph()->remove(item);
       }
     }
 
     //undo redo
-    if (io.KeysDown[LIBSL_KEY_CTRL] && io.KeysDown['z' - 96] && io.KeysDownDuration['z' - 96] == 0.F) {
-      if (io.KeysDown[LIBSL_KEY_SHIFT]) {
+    if (io.KeysDown[0] && io.KeysDown['z' - 96] && io.KeysDownDuration['z' - 96] == 0.F) { // LIBSL_KEY_CTRL
+      if (io.KeysDown[0]) { // LIBSL_KEY_SHIFT
         redo();
       }
       else {
@@ -1318,7 +1321,7 @@ namespace chill
 
     if (io.MouseClicked[0]) {
       // if no processor hovered, clear
-      if (!io.KeysDown[LIBSL_KEY_CTRL] && hovered.empty()) {
+      if (!io.KeysDown[0] && hovered.empty()) { // LIBSL_KEY_CTRL
         for (std::shared_ptr<SelectableUI> selproc : selected) {
           selproc->m_selected = false;
         }
@@ -1326,7 +1329,7 @@ namespace chill
       }
       else {
         for (std::shared_ptr<SelectableUI> hovproc : hovered) {
-          if (io.KeysDown[LIBSL_KEY_CTRL]) {
+          if (io.KeysDown[0]) { // LIBSL_KEY_CTRL
             if (hovproc->m_selected) {
               hovproc->m_selected = false;
               selected.erase(std::find(selected.begin(), selected.end(), hovproc));
@@ -1433,7 +1436,7 @@ namespace chill
     fs::path icesl_params = " ";
     icesl_params += Instance()->m_iceSLTempExportPath;
 
-#ifdef WIN32
+#ifdef WIN320
     // CreateProcess init
     STARTUPINFO StartupInfo;
     ZeroMemory(&StartupInfo, sizeof(StartupInfo));
@@ -1458,7 +1461,7 @@ namespace chill
       WaitForSingleObject(Instance()->m_icesl_p_info.hProcess, 1000);
       // getting the hwnd
       EnumWindows(EnumWindowsFromPid /*sets g_icesl_hwnd*/, Instance()->m_icesl_p_info.dwProcessId);
-      sl_assert(Instance()->m_icesl_hwnd != NULL);
+      assert(Instance()->m_icesl_hwnd != NULL);
       if (Instance()->m_auto_export) {
         Instance()->exportIceSL(&(Instance()->m_iceSLTempExportPath));
       }
@@ -1468,8 +1471,8 @@ namespace chill
 
     } else {
       // process creation failed
-      std::cerr << Console::red << "Icesl couldn't be opened, please launch Icesl manually" << Console::gray << std::endl;
-      std::cerr << Console::red << "ErrorCode: " << GetLastError() << Console::gray << std::endl;
+      std::cerr << "Icesl couldn't be opened, please launch Icesl manually" << std::endl;
+      std::cerr << "ErrorCode: " << GetLastError() << std::endl;
 
       Instance()->m_icesl_hwnd = NULL;
     }
@@ -1482,9 +1485,9 @@ namespace chill
 
   //-------------------------------------------------------
   void NodeEditor::closeIcesl() {
-#ifdef WIN32
+#ifdef WIN320
     if (s_instance->m_icesl_p_info.hProcess == NULL) {
-      std::cerr << Console::red << "Icesl Handle not found. Please close Icesl manually." << Console::gray << std::endl;
+      std::cerr << "Icesl Handle not found. Please close Icesl manually." << std::endl;
     }
     else {
       // close all windows with icesl's pid
@@ -1493,10 +1496,10 @@ namespace chill
       // check if handle still responds, else handle is killed
       if (WaitForSingleObject(s_instance->m_icesl_p_info.hProcess, 1000) != WAIT_OBJECT_0) {
         TerminateProcess(s_instance->m_icesl_p_info.hProcess, 0);
-        std::cerr << Console::yellow << "Trying to force close Icesl." << Console::gray << std::endl;
+        std::cerr << "Trying to force close Icesl." << std::endl;
       }
       else {
-        std::cerr << Console::yellow << "Icesl was successfully closed." << Console::gray << std::endl;
+        std::cerr << "Icesl was successfully closed." << std::endl;
       }
       CloseHandle(s_instance->m_icesl_p_info.hProcess);
     }
@@ -1607,7 +1610,7 @@ namespace chill
   void NodeEditor::loadSettings()
   {
     std::string filename = ChillFolder() + m_settingsFileName;
-    if (LibSL::System::File::exists(filename.c_str())) {
+    if (fs::exists(filename.c_str())) {
       std::ifstream f(filename);
       while (!f.eof()) {
         std::string setting, value, raw;
@@ -1647,7 +1650,7 @@ namespace chill
 
   //-------------------------------------------------------
   void NodeEditor::getScreenRes(int& width, int& height) {
-#ifdef WIN32
+#ifdef WIN320
     RECT screen;
 
     const HWND hScreen = GetDesktopWindow(); // get desktop handler
@@ -1666,7 +1669,7 @@ namespace chill
 
   //-------------------------------------------------------
   void NodeEditor::getDesktopRes(int& width, int& height) {
-#ifdef WIN32
+#ifdef WIN320
     RECT desktop;
 
     // get desktop size WITHOUT task bar
@@ -1696,6 +1699,9 @@ namespace chill
 
     // create the temp file
     nodeEditor->exportIceSL(&(Instance()->m_iceSLTempExportPath));
+
+
+    /* ToDo
 
     try {
       // create window
@@ -1749,6 +1755,8 @@ namespace chill
     catch (Fatal& e) {
       std::cerr << Console::red << e.message() << Console::gray << std::endl;
     }
+
+    */
   }
 
   //-------------------------------------------------------
@@ -1760,7 +1768,7 @@ namespace chill
       undock();
     }
 
-    #ifdef WIN32
+    #ifdef WIN320
     // start maximized
     ShowWindow(m_chill_hwnd, SW_SHOWMAXIMIZED);
     #endif
@@ -1769,7 +1777,7 @@ namespace chill
   //-------------------------------------------------------
 
   void NodeEditor::moveIceSLWindowAlongChill(bool preserve_ratio,bool set_chill_full_width) {
-#ifdef WIN32
+#ifdef WIN320
 
     static bool already_entered = false;
 
@@ -1815,7 +1823,7 @@ namespace chill
         RECT iceslRect;
         GetWindowRect(m_icesl_hwnd, &iceslRect);
 
-        int total_width = max(iceslRect.right, chillRect.right) - chillRect.left + magic_x_offset;
+        int total_width = std::max(iceslRect.right, chillRect.right) - chillRect.left + magic_x_offset;
         if (total_width - magic_x_offset*2 < (chillRect.right - chillRect.left)) {
           // icesl does not extend beyond the right border of chill, we have to resize chill with the chosen ratio
           // NOTE: this happens when un-docking
@@ -1852,7 +1860,7 @@ namespace chill
     std::string         path;
     std::vector<std::string> paths;
 
-#ifdef WIN32
+#ifdef WIN320
     paths.push_back(getenv("APPDATA") + std::string("\\ChiLL") + name);
 #elif __linux__
     paths.push_back("/etc/chill" + name);
@@ -1873,8 +1881,8 @@ namespace chill
       }
     }
     if (!ok) {
-      std::cerr << Console::red << "Cannot find path for " << name << Console::gray << std::endl;
-      std::cerr << Console::yellow << "path? : " << path << Console::gray << std::endl;
+      std::cerr << "Cannot find path for " << name << std::endl;
+      std::cerr << "path? : " << path << std::endl;
       return false;
     }
     _path = path;
@@ -1908,26 +1916,26 @@ namespace chill
   //-------------------------------------------------------
   void NodeEditor::SetIceslPath() {
     if (m_iceslPath.empty()) {
-#ifdef WIN32
+#ifdef WIN320
       m_iceslPath = getenv("PROGRAMFILES") + std::string("/INRIA/IceSL/bin/IceSL-slicer.exe");
 #elif __linux__
       m_iceslPath = getenv("HOME") + std::string("/icesl/bin/IceSL-slicer");
 #endif
     }
     if (!fs::exists(m_iceslPath)) {
-      std::cerr << Console::red << "IceSL executable not found. Please specify the location of IceSL's executable." << Console::gray << std::endl;
+      std::cerr << "IceSL executable not found. Please specify the location of IceSL's executable." << std::endl;
 
       const char * modalTitle = "IceSL was not found...";
       const char * modalText = "Icesl was not found on this computer.\n\nIn order for Chill to work properly, it needs access to IceSL.\n\nPlease specify the location of IceSL's executable on your computer.";
 
-#ifdef WIN32
+#ifdef WIN320
       uint modalFlags = MB_OKCANCEL | MB_DEFBUTTON1 | MB_SYSTEMMODAL | MB_ICONINFORMATION;
 
       int modal = MessageBox(m_chill_hwnd, modalText, modalTitle, modalFlags);
 
       if (modal == 1) {
         m_iceslPath = openFileDialog(OFD_FILTER_ALL).c_str();
-        std::cerr << Console::yellow << "IceSL location specified: " << m_iceslPath << Console::gray << std::endl;
+        std::cerr << "IceSL location specified: " << m_iceslPath << std::endl;
       }
       else {
         m_iceslPath = "";
@@ -1945,7 +1953,7 @@ namespace chill
 
 
   void NodeEditor::updateIceSLPosRatio() {
-#ifdef WIN32
+#ifdef WIN320
     if (m_icesl_is_docked) {
       if (!m_minimized && m_layout == 3) {
         RECT rect_icesl;
@@ -1968,7 +1976,7 @@ namespace chill
   }
 
   void NodeEditor::showIceSL() {
-#ifdef WIN32
+#ifdef WIN320
     if (m_icesl_is_docked) {
       if (m_icesl_hwnd != nullptr) {
         SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
@@ -1978,7 +1986,7 @@ namespace chill
   }
 
   void NodeEditor::setLayout(int l) {
-#ifdef WIN32
+#ifdef WIN320
     if (l < sizeof(layouts) / sizeof(layouts[0]) ) {
       m_offset_icesl = layouts[l].offset_icesl;
       m_ratio_icesl = layouts[l].ratio_icesl;
@@ -1988,7 +1996,7 @@ namespace chill
   }
 
   void NodeEditor::dock() {
-#ifdef WIN32
+#ifdef WIN320
     bool set_chill_full_width = !m_icesl_is_docked;
     m_icesl_is_docked = true;
     SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) | WS_CHILD) & ~WS_POPUPWINDOW & ~WS_SIZEBOX & ~WS_CAPTION);
@@ -1999,7 +2007,7 @@ namespace chill
   }
 
   void NodeEditor::undock() {
-#ifdef WIN32
+#ifdef WIN320
     m_icesl_is_docked = false;
     SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) & ~WS_CHILD & ~WS_SIZEBOX) | WS_POPUPWINDOW | WS_CAPTION);
     SetWindowLongPtr(m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(m_chill_hwnd, GWL_STYLE) & ~WS_CLIPCHILDREN);
@@ -2009,7 +2017,7 @@ namespace chill
 
   void NodeEditor::maximize()
   {
-    #ifdef WIN32
+    #ifdef WIN320
     // get current monitor info (set to zero in not specified, eg. hMonitor == NULL)
     /*
     HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);

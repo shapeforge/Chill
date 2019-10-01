@@ -1,7 +1,6 @@
 #pragma once
 
-#include "imgui/imgui.h"
-
+#include <imgui.h>
 
 struct Style
 {

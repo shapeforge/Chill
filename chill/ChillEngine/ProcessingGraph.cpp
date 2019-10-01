@@ -231,8 +231,8 @@ namespace chill {
     auto barycenter = getBarycenter(subset);
 
     innerGraph->setPosition(barycenter);
-    groupInputs->setPosition (ImVec2(bbox.minCorner()[0] - style.processor_width * 2, barycenter.y));
-    groupOutputs->setPosition(ImVec2(bbox.maxCorner()[0] + style.processor_width * 2, barycenter.y));
+    groupInputs->setPosition (ImVec2(bbox.m_min[0] - style.processor_width * 2, barycenter.y));
+    groupOutputs->setPosition(ImVec2(bbox.m_max[0] + style.processor_width * 2, barycenter.y));
     return innerGraph;
   }
 
@@ -261,7 +261,6 @@ namespace chill {
     for (GroupOutput go : collapsed->m_group_outputs) {
       std::shared_ptr<ProcessorOutput> output = go.second->m_link;
       for (std::shared_ptr<ProcessorInput> input : go.first->m_links) {
-        connect(output, input);
       }
     }
 
