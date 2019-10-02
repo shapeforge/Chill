@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-
 # TODO: Set C Compiler Flags
 
 message(STATUS "Setting C++17 compiler flags")

@@ -4,6 +4,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Mo
 
 project(CHILL)
 
+###################
+# dev path macro #
+###################
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/sourcePath.in"
   "${CMAKE_CURRENT_SOURCE_DIR}/chill/ChillEngine/SourcePath.h"
@@ -18,9 +21,9 @@ else(WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--copy-dt-needed-entries")
 endif(WIN32)
 
-###############################
+####################
 # SDL2 integration #
-###############################
+####################
 if(WIN32)
   set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2/")
 endif(WIN32)

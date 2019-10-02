@@ -5,7 +5,6 @@
 #include "IOs.h"
 #include "GraphSaver.h"
 #include "FileDialog.h"
-#include "Resources.h"
 #include "VisualComment.h"
 
 #include "SourcePath.h"

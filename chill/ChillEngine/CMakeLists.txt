@@ -33,9 +33,8 @@ add_library(ChillEngine STATIC
 	FileDialog.h
 	FileDialog.cpp
 
-	Resources.h
 	SourcePath.h
-	input.h
+	Input.h
   )
 
 target_link_libraries(ChillEngine
@@ -52,9 +51,13 @@ if(UNIX)
   )
 endif(UNIX)
 
+###################
+# dev path macro #
+###################
 set_property(TARGET ChillEngine APPEND PROPERTY
    INTERFACE_INCLUDE_DIRECTORIES
  			${CMAKE_CURRENT_SOURCE_DIR}
 )
+
 set_target_properties(ChillEngine PROPERTIES DEBUG_POSTFIX "-d")
 set_target_properties(ChillEngine PROPERTIES ENABLE_EXPORTS ON)
