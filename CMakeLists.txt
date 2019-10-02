@@ -1,47 +1,44 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0.0)
 
-#SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
 
-PROJECT(CHILL)
+project(CHILL)
 
-CONFIGURE_FILE(
+configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/sourcePath.in"
   "${CMAKE_CURRENT_SOURCE_DIR}/chill/ChillEngine/SourcePath.h"
  )
 
-IF (WIN32)
+if(WIN32)
   # only on Windows boxes (must appear at beginning of CMakeLists.txt file)
-  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
-  ADD_DEFINITIONS(-DWIN32)
-ELSE (WIN32)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
+  add_definitions(-DWIN32)
+else(WIN32)
   # only on Linux boxes (must appear at beginning of CMakeLists.txt file)
-  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--copy-dt-needed-entries")
-ENDIF()
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--copy-dt-needed-entries")
+endif(WIN32)
 
 ###############################
 # SDL2 integration #
 ###############################
-if (WIN32)
-  SET(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2/")
-endif (WIN32)
-FIND_PACKAGE(SDL2 REQUIRED)
+if(WIN32)
+  set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2/")
+endif(WIN32)
 
-if (SDL2_FOUND)
-  INCLUDE_DIRECTORIES(${SDL2_INCLUDE_DIRS})
-  MESSAGE(STATUS "Found SDL2 at " ${SDL2_DIR})
+find_package(SDL2 REQUIRED)
+
+if(SDL2_FOUND)
+  include_directories(${SDL2_INCLUDE_DIRS})
+  message(STATUS "Found SDL2 at " ${SDL2_DIR})
 else(SDL2_FOUND)
-  MESSAGE("SDL2_LIBRARIES not found !")
+  message("SDL2_LIBRARIES not found !")
 endif (SDL2_FOUND)
 
 
-ADD_SUBDIRECTORY(libs)
-ADD_SUBDIRECTORY(chill)
+add_subdirectory(libs)
+add_subdirectory(chill)
 #ADD_SUBDIRECTORY(tests)
 
-#IF(WIN32)
-#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
-#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /stdlib=libc++")
-#ELSE()
-#  Set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-#ENDIF()
+
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")

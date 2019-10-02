@@ -1,9 +1,10 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-PROJECT(ChillEngine)
+cmake_minimum_required(VERSION 3.0.0)
 
-#include(UseCXX17)
+project(ChillEngine)
 
-ADD_LIBRARY( ChillEngine STATIC
+include(UseCXX17)
+
+add_library(ChillEngine STATIC
 	Processor.h
 	ProcessingGraph.h
 	LuaProcessor.h
@@ -37,7 +38,7 @@ ADD_LIBRARY( ChillEngine STATIC
 	input.h
   )
 
-TARGET_LINK_LIBRARIES(ChillEngine
+target_link_libraries(ChillEngine
 	${SDL2_LIBRARIES}
 	imgui
 	tinyfiledialogs
@@ -45,9 +46,15 @@ TARGET_LINK_LIBRARIES(ChillEngine
 	luabind
 )
 
-SET_PROPERTY(TARGET ChillEngine APPEND PROPERTY
+if(UNIX)
+  target_link_libraries(ChillEngine
+    stdc++fs
+  )
+endif(UNIX)
+
+set_property(TARGET ChillEngine APPEND PROPERTY
    INTERFACE_INCLUDE_DIRECTORIES
  			${CMAKE_CURRENT_SOURCE_DIR}
 )
-SET_TARGET_PROPERTIES(ChillEngine PROPERTIES DEBUG_POSTFIX "-d")
-SET_TARGET_PROPERTIES(ChillEngine PROPERTIES ENABLE_EXPORTS ON)
+set_target_properties(ChillEngine PROPERTIES DEBUG_POSTFIX "-d")
+set_target_properties(ChillEngine PROPERTIES ENABLE_EXPORTS ON)

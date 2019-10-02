@@ -1,26 +1,20 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-PROJECT(ChillLauncher)
+cmake_minimum_required(VERSION 3.0.0)
 
-#include(UseCXX17)
+project(ChillLauncher)
 
-ADD_EXECUTABLE( ChillLauncher
+include(UseCXX17)
+
+add_executable(ChillLauncher
   launcher.cpp
   ../../ressources/main.rc
 )
 
-TARGET_LINK_LIBRARIES( ChillLauncher
+target_link_libraries(ChillLauncher
   ChillEngine
 )
 
-IF(UNIX)
-  TARGET_LINK_LIBRARIES( ChillLauncher
-    stdc++fs
-#    c++fs c++abi
-  )
-ENDIF(UNIX)
-
-SET_PROPERTY(TARGET ChillLauncher APPEND PROPERTY
+set_property(TARGET ChillLauncher APPEND PROPERTY
    INTERFACE_INCLUDE_DIRECTORIES
  			${CMAKE_CURRENT_SOURCE_DIR}
 )
-SET_TARGET_PROPERTIES(ChillLauncher PROPERTIES DEBUG_POSTFIX "-d")
+set_target_properties(ChillLauncher PROPERTIES DEBUG_POSTFIX "-d")

@@ -1,2 +1,2 @@
-ADD_SUBDIRECTORY(ChillEngine)
-ADD_SUBDIRECTORY(ChillLauncher)
+add_subdirectory(ChillEngine)
+add_subdirectory(ChillLauncher)
