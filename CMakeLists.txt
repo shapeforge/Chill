@@ -33,15 +33,10 @@ find_package(SDL2 REQUIRED)
 if(SDL2_FOUND)
   include_directories(${SDL2_INCLUDE_DIRS})
   message(STATUS "Found SDL2 at " ${SDL2_DIR})
-else(SDL2_FOUND)
-  message("SDL2_LIBRARIES not found !")
 endif (SDL2_FOUND)
-
 
 add_subdirectory(libs)
 add_subdirectory(chill)
 #ADD_SUBDIRECTORY(tests)
-
-
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")

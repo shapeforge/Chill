@@ -1,5 +1,20 @@
 ﻿#include "NodeEditor.h"
 
+//#include <gl/GL.h>
+// About Desktop OpenGL function loaders:
+//  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
+//  Helper libraries are often used for this purpose! Here we are supporting a few common ones (gl3w, glew, glad).
+//  You may use another loader/header of your choice (glext, glLoadGen, etc.), or chose to manually implement your own.
+#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
+#include <GL/gl3w.h>    // Initialize with gl3wInit()
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
+#include <GL/glew.h>    // Initialize with glewInit()
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
+#include <glad/glad.h>  // Initialize with gladLoadGL()
+#else
+#include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
+#endif
+
 #include "Processor.h"
 #include "LuaProcessor.h"
 #include "IOs.h"
@@ -9,11 +24,12 @@
 
 #include "SourcePath.h"
 
+#include "imgui_impl_sdl.h"
+#include "imgui_impl_opengl3.h"
+
 
 #undef ForIndex
 #define ForIndex(I, N) for(decltype(N) I=0; I<N; I++)
-
-//LIBSL_WIN32_FIX
 
 //-------------------------------------------------------
 // Test function for SDL2 integration
@@ -228,7 +244,7 @@ namespace chill
   }
 
   //-------------------------------------------------------
-#ifdef WIN320
+#ifdef WIN32
   BOOL CALLBACK EnumWindowsFromPid(HWND hwnd, LPARAM lParam)
   {
     DWORD pID;
@@ -346,10 +362,8 @@ namespace chill
   //-------------------------------------------------------
 
   void NodeEditor::mainRender() {
-    /* ToDo
     glClearColor(0.F, 0.F, 0.F, 0.F);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    */
 
     Instance()->draw();
 
@@ -363,7 +377,7 @@ namespace chill
   void NodeEditor::setIcon() {
     static bool icon_changed = false;
     if (!icon_changed) {
-#ifdef WIN320
+#ifdef WIN32
       //TODO HWND hWND = SimpleUI::getHWND();
       HWND hWND = NULL;
       HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(16001));
@@ -1435,7 +1449,7 @@ namespace chill
     fs::path icesl_params = " ";
     icesl_params += Instance()->m_iceSLTempExportPath;
 
-#ifdef WIN320
+#ifdef WIN32
     // CreateProcess init
     STARTUPINFO StartupInfo;
     ZeroMemory(&StartupInfo, sizeof(StartupInfo));
@@ -1484,7 +1498,7 @@ namespace chill
 
   //-------------------------------------------------------
   void NodeEditor::closeIcesl() {
-#ifdef WIN320
+#ifdef WIN32
     if (s_instance->m_icesl_p_info.hProcess == NULL) {
       std::cerr << "Icesl Handle not found. Please close Icesl manually." << std::endl;
     }
@@ -1649,7 +1663,7 @@ namespace chill
 
   //-------------------------------------------------------
   void NodeEditor::getScreenRes(int& width, int& height) {
-#ifdef WIN320
+#ifdef WIN32
     RECT screen;
 
     const HWND hScreen = GetDesktopWindow(); // get desktop handler
@@ -1668,7 +1682,7 @@ namespace chill
 
   //-------------------------------------------------------
   void NodeEditor::getDesktopRes(int& width, int& height) {
-#ifdef WIN320
+#ifdef WIN32
     RECT desktop;
 
     // get desktop size WITHOUT task bar
@@ -1686,10 +1700,17 @@ namespace chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::launch()
+  int NodeEditor::launch()
   {
     // SDL2 integration test
-    sdl_test();
+    //sdl_test();
+
+    // Setup SDL
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
+    {
+      printf("Error: %s\n", SDL_GetError());
+      return -1;
+    }
 
     NodeEditor *nodeEditor = Instance();
 
@@ -1700,62 +1721,122 @@ namespace chill
     nodeEditor->exportIceSL(&(Instance()->m_iceSLTempExportPath));
 
 
-    /* ToDo
+    // GL 3.0 + GLSL 130
+    const char* glsl_version = "#version 130";
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
-    try {
-      // create window
-      SimpleUI::init(nodeEditor->default_width, nodeEditor->default_height, "Chill, the node-based editor");
+    // Create window with graphics context
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    SDL_Window* window = SDL_CreateWindow("Chill, the node-based editor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nodeEditor->default_width, nodeEditor->default_height, window_flags);
+    SDL_GLContext gl_context = SDL_GL_CreateContext(window);
+    SDL_GL_MakeCurrent(window, gl_context);
+    SDL_GL_SetSwapInterval(1); // Enable vsync
 
-      // attach functions
-      SimpleUI::onRender = NodeEditor::mainRender;
-      SimpleUI::onKeyPressed = NodeEditor::mainKeyPressed;
-      SimpleUI::onScanCodePressed = NodeEditor::mainScanCodePressed;
-      SimpleUI::onScanCodeUnpressed = NodeEditor::mainScanCodeUnpressed;
-      SimpleUI::onMouseButtonPressed = NodeEditor::mainMousePressed;
-      SimpleUI::onMouseMotion = NodeEditor::mainMouseMoved;
-      SimpleUI::onReshape = NodeEditor::mainOnResize;
-
-      // imgui
-      SimpleUI::bindImGui();
-      SimpleUI::initImGui();
-      SimpleUI::onReshape(nodeEditor->default_width, nodeEditor->default_height);
-
-      if (nodeEditor->m_auto_icesl) {
-#ifdef WIN32
-        SimpleUI::setCustomCallbackMsgProc(custom_wndProc);
-
-        // get app handler
-        Instance()->m_chill_hwnd = SimpleUI::getHWND();
+    // Initialize OpenGL loader
+#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
+    bool err = gl3wInit() != 0;
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
+    bool err = glewInit() != GLEW_OK;
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
+    bool err = gladLoadGL() == 0;
+#else
+    bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is likely to requires some form of initialization.
 #endif
-        // launching Icesl
-        launchIcesl();
-
-        // place apps in default pos
-        nodeEditor->setDefaultAppsPos();
-      }
-
-      // main loop
-      SimpleUI::loop();
-
-      if (nodeEditor->m_auto_icesl) {
-        // closing Icesl
-        std::atexit(closeIcesl);
-      }
-
-      nodeEditor->saveSettings();
-
-      // clean up
-      SimpleUI::terminateImGui();
-
-      // shutdown UI
-      SimpleUI::shutdown();
-
-    }
-    catch (Fatal& e) {
-      std::cerr << Console::red << e.message() << Console::gray << std::endl;
+    if (err)
+    {
+      fprintf(stderr, "Failed to initialize OpenGL loader!\n");
+      return 1;
     }
 
-    */
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsClassic();
+
+    // Setup Platform/Renderer bindings
+    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
+    ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
+
+    if (nodeEditor->m_auto_icesl) {
+      // launching Icesl
+      launchIcesl();
+
+      // place apps in default pos
+      nodeEditor->setDefaultAppsPos();
+    }
+
+    // Main loop
+    bool done = false;
+    while (!done)
+    {
+      // Poll and handle events (inputs, window resize, etc.)
+        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
+        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
+        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
+        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
+      SDL_Event event;
+      while (SDL_PollEvent(&event))
+      {
+        // TODO implement events 
+        ImGui_ImplSDL2_ProcessEvent(&event);
+        if (event.type == SDL_QUIT)
+          done = true;
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
+          done = true;
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED && event.window.windowID == SDL_GetWindowID(window)) {
+          int w, h;
+          SDL_GetWindowSize(window, &w, &h);
+          NodeEditor::mainOnResize(w, h);
+
+        }
+      }
+
+      // Start the Dear ImGui frame
+      ImGui_ImplOpenGL3_NewFrame();
+      ImGui_ImplSDL2_NewFrame(window);
+      ImGui::NewFrame();
+
+      NodeEditor::mainRender();
+      ImGui::Render();
+
+      glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+      glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+      glClear(GL_COLOR_BUFFER_BIT);
+      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+      SDL_GL_SwapWindow(window);
+    }
+
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
+    SDL_GL_DeleteContext(gl_context);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    if (nodeEditor->m_auto_icesl) {
+      // closing Icesl
+      std::atexit(closeIcesl);
+    }
+
+    nodeEditor->saveSettings();
+
+    return 0;
   }
 
   //-------------------------------------------------------
@@ -1767,7 +1848,7 @@ namespace chill
       undock();
     }
 
-    #ifdef WIN320
+    #ifdef WIN32
     // start maximized
     ShowWindow(m_chill_hwnd, SW_SHOWMAXIMIZED);
     #endif
@@ -1776,7 +1857,7 @@ namespace chill
   //-------------------------------------------------------
 
   void NodeEditor::moveIceSLWindowAlongChill(bool preserve_ratio,bool set_chill_full_width) {
-#ifdef WIN320
+#ifdef WIN32
 
     static bool already_entered = false;
 
@@ -1859,7 +1940,7 @@ namespace chill
     std::string         path;
     std::vector<std::string> paths;
 
-#ifdef WIN320
+#ifdef WIN32
     paths.push_back(getenv("APPDATA") + std::string("\\ChiLL") + name);
 #elif __linux__
     paths.push_back("/etc/chill" + name);
@@ -1915,7 +1996,7 @@ namespace chill
   //-------------------------------------------------------
   void NodeEditor::SetIceslPath() {
     if (m_iceslPath.empty()) {
-#ifdef WIN320
+#ifdef WIN32
       m_iceslPath = getenv("PROGRAMFILES") + std::string("/INRIA/IceSL/bin/IceSL-slicer.exe");
 #elif __linux__
       m_iceslPath = getenv("HOME") + std::string("/icesl/bin/IceSL-slicer");
@@ -1927,7 +2008,7 @@ namespace chill
       const char * modalTitle = "IceSL was not found...";
       const char * modalText = "Icesl was not found on this computer.\n\nIn order for Chill to work properly, it needs access to IceSL.\n\nPlease specify the location of IceSL's executable on your computer.";
 
-#ifdef WIN320
+#ifdef WIN32
       uint modalFlags = MB_OKCANCEL | MB_DEFBUTTON1 | MB_SYSTEMMODAL | MB_ICONINFORMATION;
 
       int modal = MessageBox(m_chill_hwnd, modalText, modalTitle, modalFlags);
@@ -1952,7 +2033,7 @@ namespace chill
 
 
   void NodeEditor::updateIceSLPosRatio() {
-#ifdef WIN320
+#ifdef WIN32
     if (m_icesl_is_docked) {
       if (!m_minimized && m_layout == 3) {
         RECT rect_icesl;
@@ -1975,7 +2056,7 @@ namespace chill
   }
 
   void NodeEditor::showIceSL() {
-#ifdef WIN320
+#ifdef WIN32
     if (m_icesl_is_docked) {
       if (m_icesl_hwnd != nullptr) {
         SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
@@ -1985,7 +2066,7 @@ namespace chill
   }
 
   void NodeEditor::setLayout(int l) {
-#ifdef WIN320
+#ifdef WIN32
     if (l < sizeof(layouts) / sizeof(layouts[0]) ) {
       m_offset_icesl = layouts[l].offset_icesl;
       m_ratio_icesl = layouts[l].ratio_icesl;
@@ -1995,7 +2076,7 @@ namespace chill
   }
 
   void NodeEditor::dock() {
-#ifdef WIN320
+#ifdef WIN32
     bool set_chill_full_width = !m_icesl_is_docked;
     m_icesl_is_docked = true;
     SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) | WS_CHILD) & ~WS_POPUPWINDOW & ~WS_SIZEBOX & ~WS_CAPTION);
@@ -2006,7 +2087,7 @@ namespace chill
   }
 
   void NodeEditor::undock() {
-#ifdef WIN320
+#ifdef WIN32
     m_icesl_is_docked = false;
     SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) & ~WS_CHILD & ~WS_SIZEBOX) | WS_POPUPWINDOW | WS_CAPTION);
     SetWindowLongPtr(m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(m_chill_hwnd, GWL_STYLE) & ~WS_CLIPCHILDREN);
@@ -2016,7 +2097,7 @@ namespace chill
 
   void NodeEditor::maximize()
   {
-    #ifdef WIN320
+    #ifdef WIN32
     // get current monitor info (set to zero in not specified, eg. hMonitor == NULL)
     /*
     HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);

@@ -4,6 +4,8 @@ project(ChillEngine)
 
 include(UseCXX17)
 
+add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GL3W)
+
 add_library(ChillEngine STATIC
 	Processor.h
 	ProcessingGraph.h
@@ -34,12 +36,14 @@ add_library(ChillEngine STATIC
 	FileDialog.cpp
 
 	SourcePath.h
+
 	Input.h
   )
 
 target_link_libraries(ChillEngine
-	${SDL2_LIBRARIES}
+	#${SDL2_LIBRARIES}
 	imgui
+	imgui_bindings
 	tinyfiledialogs
     lua
 	luabind
@@ -54,9 +58,9 @@ endif(UNIX)
 ###################
 # dev path macro #
 ###################
-set_property(TARGET ChillEngine APPEND PROPERTY
-   INTERFACE_INCLUDE_DIRECTORIES
- 			${CMAKE_CURRENT_SOURCE_DIR}
+set_property(
+	TARGET ChillEngine 
+	APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 set_target_properties(ChillEngine PROPERTIES DEBUG_POSTFIX "-d")

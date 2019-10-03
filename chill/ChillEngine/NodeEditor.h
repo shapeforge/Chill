@@ -8,9 +8,19 @@
 #include <fstream>
 #include <filesystem>
 
-#include <SDL.h>
+#include "SDL.h"
 
-//#include <Windows.h> // TODO should be included with SDL?
+
+#ifdef WIN32
+  #define NOMINMAX // disable windows min() max() macros
+  #include <windows.h>
+  /*
+    if the Windows min() and max() macros are needed, 
+    use this syntax in code to bypass it:
+    (std::min)(a, b);
+    (std::max)(a, b);
+  */
+#endif
 
 #include "UI.h"
 #include "Processor.h"
@@ -84,7 +94,7 @@ namespace fs = std::filesystem;
     void updateIceSLPosRatio();
     void showIceSL();
 
-#ifdef WIN320
+#ifdef WIN32
     HWND m_chill_hwnd = NULL;
     HWND m_icesl_hwnd = NULL;
     PROCESS_INFORMATION m_icesl_p_info;
@@ -96,7 +106,7 @@ namespace fs = std::filesystem;
 
     static NodeEditor* Instance();
 
-    static void launch();
+    static int launch();
 
     void setDefaultAppsPos();
 
