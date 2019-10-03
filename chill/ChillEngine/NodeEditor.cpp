@@ -31,41 +31,6 @@
 #undef ForIndex
 #define ForIndex(I, N) for(decltype(N) I=0; I<N; I++)
 
-//-------------------------------------------------------
-// Test function for SDL2 integration
-int sdl_test() {
-  if (SDL_Init(SDL_INIT_VIDEO) < 0)
-  {
-    std::cout << "Failed to initialize the SDL2 library\n";
-    return -1;
-  }
-
-  SDL_Window *window = SDL_CreateWindow("SDL2 Window",
-    SDL_WINDOWPOS_CENTERED,
-    SDL_WINDOWPOS_CENTERED,
-    680, 480,
-    0);
-
-  if (!window)
-  {
-    std::cout << "Failed to create window\n";
-    return -1;
-  }
-
-  SDL_Surface *window_surface = SDL_GetWindowSurface(window);
-
-  if (!window_surface)
-  {
-    std::cout << "Failed to get the surface from the window\n";
-    return -1;
-  }
-
-  SDL_UpdateWindowSurface(window);
-
-  SDL_Delay(5000);
-}
-//-------------------------------------------------------
-
 namespace chill
 {
   NodeEditor* NodeEditor::s_instance = nullptr;
@@ -269,49 +234,6 @@ namespace chill
 
     return TRUE;
   }
-
-  LRESULT CALLBACK custom_wndProc(
-    _In_ HWND   /*_hwnd*/,
-    _In_ UINT   _uMsg,
-    _In_ WPARAM _wParam,
-    _In_ LPARAM _lParam)
-  {
-    // get current monitor hwnd
-    //HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
-    
-    if (_uMsg == WM_ACTIVATE) {
-      if (_wParam != WA_ACTIVE ) {
-        //SetWindowPos(NodeEditor::Instance()->m_chill_hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-        //BringWindowToTop(NodeEditor::Instance()->m_icesl_hwnd);
-        BringWindowToTop(NodeEditor::Instance()->m_chill_hwnd);
-        //SetForegroundWindow(NodeEditor::Instance()->m_chill_hwnd);
-        //SetWindowPos(NodeEditor::Instance()->m_chill_hwnd, NodeEditor::Instance()->m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE );
-        //NodeEditor::Instance()->showIceSL();
-      }
-    }
-
-    if (_uMsg == WM_MOVE) {
-      NodeEditor::Instance()->moveIceSLWindowAlongChill(true,false);
-
-      // get window placement / style
-      WINDOWPLACEMENT wPlacement = { sizeof(WINDOWPLACEMENT) };
-      GetWindowPlacement(NodeEditor::Instance()->m_chill_hwnd, &wPlacement);
-      
-      if (wPlacement.showCmd == SW_MAXIMIZE) {
-        NodeEditor::Instance()->maximize();
-      }
-    }
-
-    if (_uMsg == WM_SYSCOMMAND) {
-      if (_wParam == SC_MINIMIZE) {
-        NodeEditor::Instance()->m_minimized = true;
-      }
-      if (_wParam == SC_RESTORE) {
-        NodeEditor::Instance()->m_minimized = false;
-      }
-    }
-    return 0;
-  }
 #endif
 
   //-------------------------------------------------------
@@ -393,7 +315,7 @@ namespace chill
   void NodeEditor::mainOnResize(uint width, uint height)
   {
     Instance()->m_size = ImVec2(static_cast<float>(width), static_cast<float>(height));
-    Instance()->moveIceSLWindowAlongChill(false,false);
+    Instance()->moveIceSLWindowAlongChill();
   }
 
   //-------------------------------------------------------
@@ -449,10 +371,6 @@ namespace chill
     ImGui::SetNextWindowPos(ImVec2(200, 20));
     ImGui::SetNextWindowSize(m_size);
     drawGraph();
-
-    //for docking
-    updateIceSLPosRatio();
-    showIceSL();
 
     return true;
   }
@@ -1479,8 +1397,9 @@ namespace chill
         Instance()->exportIceSL(&(Instance()->m_iceSLTempExportPath));
       }
       // we give a default size, otherwise SetWindowLong gives unpredictable results (white window)
-      MoveWindow(Instance()->m_icesl_hwnd, 0, 0, 800, 600, true);
+      //MoveWindow(Instance()->m_icesl_hwnd, 0, 0, 800, 600, true);
 
+      Instance()->m_icesl_window = SDL_CreateWindowFrom(Instance()->m_icesl_hwnd);
 
     } else {
       // process creation failed
@@ -1662,49 +1581,20 @@ namespace chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::getScreenRes(int& width, int& height) {
-#ifdef WIN32
-    RECT screen;
-
-    const HWND hScreen = GetDesktopWindow(); // get desktop handler
-    GetWindowRect(hScreen, &screen); // get entire desktop size
-
-    width = screen.right - screen.top;
-    height = screen.bottom - screen.top;
-
-#endif
-
-#ifdef __linux__
-    width = 1920;
-    height = 1080;
-#endif
-  }
-
-  //-------------------------------------------------------
   void NodeEditor::getDesktopRes(int& width, int& height) {
-#ifdef WIN32
-    RECT desktop;
+    SDL_Rect desktop;
 
-    // get desktop size WITHOUT task bar
-    SystemParametersInfoA(SPI_GETWORKAREA, NULL, &desktop, NULL);
+    int current_display = SDL_GetWindowDisplayIndex(Instance()->m_chill_window);
 
-    width = desktop.right;
-    height = desktop.bottom;
+    SDL_GetDisplayUsableBounds(current_display, &desktop);
 
-#endif
-
-#ifdef __linux__
-    width = 1920;
-    height = 1080;
-#endif
+    width = desktop.w;
+    height = desktop.h;
   }
 
   //-------------------------------------------------------
   int NodeEditor::launch()
   {
-    // SDL2 integration test
-    //sdl_test();
-
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
     {
@@ -1733,9 +1623,9 @@ namespace chill
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window* window = SDL_CreateWindow("Chill, the node-based editor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nodeEditor->default_width, nodeEditor->default_height, window_flags);
-    SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-    SDL_GL_MakeCurrent(window, gl_context);
+    nodeEditor->m_chill_window = SDL_CreateWindow("Chill, the node-based editor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nodeEditor->default_width, nodeEditor->default_height, window_flags);
+    SDL_GLContext gl_context = SDL_GL_CreateContext(nodeEditor->m_chill_window);
+    SDL_GL_MakeCurrent(nodeEditor->m_chill_window, gl_context);
     SDL_GL_SetSwapInterval(1); // Enable vsync
 
     // Initialize OpenGL loader
@@ -1766,12 +1656,19 @@ namespace chill
     //ImGui::StyleColorsClassic();
 
     // Setup Platform/Renderer bindings
-    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+    ImGui_ImplSDL2_InitForOpenGL(nodeEditor->m_chill_window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.00f);
 
     if (nodeEditor->m_auto_icesl) {
+      SDL_SysWMinfo wmInfo;
+      SDL_VERSION(&wmInfo.version);
+      SDL_GetWindowWMInfo(nodeEditor->m_chill_window, &wmInfo);
+#if WIN32
+      Instance()->m_chill_hwnd = wmInfo.info.win.window;
+#endif
+
       // launching Icesl
       launchIcesl();
 
@@ -1783,6 +1680,8 @@ namespace chill
     bool done = false;
     while (!done)
     {
+      nodeEditor->raiseIceSL();
+
       // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
@@ -1795,29 +1694,40 @@ namespace chill
         ImGui_ImplSDL2_ProcessEvent(&event);
         if (event.type == SDL_QUIT)
           done = true;
-        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(nodeEditor->m_chill_window))
           done = true;
-        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED && event.window.windowID == SDL_GetWindowID(window)) {
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && event.window.windowID == SDL_GetWindowID(nodeEditor->m_chill_window)) {
           int w, h;
-          SDL_GetWindowSize(window, &w, &h);
+          SDL_GetWindowSize(nodeEditor->m_chill_window, &w, &h);
           NodeEditor::mainOnResize(w, h);
-
+        }
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SHOWN && event.window.windowID == SDL_GetWindowID(nodeEditor->m_chill_window)) {
+          NodeEditor::mainOnResize(nodeEditor->default_width, nodeEditor->default_height);
+        }
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_MOVED && event.window.windowID == SDL_GetWindowID(nodeEditor->m_chill_window)) {
+          int w, h;
+          SDL_GetWindowSize(nodeEditor->m_chill_window, &w, &h);
+          NodeEditor::mainOnResize(w, h);
+        }
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_MAXIMIZED && event.window.windowID == SDL_GetWindowID(nodeEditor->m_chill_window)) {
+          nodeEditor->maximize();
         }
       }
 
       // Start the Dear ImGui frame
       ImGui_ImplOpenGL3_NewFrame();
-      ImGui_ImplSDL2_NewFrame(window);
+      ImGui_ImplSDL2_NewFrame(nodeEditor->m_chill_window);
       ImGui::NewFrame();
 
       NodeEditor::mainRender();
-      ImGui::Render();
 
       glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
       glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
       glClear(GL_COLOR_BUFFER_BIT);
       ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-      SDL_GL_SwapWindow(window);
+      SDL_GL_SwapWindow(nodeEditor->m_chill_window);
+
+      nodeEditor->raiseIceSL();
     }
 
     // Cleanup
@@ -1826,7 +1736,7 @@ namespace chill
     ImGui::DestroyContext();
 
     SDL_GL_DeleteContext(gl_context);
-    SDL_DestroyWindow(window);
+    SDL_DestroyWindow(nodeEditor->m_chill_window);
     SDL_Quit();
 
     if (nodeEditor->m_auto_icesl) {
@@ -1856,82 +1766,33 @@ namespace chill
 
   //-------------------------------------------------------
 
-  void NodeEditor::moveIceSLWindowAlongChill(bool preserve_ratio,bool set_chill_full_width) {
-#ifdef WIN32
+  void NodeEditor::moveIceSLWindowAlongChill() {
+    if (m_icesl_window != NULL) {
+      // get current windows dimensions
+      int c_x, c_y, c_w, c_h;
+      SDL_GetWindowPosition(m_chill_window, &c_x, &c_y);
+      SDL_GetWindowSize(m_chill_window, &c_w, &c_h);
 
-    static bool already_entered = false;
-
-    if (already_entered) {
-      return; // prevent windows re-entrant call on MoveWindow
-    }
-    already_entered = true;
-
-    if (m_icesl_hwnd != NULL) {
-
-      const int magic_x_offset = 15; // TODO determine automatically?
+      int i_x, i_y, i_w, i_h;
+      SDL_GetWindowPosition(m_chill_window, &i_x, &i_y);
+      SDL_GetWindowSize(m_chill_window, &i_w, &i_h);
 
       if (m_icesl_is_docked) {
+        i_x = m_offset_icesl.x * c_w + c_x;
+        i_y = m_offset_icesl.y * c_h + c_y;
 
-        // get current windows dimensions
-        RECT chillRect;
-        GetWindowRect(m_chill_hwnd, &chillRect);
-
-        RECT iceslRect;
-        GetWindowRect(m_icesl_hwnd, &iceslRect);
-
-        if (set_chill_full_width) {
-          chillRect.right = iceslRect.right;
-          MoveWindow(m_chill_hwnd, chillRect.left, chillRect.top, chillRect.right - chillRect.left, chillRect.bottom - chillRect.top, true);
-        }
-
-        int icesl_xpos = chillRect.left + m_offset_icesl.x * (chillRect.right - chillRect.left) - magic_x_offset;
-        int icesl_ypos = chillRect.top + m_offset_icesl.y * (chillRect.bottom - chillRect.top);
-        int icesl_width = (chillRect.right - chillRect.left) * m_ratio_icesl.x + 3;
-        int icesl_height = (chillRect.bottom - chillRect.top) * m_ratio_icesl.y;
-
-        // snap IceSL window to Chill, preserve width
-        BringWindowToTop(m_chill_hwnd);
-        MoveWindow(m_icesl_hwnd, icesl_xpos, icesl_ypos, icesl_width, icesl_height, true);
-        SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-
+        i_w = c_w * m_ratio_icesl.x;
+        i_h = c_h * m_ratio_icesl.y;
+        //raiseIceSL();
       } else {
-
-        // get current windows dimensions
-        RECT chillRect;
-        GetWindowRect(m_chill_hwnd, &chillRect);
-
-        RECT iceslRect;
-        GetWindowRect(m_icesl_hwnd, &iceslRect);
-
-        int total_width = std::max(iceslRect.right, chillRect.right) - chillRect.left + magic_x_offset;
-        if (total_width - magic_x_offset*2 < (chillRect.right - chillRect.left)) {
-          // icesl does not extend beyond the right border of chill, we have to resize chill with the chosen ratio
-          // NOTE: this happens when un-docking
-          MoveWindow(m_chill_hwnd,
-            chillRect.left,
-            chillRect.top,
-            total_width / 2,
-            chillRect.bottom - chillRect.top, true);
-          MoveWindow(m_icesl_hwnd,
-            chillRect.left + total_width / 2 - magic_x_offset,
-            chillRect.top,
-            total_width / 2 + magic_x_offset,
-            chillRect.bottom - chillRect.top, true);
-        } else {
-          // snap IceSL window to Chill, preserve width
-          MoveWindow(m_icesl_hwnd,
-            chillRect.right - magic_x_offset,
-            chillRect.top,
-            preserve_ratio ? (iceslRect.right - iceslRect.left) : total_width - (chillRect.right - chillRect.left),
-            chillRect.bottom - chillRect.top, true);
-        }
+        i_x = c_w + c_x;
+        i_y = c_y;
       }
 
+      SDL_SetWindowPosition(m_icesl_window, i_x, i_y);
+      SDL_SetWindowSize(m_icesl_window, i_w, i_h);
+
     }
-
-    already_entered = false;
-
-#endif
   }
   
   //-------------------------------------------------------
@@ -2031,97 +1892,63 @@ namespace chill
     }
   }
 
-
-  void NodeEditor::updateIceSLPosRatio() {
-#ifdef WIN32
+  void NodeEditor::raiseIceSL() {
     if (m_icesl_is_docked) {
-      if (!m_minimized && m_layout == 3) {
-        RECT rect_icesl;
-        RECT rect_chill;
-        if (GetWindowRect(m_icesl_hwnd, &rect_icesl) && GetWindowRect(m_chill_hwnd, &rect_chill)) {
-          int width_icesl = rect_icesl.right - rect_icesl.left;
-          int height_icesl = rect_icesl.bottom - rect_icesl.top;
-          int width_chill = rect_chill.right - rect_chill.left;
-          int height_chill = rect_chill.bottom - rect_chill.top;
-
-          m_ratio_icesl.x = float(width_icesl) / float(width_chill);
-          m_ratio_icesl.y = float(height_icesl) / float(height_chill);
-
-          m_offset_icesl.x = float(rect_icesl.left - rect_chill.left) / float(width_chill);
-          m_offset_icesl.y = float(rect_icesl.top - rect_chill.top) / float(height_chill);
-        }
+      if (m_icesl_window != nullptr) {
+        //SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+        SDL_RaiseWindow(m_icesl_window);
+        SDL_SetWindowInputFocus(m_chill_window);
       }
     }
-#endif
-  }
-
-  void NodeEditor::showIceSL() {
-#ifdef WIN32
-    if (m_icesl_is_docked) {
-      if (m_icesl_hwnd != nullptr) {
-        SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-      }
-    }
-#endif
   }
 
   void NodeEditor::setLayout(int l) {
-#ifdef WIN32
     if (l < sizeof(layouts) / sizeof(layouts[0]) ) {
       m_offset_icesl = layouts[l].offset_icesl;
       m_ratio_icesl = layouts[l].ratio_icesl;
       m_layout = l;
     }
-#endif
   }
 
   void NodeEditor::dock() {
-#ifdef WIN32
-    bool set_chill_full_width = !m_icesl_is_docked;
     m_icesl_is_docked = true;
-    SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) | WS_CHILD) & ~WS_POPUPWINDOW & ~WS_SIZEBOX & ~WS_CAPTION);
-    SetWindowLongPtr(m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(m_chill_hwnd, GWL_STYLE) | WS_CLIPCHILDREN);
+    SDL_SetWindowResizable(m_icesl_window, SDL_FALSE);
+    SDL_SetWindowBordered(m_icesl_window, SDL_FALSE);
     setLayout(m_layout);
-    moveIceSLWindowAlongChill(true, set_chill_full_width);
-#endif 
+
+    moveIceSLWindowAlongChill();
   }
 
   void NodeEditor::undock() {
-#ifdef WIN32
     m_icesl_is_docked = false;
-    SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, (GetWindowLongPtr(m_icesl_hwnd, GWL_STYLE) & ~WS_CHILD & ~WS_SIZEBOX) | WS_POPUPWINDOW | WS_CAPTION);
-    SetWindowLongPtr(m_chill_hwnd, GWL_STYLE, GetWindowLongPtr(m_chill_hwnd, GWL_STYLE) & ~WS_CLIPCHILDREN);
-    moveIceSLWindowAlongChill(true,false);
-#endif 
+    SDL_SetWindowResizable(m_icesl_window, SDL_TRUE);
+    SDL_SetWindowBordered(m_icesl_window, SDL_TRUE);
+
+    moveIceSLWindowAlongChill();
   }
 
   void NodeEditor::maximize()
   {
-    #ifdef WIN32
-    // get current monitor info (set to zero in not specified, eg. hMonitor == NULL)
-    /*
-    HMONITOR hMonitor = MonitorFromWindow(NodeEditor::Instance()->m_chill_hwnd, MONITOR_DEFAULTTOPRIMARY);
-    MONITORINFO monitorInfo;
-    memset(&monitorInfo, 0, sizeof(MONITORINFO));
-    monitorInfo.cbSize = sizeof(MONITORINFO);
-    if (hMonitor != NULL) {
-      GetMonitorInfo(hMonitor, &monitorInfo);;
-    }
-    */
-
-    // get desktop dimmensions
-    int desktop_width, desktop_height = 0;
+    // get desktop dimensions
+    int desktop_width, desktop_height;
     getDesktopRes(desktop_width, desktop_height);
 
+    // get chill's window border dimensions
+    int top, left, bottom, right;
+    SDL_GetWindowBordersSize(m_chill_window, &top, &left, &bottom, &right);
+
     if (m_icesl_is_docked) {
-      MoveWindow(m_chill_hwnd, 0, 0, desktop_width, desktop_height, true);
-      moveIceSLWindowAlongChill(true,false);
+      SDL_SetWindowPosition(m_chill_window, 0, top);
+      SDL_SetWindowSize(m_chill_window, desktop_width, desktop_height - top);
+      moveIceSLWindowAlongChill();
     } else {
-      const int magic_x_offset = 15; // TODO determine automatically?
-      MoveWindow(m_chill_hwnd, 0, 0, desktop_width / 2, desktop_height, true);
-      MoveWindow(m_icesl_hwnd, desktop_width / 2 - magic_x_offset, 0, desktop_width / 2 + magic_x_offset, desktop_height, true);
-      SetActiveWindow(m_chill_hwnd);
+      SDL_SetWindowPosition(m_chill_window, 0, top);
+      SDL_SetWindowSize(m_chill_window, desktop_width / 2, desktop_height - top);
+
+      SDL_SetWindowPosition(m_icesl_window, desktop_width / 2, top);
+      SDL_SetWindowSize(m_icesl_window, desktop_width / 2, desktop_height - top);
+
+      SDL_SetWindowInputFocus(m_chill_window);
     }
-#endif
   }
 }

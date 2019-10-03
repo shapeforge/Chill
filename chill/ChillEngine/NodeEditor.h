@@ -8,12 +8,16 @@
 #include <fstream>
 #include <filesystem>
 
-#include "SDL.h"
+#include <cstdint>
 
+#define NOMINMAX // disable windows min() max() macros
+#include "SDL.h"
+#include "SDL_syswm.h"
+#include "SDL_video.h"
 
 #ifdef WIN32
-  #define NOMINMAX // disable windows min() max() macros
-  #include <windows.h>
+  
+  //#include <windows.h>
   /*
     if the Windows min() and max() macros are needed, 
     use this syntax in code to bypass it:
@@ -91,8 +95,10 @@ namespace fs = std::filesystem;
     void setLayout(int l);
     ImVec2 m_offset_icesl = ImVec2(0.5, 0.5); //offset of icesl window position compare to chill window left up position compared to the windows size
     ImVec2 m_ratio_icesl  = ImVec2(0.5, 0.5); //ratio of icesl window size compare to chill window size
-    void updateIceSLPosRatio();
-    void showIceSL();
+    void raiseIceSL();
+
+    SDL_Window* m_chill_window = nullptr;
+    SDL_Window* m_icesl_window = nullptr;
 
 #ifdef WIN32
     HWND m_chill_hwnd = NULL;
@@ -110,7 +116,7 @@ namespace fs = std::filesystem;
 
     void setDefaultAppsPos();
 
-    void moveIceSLWindowAlongChill(bool preserve_ratio,bool set_chill_full_width);
+    void moveIceSLWindowAlongChill();
 
     static inline std::string ChillFolder();
     static inline std::string NodesFolder();
@@ -238,8 +244,6 @@ namespace fs = std::filesystem;
 
       void loadGraph(const fs::path* _path, bool _setAsAutoSavePath);
 
-      // Get current screen size
-      static void getScreenRes(int& width, int& height);
       // Get current desktop size (without taskbar for windows)
       static void getDesktopRes(int& width, int& height);
 
