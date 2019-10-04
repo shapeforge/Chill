@@ -32,8 +32,8 @@ add_library(ChillEngine STATIC
 	GraphSaver.h
 	GraphSaver.cpp
   
-	FileDialog.h
-	FileDialog.cpp
+	FileManager.h
+	FileManager.cpp
 
 	SourcePath.h
 

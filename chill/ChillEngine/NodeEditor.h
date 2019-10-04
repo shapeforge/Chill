@@ -118,9 +118,6 @@ namespace fs = std::filesystem;
 
     void moveIceSLWindowAlongChill();
 
-    static inline std::string ChillFolder();
-    static inline std::string NodesFolder();
-    static bool scriptPath(const std::string& name, std::string& _path);
     inline void SetIceslPath();
 
     std::shared_ptr<ProcessingGraph> getCurrentGraph() {
@@ -195,23 +192,6 @@ namespace fs = std::filesystem;
       static void mainRender();
 
       static void setIcon();
-
-      /**
-       *  Called on resize
-       *  @param width the new width
-       *  @param height the new height
-       */
-      static void mainOnResize(uint _width, uint _height);
-
-      /**
-       *  Called when a key is pressed
-       *  @param k the typed character
-       */
-      static void mainKeyPressed(uchar _k);
-      static void mainScanCodePressed(uint _sc);
-      static void mainScanCodeUnpressed(uint _sc);
-      static void mainMouseMoved(uint _x, uint _y);
-      static void mainMousePressed(uint _x, uint _y, uint _button, uint _flags);
 
       void shortcutsAction();
 

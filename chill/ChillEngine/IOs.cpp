@@ -4,8 +4,6 @@
 
 #include "Processor.h"
 
-#include "FileDialog.h"
-
 namespace chill {
 
 ProcessorOutput::~ProcessorOutput() {
@@ -367,10 +365,10 @@ bool chill::PathInput::drawTweak() {
     ImGui::PushItemWidth(item_width * 1.F / 4.F);
 
     if (ImGui::Button(" ... ##")) {
-      std::string fullpath = openFileDialog(m_filter);
+      fs::path fullpath = openFileDialog(&OFD_FILTER_ALL);// const_cast<std::vector<const char *>*>(&m_filter));
       if (!fullpath.empty()) {
-        std::replace(fullpath.begin(), fullpath.end(), '\\', '/');
-        m_value = fullpath.c_str();
+        m_value = fullpath.generic_string();
+        std::replace(m_value.begin(), m_value.end(), '\\', '/');
         value_changed = true;
       }
     }

@@ -21,156 +21,58 @@
 #include "LuaProcessor.h"
 #include "IOs.h"
 #include "GraphSaver.h"
-#include "FileDialog.h"
+#include "FileManager.h"
 #include "VisualComment.h"
-
-#include "SourcePath.h"
 
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
 
 
+namespace chill
+{
 #undef ForIndex
 #define ForIndex(I, N) for(decltype(N) I=0; I<N; I++)
 
-namespace chill
-{
   NodeEditor* NodeEditor::s_instance = nullptr;
 
-  //-------------------------------------------------------
-  void listFolderinDir(std::vector<std::string>& _files, const std::string& _dir)
-  {
-    for (fs::directory_iterator itr(_dir); itr != fs::directory_iterator(); ++itr)
-    {
-      fs::path file = itr->path();
-      if (is_directory(file))_files.push_back(file.filename().generic_string());
-    }
-  }
-
-  void listLuaFileInDir(std::vector<std::string>& _files)
-  {
-    //TODO
-    //listFiles(NodeEditor::NodesFolder().c_str(), _files);
-  }
-
-  void listLuaFileInDir(std::vector<std::string>& _files, const std::string& _dir)
-  {
-    for (fs::directory_iterator itr(_dir); itr != fs::directory_iterator(); ++itr)
-    {
-      fs::path file = itr->path();
-      /* TODO
-      if (!is_directory(file) && strcmp(extractExtension(file.filename().generic_string()).c_str(), "lua") == 0) {
-        _files.push_back(file.filename().generic_string());
-      }
-      */
-    }
-  }
-
   //---------------------------------------------------
-  std::string recursiveFileMenuSelecter(const std::string& _current_dir, std::string filter = "")
+  fs::path recursiveFileSelecter(const fs::path* _current_dir, const std::vector<const char*>* filter, bool isMenu = true)
   {
-    std::vector<std::string> files;
-    std::vector<std::string> directories;
+    std::vector<fs::path> files;
+    std::vector<fs::path> directories;
 
-    listLuaFileInDir(files, _current_dir);
-    listFolderinDir(directories, _current_dir);
+    files = listFileInDir(_current_dir, &OFD_FILTER_LUA);
+    directories = listFolderinDir(_current_dir);
 
-    std::string nameDir = "";
+    fs::path nameDir;
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7F, 0.7F, 1.0F, 1.0F));
-    ForIndex(i, directories.size()) {
-      const char* dir_name = directories[static_cast<unsigned>(i)].c_str();
+    for (auto dir : directories) {
       if (!nameDir.empty()) break;
 
-      if (dir_name[0] != '.') {
-        if (!filter.empty()){
-          nameDir = recursiveFileMenuSelecter(_current_dir + "/" + directories[i], filter);
-        } else {
-          if (ImGui::CollapsingHeader((std::string(dir_name) + "##" + _current_dir).c_str() )) {
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            ImGui::BeginGroup();
-            nameDir = recursiveFileMenuSelecter(_current_dir + "/" + directories[i], filter);
-            ImGui::EndGroup();
+      if (!isHidden(dir)) {
+        if (!isMenu && ImGui::CollapsingHeader((dir.filename().generic_string() + "##" + _current_dir->generic_string()).c_str() )) {
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+          ImGui::BeginGroup();
+          nameDir = recursiveFileSelecter(&(fs::path(_current_dir) += dir), filter, isMenu);
+          ImGui::EndGroup();
+        }
 
-          }
+        if (isMenu && ImGui::BeginMenu(dir.filename().generic_string().c_str())) {
+          nameDir = recursiveFileSelecter(&(fs::path(_current_dir) += dir), filter, isMenu);
+          ImGui::EndMenu();
         }
       }
     }
     ImGui::PopStyleColor();
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0F, 1.0F, 1.0F, 1.0F));
-    ForIndex(i, files.size()) {
+    for (auto file : files) {
       
-      std::string name = ""; // ToDO removeExtensionFromFileName(files[i]); 
-      std::string low_name = name;
-      std::locale loc;
-
-      for(auto& elem : low_name)
-          elem = std::tolower(elem,loc);
-
-      // If don't match the filter, we skip
-      if (low_name.find(filter) == std::string::npos) {
-        continue;
-      }
-
-      bool test = ImGui::MenuItem(name.c_str());
-
-      if (test) {
-        nameDir = _current_dir + "/" + files[i];
-      }
-
-    }
-    ImGui::PopStyleColor();
-    return nameDir;
-  }
-
-  //---------------------------------------------------
-  std::string recursiveFileSelecter(const std::string& _current_dir, std::string filter = "")
-  {
-    std::vector<std::string> files;
-    std::vector<std::string> directories;
-
-    listLuaFileInDir(files, _current_dir);
-    listFolderinDir(directories, _current_dir);
-
-    std::string nameDir = "";
-
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7F, 0.7F, 1.0F, 1.0F));
-    ForIndex(i, directories.size()) {
-      const char* dir_name = directories[static_cast<unsigned>(i)].c_str();
-      if (!nameDir.empty()) break;
-
-      if (dir_name[0] != '.') {
-        if (!filter.empty()){
-          nameDir = recursiveFileSelecter(_current_dir + "/" + directories[i], filter);
-        } else {
-          if (ImGui::BeginMenu(dir_name)) {
-            nameDir = recursiveFileSelecter(_current_dir + "/" + directories[i], filter);
-            ImGui::EndMenu();
-          }
-        }
-      }
-    }
-    ImGui::PopStyleColor();
-
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0F, 1.0F, 1.0F, 1.0F));
-    ForIndex(i, files.size()) {
-      std::string name = ""; // Todo removeExtensionFromFileName(files[i]);
-      std::string low_name = name;
-      std::locale loc;
-
-      for(auto& elem : low_name)
-          elem = std::tolower(elem,loc);
-
-      // If don't match the filter, we skip
-      if (low_name.find(filter) == std::string::npos) {
-        continue;
-      }
-
-      bool test = ImGui::MenuItem(name.c_str());
-
-      if (test) {
-        nameDir =_current_dir + "/" + files[i];
+      std::string name = file.replace_extension().filename().generic_string();
+ 
+      if (ImGui::MenuItem(name.c_str())) {
+        nameDir = fs::path(_current_dir) += file;
       }
 
     }
@@ -179,31 +81,12 @@ namespace chill
   }
 
   //-------------------------------------------------------
-  std::string relativePath(const std::string& _path) {
-    unsigned long nfsize = static_cast<unsigned long>(NodeEditor::NodesFolder().size());
-    if (_path[nfsize + 1] == '/') nfsize++;
-    std::string name = _path.substr(nfsize);
-    return name;
-  }
-
-  //-------------------------------------------------------
-  bool addNodeLeftMenu(ImVec2 _pos, std::string filter = "") {
+  bool addNodeMenu(ImVec2 _pos, bool isMenu = true) {
     NodeEditor* n_e = NodeEditor::Instance();
-    std::string node = recursiveFileMenuSelecter(NodeEditor::NodesFolder(), filter);
+    fs::path nodeFolder = (getUserDir() += "chill-nodes");
+    fs::path node = recursiveFileSelecter( &nodeFolder, &OFD_FILTER_NODES, isMenu);
     if (!node.empty()) {
-      std::shared_ptr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>(relativePath(node));
-      proc->setPosition(_pos);
-      return true;
-    }
-    return false;
-  }
-
-  //-------------------------------------------------------
-  bool addNodeMenu(ImVec2 _pos, std::string filter = "") {
-    NodeEditor* n_e = NodeEditor::Instance();
-    std::string node = recursiveFileSelecter(NodeEditor::NodesFolder(), filter);
-    if (!node.empty()) {
-      std::shared_ptr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>(relativePath(node));
+      std::shared_ptr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>(relative(&node, &nodeFolder));
       proc->setPosition(_pos);
       return true;
     }
@@ -274,10 +157,9 @@ namespace chill
     if (!s_instance) {
       s_instance = new NodeEditor();
 
-      std::string filepath = Instance()->ChillFolder() + "/init.graph";
-      if (fs::exists(filepath.c_str())) {
-        const fs::path path = fs::path(filepath);
-        s_instance->loadGraph(&path);
+      fs::path filepath = (getUserDir() += "chill-nodes") += "init.graph";
+      if (fs::exists(filepath)) {
+        s_instance->loadGraph(&filepath);
       }
     }
     return s_instance;
@@ -314,52 +196,6 @@ namespace chill
   }
 
   //-------------------------------------------------------
-  void NodeEditor::mainOnResize(uint width, uint height)
-  {
-    Instance()->m_size = ImVec2(static_cast<float>(width), static_cast<float>(height));
-    Instance()->moveIceSLWindowAlongChill();
-  }
-
-  //-------------------------------------------------------
-  void NodeEditor::mainKeyPressed(uchar /*_k*/)
-  {
-  }
-
-  //-------------------------------------------------------
-  void NodeEditor::mainScanCodePressed(uint _sc)
-  {
-    if (_sc == 0) { // TODO LIBSL_KEY_SHIFT
-      ImGui::GetIO().KeyShift = true;
-    }
-    if (_sc == 0) { // TODO LIBSL_KEY_CTRL
-      ImGui::GetIO().KeyCtrl = true;
-    }
-  }
-
-  //-------------------------------------------------------
-  void NodeEditor::mainScanCodeUnpressed(uint _sc)
-  {
-    if (_sc == 0) {// TODO LIBSL_KEY_SHIFT
-      ImGui::GetIO().KeyShift = false;
-    }
-    if (_sc == 0) {// TODO LIBSL_KEY_CTRL
-      ImGui::GetIO().KeyCtrl = false;
-    }
-  }
-
-  //-------------------------------------------------------
-  void NodeEditor::mainMouseMoved(uint /*_x*/, uint /*_y*/)
-  {
-    // Nothing for now
-  }
-
-  //-------------------------------------------------------
-  void NodeEditor::mainMousePressed(uint /*_x*/, uint /*_y*/, uint /*_button*/, uint /*_flags*/)
-  {
-    // Nothing for now
-  }
-
-  //-------------------------------------------------------
   bool NodeEditor::draw()
   {
     /*if (m_docking_icesl && m_icesl_hwnd) {
@@ -384,11 +220,11 @@ namespace chill
 
     if (ImGui::BeginMainMenuBar()) {
       // opening file
-      std::string fullpath = "";
+      fs::path fullpath;
       if (ImGui::BeginMenu("File")) {
         if (ImGui::MenuItem("New graph")) {
-          std::string graph_filename = getMainGraph()->name() + ".graph";
-          fullpath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_GRAPHS);
+          fs::path graph_filename = getMainGraph()->name() + ".graph";
+          fullpath = saveFileDialog(&graph_filename, &OFD_FILTER_GRAPHS);
           if (!fullpath.empty()) {
             std::ofstream file;
             file.open(fullpath);
@@ -399,31 +235,26 @@ namespace chill
           }
         }
         if (ImGui::MenuItem("Load graph")) {
-          fullpath = openFileDialog(OFD_FILTER_GRAPHS);
+          fullpath = openFileDialog(&OFD_FILTER_GRAPHS);
           if (!fullpath.empty()) {
             const fs::path path = fs::path(fullpath);
             loadGraph(&path, true);
           }
         }
         if (ImGui::MenuItem("Load example graph")) {
-          std::string chillFolder;
-          // TODO clean this !
-#ifdef WIN32
-          std::string folderName = "\\chill-models\\";
-#else
-          std::string folderName = "/chill-models/";
-#endif
-          if (scriptPath(folderName, chillFolder)) {
-            fullpath = openFileDialog(chillFolder.c_str(), OFD_FILTER_GRAPHS);
+          std::string folderName = "chill-models";
+
+          fs::path modelsFolder = getUserDir() += folderName;
+          if (fs::exists(modelsFolder)) {
+            fullpath = openFileDialog(&modelsFolder, &OFD_FILTER_GRAPHS);
             if (!fullpath.empty()) {
-              const fs::path path = fs::path(fullpath);
-              loadGraph(&path);
+              loadGraph(&fullpath);
             }
           }
         }
         if (ImGui::MenuItem("Save graph", "Ctrl+S")) {
-          std::string graph_filename = getMainGraph()->name() + ".graph";
-          fullpath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_GRAPHS);
+          fs::path graph_filename = getMainGraph()->name() + ".graph";
+          fullpath = saveFileDialog(&graph_filename, &OFD_FILTER_GRAPHS);
           if (!fullpath.empty()) {
             std::ofstream file;
             file.open(fullpath);
@@ -434,8 +265,8 @@ namespace chill
         }
         /*
         if (ImGui::MenuItem("Save current graph", "Ctrl+Shift+S")) {
-          std::string graph_filename = getCurrentGraph()->name() + ".graph";
-          fullpath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_GRAPHS);
+          fs::path graph_filename = getCurrentGraph()->name() + ".graph";
+          fullpath = saveFileDialog(&graph_filename, &OFD_FILTER_GRAPHS);
           if (!fullpath.empty()) {
             std::ofstream file;
             file.open(fullpath);
@@ -446,10 +277,9 @@ namespace chill
         */
 
         if (ImGui::MenuItem("Export to IceSL lua")) {
-          std::string graph_filename = getMainGraph()->name() + ".lua";
-          m_iceSLExportPath = saveFileDialog(graph_filename.c_str(), OFD_FILTER_LUA);
-          const fs::path path = m_iceSLExportPath;
-          exportIceSL(&path);
+          fs::path graph_filename = getMainGraph()->name() + ".lua";
+          m_iceSLExportPath = saveFileDialog(&graph_filename, &OFD_FILTER_LUA);
+          exportIceSL(&m_iceSLExportPath);
         }
         ImGui::EndMenu();
       }
@@ -514,7 +344,7 @@ namespace chill
     std::locale loc;
     for( auto& elem: leftMenuSearch)
        elem = std::tolower(elem, loc);
-    addNodeLeftMenu(s2g, leftMenuSearch);
+    addNodeMenu(s2g, false);
 
     ImGui::End();
   }
@@ -1134,48 +964,15 @@ namespace chill
   void NodeEditor::shortcutsAction() {
     ImGuiIO      io = ImGui::GetIO();
 
-
     //ctrl + c
-    if (!selected.empty()) {
-      if (io.KeysDown[0] && io.KeysDown['c' - 96] && io.KeysDownDuration['c' - 96] == 0.F) { // LIBSL_KEY_CTRL
-        copy();
-      }
-    }
 
     //ctrl + d docking
-    if (io.KeysDown[0] && io.KeysDown['d' - 96] && io.KeysDownDuration['d' - 96] == 0.F) { // LIBSL_KEY_CTRL
-      if (!m_icesl_is_docked) {
-        dock();
-      }
-      else {
-        undock();
-      }
-    }
 
     // crtl + v
-    if (buffer) {
-      if (io.KeysDown[0] && io.KeysDown['v' - 96] && io.KeysDownDuration['v' - 96] == 0.F) { // LIBSL_KEY_CTRL
-        paste();
-      }
-    }
 
     //del 
-    if (io.KeysDown[0]) { // LIBSL_KEY_DELETE
-      for (std::shared_ptr<SelectableUI> item : selected) {
-        getCurrentGraph()->remove(item);
-      }
-    }
 
     //undo redo
-    if (io.KeysDown[0] && io.KeysDown['z' - 96] && io.KeysDownDuration['z' - 96] == 0.F) { // LIBSL_KEY_CTRL
-      if (io.KeysDown[0]) { // LIBSL_KEY_SHIFT
-        redo();
-      }
-      else {
-        undo();
-      }
-    }
-
 
     if (io.MouseClicked[0]) {
       // if no processor hovered, clear
@@ -1456,8 +1253,7 @@ namespace chill
   void NodeEditor::saveSettings()
   {
     // save current settings
-    std::string filename(ChillFolder() + m_settingsFileName);
-    //filename += g_settingsFileName;
+    fs::path filename(getUserDir() += m_settingsFileName);
 
     // remove space from icesl path for storage in txt file
     std::string cleanedIceslPath = m_iceslPath.string();
@@ -1479,7 +1275,7 @@ namespace chill
   //-------------------------------------------------------
   void NodeEditor::loadSettings()
   {
-    std::string filename = ChillFolder() + m_settingsFileName;
+    fs::path filename = getUserDir() += m_settingsFileName;
     if (fs::exists(filename.c_str())) {
       std::ifstream f(filename);
       while (!f.eof()) {
@@ -1650,15 +1446,18 @@ namespace chill
         if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && event.window.windowID == SDL_GetWindowID(nodeEditor->m_chill_window)) {
           int w, h;
           SDL_GetWindowSize(nodeEditor->m_chill_window, &w, &h);
-          NodeEditor::mainOnResize(w, h);
+          Instance()->m_size = ImVec2(static_cast<float>(w), static_cast<float>(h));
+          Instance()->moveIceSLWindowAlongChill();
         }
         if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SHOWN && event.window.windowID == SDL_GetWindowID(nodeEditor->m_chill_window)) {
-          NodeEditor::mainOnResize(nodeEditor->default_width, nodeEditor->default_height);
+          Instance()->m_size = ImVec2(static_cast<float>(nodeEditor->default_width), static_cast<float>(nodeEditor->default_height));
+          Instance()->moveIceSLWindowAlongChill();
         }
         if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_MOVED && event.window.windowID == SDL_GetWindowID(nodeEditor->m_chill_window)) {
           int w, h;
           SDL_GetWindowSize(nodeEditor->m_chill_window, &w, &h);
-          NodeEditor::mainOnResize(w, h);
+          Instance()->m_size = ImVec2(static_cast<float>(w), static_cast<float>(h));
+          Instance()->moveIceSLWindowAlongChill();
         }
         if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_MAXIMIZED && event.window.windowID == SDL_GetWindowID(nodeEditor->m_chill_window)) {
           nodeEditor->maximize();
@@ -1744,66 +1543,7 @@ namespace chill
 
     }
   }
-  
-  //-------------------------------------------------------
-  bool NodeEditor::scriptPath(const std::string& name, std::string& _path)
-  {
-    std::string         path;
-    std::vector<std::string> paths;
-
-#ifdef WIN32
-    paths.push_back(getenv("APPDATA") + std::string("\\ChiLL") + name);
-#elif __linux__
-    paths.push_back("/etc/chill" + name);
-#endif
-    paths.push_back(fs::current_path().string() + name);
-    paths.push_back(".." + name);
-    paths.push_back("../.." + name);
-    paths.push_back("../../.." + name);
-    paths.push_back("../../../.." + name);
-    paths.push_back(SRC_PATH + name); // dev path
-    
-    bool ok = false;
-    ForIndex(p, paths.size()) {
-      path = paths[p];
-      if (fs::exists(path)) {
-        ok = true;
-        break;
-      }
-    }
-    if (!ok) {
-      std::cerr << "Cannot find path for " << name << std::endl;
-      std::cerr << "path? : " << path << std::endl;
-      return false;
-    }
-    _path = path;
-    return true;
-  }
-  //-------------------------------------------------------
-  std::string NodeEditor::ChillFolder() {
-    std::string chillFolder;
-    std::string folderName = "";
-    if (scriptPath(folderName, chillFolder)) {
-      return chillFolder;
-    }
-    else {
-      return fs::current_path().string();
-    }
-  }
-
-  //-------------------------------------------------------
-  std::string NodeEditor::NodesFolder() {
-    std::string nodesFolder;
-    std::string folderName = "/chill-nodes";
-
-    if (scriptPath(folderName, nodesFolder)) {
-      return nodesFolder;
-    }
-    else {
-      return fs::current_path().string();
-    }
-  }
-
+ 
   //-------------------------------------------------------
   void NodeEditor::SetIceslPath() {
     if (m_iceslPath.empty()) {
@@ -1825,7 +1565,7 @@ namespace chill
       int modal = MessageBox(m_chill_hwnd, modalText, modalTitle, modalFlags);
 
       if (modal == 1) {
-        m_iceslPath = openFileDialog(OFD_FILTER_ALL).c_str();
+        m_iceslPath = openFileDialog(&OFD_FILTER_ALL);
         std::cerr << "IceSL location specified: " << m_iceslPath << std::endl;
       }
       else {

@@ -8,6 +8,8 @@
 #include "UI.h"
 #include "IOTypes.h"
 
+#include "FileManager.h"
+
 // COLOR BLIND FRIENDLY PALETTE
 static ImColor color_undef (255, 255, 255);
 static ImColor color_bool  (146, 0  , 0  );
@@ -611,10 +613,10 @@ class PathInput : public ProcessorInput {
     //-------------------------------------------------------
 
     template <typename ...>
-    PathInput(std::string _value = "", bool _alt = false, std::vector<const char *> _filter = {""}, ...) : PathInput() {
+    PathInput(std::string _value = "", bool _alt = false, /*std::vector<const char *> _filter = {""},*/ ...) : PathInput() {
       m_value  = _value;
       m_alt    = _alt;
-      m_filter = _filter;
+      //m_filter = _filter;
     }
 
     //-------------------------------------------------------
@@ -626,7 +628,7 @@ class PathInput : public ProcessorInput {
       m_value  = s >= 1 ? _params[0] : "";
       m_alt    = s >= 2 ? _params[1] == "true" : false;
 
-      if (s >= 3) {
+      /*if (s >= 3) {
         bool inside = false;
         std::string * filter = new std::string();
         for (int i = 0; i < _params[2].size(); ++i) {
@@ -646,7 +648,7 @@ class PathInput : public ProcessorInput {
       }
       else {
         m_filter.push_back("*.*");
-      }
+      }*/
 
       std::cerr << std::endl;
     }
@@ -688,7 +690,7 @@ class PathInput : public ProcessorInput {
     //-------------------------------------------------------
 
     std::string m_value;
-    std::vector<const char*> m_filter;
+    //std::vector<const char*> m_filter;
     bool m_alt;
 };
 
