@@ -1845,9 +1845,12 @@ namespace chill
   void NodeEditor::raiseIceSL() {
     if (m_icesl_is_docked) {
       if (m_icesl_window != nullptr) {
-        //SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+#ifdef WIN32
+        SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+#else
         SDL_RaiseWindow(m_icesl_window);
-        //SDL_SetWindowInputFocus(m_chill_window); // only for X11 :(
+        SDL_SetWindowInputFocus(m_chill_window); // only for X11 :(
+#endif
       }
     }
   }
