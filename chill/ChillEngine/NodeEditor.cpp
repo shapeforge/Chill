@@ -1,5 +1,7 @@
 ﻿#include "NodeEditor.h"
 
+#include "SDL_pixels.h"
+
 //#include <gl/GL.h>
 // About Desktop OpenGL function loaders:
 //  Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
@@ -459,7 +461,6 @@ namespace chill
         ImGui::EndMenu();
       }
 
-#ifdef WIN32
       if (ImGui::BeginMenu("Window")) {
 
         bool docking = m_icesl_is_docked;
@@ -484,7 +485,6 @@ namespace chill
 
         ImGui::EndMenu();
       }
-#endif
       // save the effective menubar height in the style
       style.menubar_height = ImGui::GetWindowSize().y;
       ImGui::EndMainMenuBar();
@@ -507,78 +507,6 @@ namespace chill
       ImGuiWindowFlags_NoBringToFrontOnFocus
     );
 
-#if 0
-    char name[32];
-
-    if (ImGui::CollapsingHeader("Graph tree")) {
-      ImVec2 size(100, 20);
-
-#ifdef WIN32
-      char title[32];
-      uint i = 1;
-      //TODO _Get_container is not standard
-      for (auto graph : m_graphs._Get_container()) {
-        std::string text = "";
-        for (uint j = 0; j < i; ++j)
-          text += " ";
-        text += ">";
-        ImGui::TextDisabled(text.c_str());
-        ImGui::SameLine();
-
-        if (i == m_graphs.size()) {
-          strncpy_s(title, m_graphs.top()->name().c_str(), 32);
-          if (ImGui::InputText(("##graphname" + std::to_string(getUniqueID())).c_str(), title, 32)) {
-            m_graphs.top()->setName(title);
-          }
-        } else {
-          if (ImGui::Button(graph->name().c_str())) {
-            while (m_graphs.size() > i) {
-              m_graphs.pop();
-            }
-          }
-        }
-        ++i;
-      }
-#else
-      // TODO
-#endif
-
-    }
-
-    ImGui::NewLine();
-
-    for ( auto object : selected) {
-      ImGui::Text("Name:");
-      strncpy(name, object->name().c_str(), 32);
-      if (ImGui::InputText(("##name" + std::to_string(object->getUniqueID())).c_str(), name, 32)) {
-        object->setName(name);
-      }
-
-      ImGui::Text("Color:");
-      ImGuiColorEditFlags flags = ImGuiColorEditFlags_RGB | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_AlphaBar;
-      ImVec4 col = ImGui::ColorConvertU32ToFloat4(object->color());
-      float color[4] = { col.x, col.y , col.z , col.w };
-      if (ImGui::ColorPicker4(("##color" + std::to_string(object->getUniqueID())).c_str(), color, flags)) {
-        object->setColor(ImGui::ColorConvertFloat4ToU32(ImVec4(color[0], color[1], color[2], color[3])));
-      }
-      
-      /*
-      std::shared_ptr<Processor> proc = std::shared_ptr<Processor>(object);
-      if (!proc.isNull()) {
-        for (auto input : proc->inputs()) {
-          ImGui::NewLine();
-          if (input->drawTweak()) {
-            proc->setDirty();
-          }
-        }
-      }
-      */
-
-      ImGui::NewLine();
-      
-    }
-#endif
-
     ImVec2 s2g = ImVec2(-100, -50) - Instance()->m_offset;
 
     ImGui::InputTextWithHint("##", "search", leftMenuSearch,  64);
@@ -587,7 +515,6 @@ namespace chill
     for( auto& elem: leftMenuSearch)
        elem = std::tolower(elem, loc);
     addNodeLeftMenu(s2g, leftMenuSearch);
-
 
     ImGui::End();
   }
@@ -1399,7 +1326,18 @@ namespace chill
       // we give a default size, otherwise SetWindowLong gives unpredictable results (white window)
       //MoveWindow(Instance()->m_icesl_hwnd, 0, 0, 800, 600, true);
 
-      Instance()->m_icesl_window = SDL_CreateWindowFrom(Instance()->m_icesl_hwnd);
+      //Instance()->m_icesl_window = SDL_CreateWindowFrom(Instance()->m_icesl_hwnd);
+
+     /* SDL_SysWMinfo info_before;
+      SDL_GetWindowWMInfo(Instance()->m_icesl_window, &info_before);
+      SDL_DestroyWindow(Instance()->m_icesl_window);*/
+
+      //SDL_DestroyWindow(Instance()->m_icesl_window);
+      //SDL_Renderer *renderer;
+      //SDL_CreateWindowAndRenderer(0,0, SDL_WINDOW_ALWAYS_ON_TOP, &Instance()->m_icesl_window, &renderer);
+      /*SDL_SysWMinfo info_after;
+      SDL_GetWindowWMInfo(Instance()->m_icesl_window, &info_after);
+      info_after = info_before;*/
 
     } else {
       // process creation failed
@@ -1596,7 +1534,8 @@ namespace chill
   int NodeEditor::launch()
   {
     // Setup SDL
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
+    //if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
       printf("Error: %s\n", SDL_GetError());
       return -1;
@@ -1610,7 +1549,6 @@ namespace chill
     // create the temp file
     nodeEditor->exportIceSL(&(Instance()->m_iceSLTempExportPath));
 
-
     // GL 3.0 + GLSL 130
     const char* glsl_version = "#version 130";
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
@@ -1622,6 +1560,7 @@ namespace chill
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     nodeEditor->m_chill_window = SDL_CreateWindow("Chill, the node-based editor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, nodeEditor->default_width, nodeEditor->default_height, window_flags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(nodeEditor->m_chill_window);
@@ -1672,6 +1611,20 @@ namespace chill
       // launching Icesl
       launchIcesl();
 
+      SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+      
+      SDL_Renderer* chill_renderer = SDL_CreateRenderer(nodeEditor->m_chill_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+      nodeEditor->m_icesl_window = SDL_CreateWindowFrom(nodeEditor->m_icesl_hwnd);
+      SDL_Renderer* icesl_renderer = SDL_CreateRenderer(nodeEditor->m_icesl_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+      SDL_RenderClear(chill_renderer);
+      SDL_RenderPresent(chill_renderer);
+
+      SDL_RenderClear(icesl_renderer);
+      SDL_RenderPresent(icesl_renderer);
+      
+
       // place apps in default pos
       nodeEditor->setDefaultAppsPos();
     }
@@ -1680,8 +1633,6 @@ namespace chill
     bool done = false;
     while (!done)
     {
-      nodeEditor->raiseIceSL();
-
       // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.
@@ -1712,6 +1663,9 @@ namespace chill
         if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_MAXIMIZED && event.window.windowID == SDL_GetWindowID(nodeEditor->m_chill_window)) {
           nodeEditor->maximize();
         }
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED && event.window.windowID == SDL_GetWindowID(nodeEditor->m_chill_window)) {
+          nodeEditor->raiseIceSL();
+        }
       }
 
       // Start the Dear ImGui frame
@@ -1726,8 +1680,6 @@ namespace chill
       glClear(GL_COLOR_BUFFER_BIT);
       ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
       SDL_GL_SwapWindow(nodeEditor->m_chill_window);
-
-      nodeEditor->raiseIceSL();
     }
 
     // Cleanup
@@ -1758,10 +1710,8 @@ namespace chill
       undock();
     }
 
-    #ifdef WIN32
     // start maximized
-    ShowWindow(m_chill_hwnd, SW_SHOWMAXIMIZED);
-    #endif
+    NodeEditor::maximize();
   }
 
   //-------------------------------------------------------
@@ -1897,7 +1847,7 @@ namespace chill
       if (m_icesl_window != nullptr) {
         //SetWindowPos(m_chill_hwnd, m_icesl_hwnd, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
         SDL_RaiseWindow(m_icesl_window);
-        SDL_SetWindowInputFocus(m_chill_window);
+        //SDL_SetWindowInputFocus(m_chill_window); // only for X11 :(
       }
     }
   }
@@ -1948,7 +1898,7 @@ namespace chill
       SDL_SetWindowPosition(m_icesl_window, desktop_width / 2, top);
       SDL_SetWindowSize(m_icesl_window, desktop_width / 2, desktop_height - top);
 
-      SDL_SetWindowInputFocus(m_chill_window);
+      //SDL_SetWindowInputFocus(m_chill_window); // only for X11 :(
     }
   }
 }
