@@ -36,12 +36,12 @@ namespace chill
   NodeEditor* NodeEditor::s_instance = nullptr;
 
   //---------------------------------------------------
-  fs::path recursiveFileSelecter(const fs::path* _current_dir, const std::vector<const char*>* filter, bool isMenu = true)
+  fs::path recursiveFileSelecter(const fs::path* _current_dir, const std::vector<const char*>* _filter, bool isMenu = true)
   {
     std::vector<fs::path> files;
     std::vector<fs::path> directories;
 
-    files = listFileInDir(_current_dir, &OFD_FILTER_LUA);
+    files = listFileInDir(_current_dir, _filter);
     directories = listFolderinDir(_current_dir);
 
     fs::path nameDir;
@@ -51,15 +51,18 @@ namespace chill
       if (!nameDir.empty()) break;
 
       if (!isHidden(dir)) {
+        fs::path currdir(_current_dir->generic_string());
+        currdir /= dir;
+
         if (!isMenu && ImGui::CollapsingHeader((dir.filename().generic_string() + "##" + _current_dir->generic_string()).c_str() )) {
           ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
           ImGui::BeginGroup();
-          nameDir = recursiveFileSelecter(&(fs::path(_current_dir) += dir), filter, isMenu);
+          nameDir = recursiveFileSelecter(&currdir, _filter, isMenu);
           ImGui::EndGroup();
         }
 
         if (isMenu && ImGui::BeginMenu(dir.filename().generic_string().c_str())) {
-          nameDir = recursiveFileSelecter(&(fs::path(_current_dir) += dir), filter, isMenu);
+          nameDir = recursiveFileSelecter(&currdir, _filter, isMenu);
           ImGui::EndMenu();
         }
       }
@@ -69,10 +72,10 @@ namespace chill
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0F, 1.0F, 1.0F, 1.0F));
     for (auto file : files) {
       
-      std::string name = file.replace_extension().filename().generic_string();
+      std::string name = fs::path(file).replace_extension().filename().generic_string();
  
       if (ImGui::MenuItem(name.c_str())) {
-        nameDir = fs::path(_current_dir) += file;
+        nameDir = file;
       }
 
     }
@@ -83,7 +86,7 @@ namespace chill
   //-------------------------------------------------------
   bool addNodeMenu(ImVec2 _pos, bool isMenu = true) {
     NodeEditor* n_e = NodeEditor::Instance();
-    fs::path nodeFolder = (getUserDir() += "chill-nodes");
+    fs::path nodeFolder = (getUserDir() /= "chill-nodes");
     fs::path node = recursiveFileSelecter( &nodeFolder, &OFD_FILTER_NODES, isMenu);
     if (!node.empty()) {
       std::shared_ptr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>(relative(&node, &nodeFolder));
@@ -157,7 +160,7 @@ namespace chill
     if (!s_instance) {
       s_instance = new NodeEditor();
 
-      fs::path filepath = (getUserDir() += "chill-nodes") += "init.graph";
+      fs::path filepath = (getUserDir() /= "chill-nodes") /= "init.graph";
       if (fs::exists(filepath)) {
         s_instance->loadGraph(&filepath);
       }
@@ -244,7 +247,7 @@ namespace chill
         if (ImGui::MenuItem("Load example graph")) {
           std::string folderName = "chill-models";
 
-          fs::path modelsFolder = getUserDir() += folderName;
+          fs::path modelsFolder = getUserDir() /= folderName;
           if (fs::exists(modelsFolder)) {
             fullpath = openFileDialog(&modelsFolder, &OFD_FILTER_GRAPHS);
             if (!fullpath.empty()) {
@@ -1548,7 +1551,7 @@ namespace chill
   void NodeEditor::SetIceslPath() {
     if (m_iceslPath.empty()) {
 #ifdef WIN32
-      m_iceslPath = getenv("PROGRAMFILES") + std::string("/INRIA/IceSL/bin/IceSL-slicer.exe");
+      m_iceslPath = fs::path(std::string(getenv("PROGRAMFILES")) + std::string("/INRIA/IceSL/bin/IceSL-slicer.exe"));
 #elif __linux__
       m_iceslPath = getenv("HOME") + std::string("/icesl/bin/IceSL-slicer");
 #endif

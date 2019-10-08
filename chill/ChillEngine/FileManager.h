@@ -17,17 +17,19 @@ static const std::vector<const char*> OFD_FILTER_NODES  = std::vector<const char
 static const std::vector<const char*> OFD_FILTER_LUA    = std::vector<const char*>({ "*.lua" });
 static const std::vector<const char*> OFD_FILTER_ALL    = std::vector<const char*>({ "*.*" });
 
-static fs::path openFileDialog(                                          const std::vector<const char*>* filter);
-static fs::path openFileDialog(const fs::path* directory               , const std::vector<const char*>* filter);
-static fs::path saveFileDialog(const fs::path* proposedFileNameFullPath, const std::vector<const char*>* filter);
+extern fs::path openFileDialog(                                          const std::vector<const char*>* _filter);
+extern fs::path openFileDialog(const fs::path* _directory               , const std::vector<const char*>* _filter);
+extern fs::path saveFileDialog(const fs::path* _proposedFileNameFullPath, const std::vector<const char*>* _filter);
 
-static fs::path openFolderDialog(const fs::path* proposedFolderNameFullPath);
+extern fs::path openFolderDialog(const fs::path* _proposedFolderNameFullPath);
 
-static std::vector<fs::path> listFolderinDir(const fs::path* _dir);
-static std::vector<fs::path> listFileInDir(const fs::path* _dir, const std::vector<const char*>* filter);
-static fs::path relative(const fs::path* _absPath, const fs::path* _rootPath); // exists as std::filesystem::relative(path&, base&)
+extern std::vector<fs::path> listFolderinDir(const fs::path* _dir);
+extern std::vector<fs::path> listFileInDir(const fs::path* _dir, const std::vector<const char*>* _filter);
+extern fs::path relative(const fs::path* _absPath, const fs::path* _rootPath); // exists as std::filesystem::relative(path&, base&)
 
-static fs::path getUserDir();
-static bool isHidden(const fs::path &p);
+extern fs::path getUserDir();
+extern bool isHidden(const fs::path &_p);
+
+extern std::string loadFileIntoString(const fs::path& _path);
 
 }

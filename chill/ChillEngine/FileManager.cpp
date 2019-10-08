@@ -1,5 +1,9 @@
 #include "FileManager.h"
 
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
 #include <tinyfiledialogs.h>
 
 #include "SourcePath.h"
@@ -49,8 +53,9 @@ namespace chill {
   //-------------------------------------------------------
   std::vector<fs::path> listFolderinDir(const fs::path* _dir)
   {
+    fs::path dir(_dir->generic_string());
     std::vector<fs::path> paths;
-    for (fs::directory_iterator itr(_dir); itr != fs::directory_iterator(); ++itr) {
+    for (fs::directory_iterator itr(dir); itr != fs::directory_iterator(); ++itr) {
       fs::path folder = itr->path();
       if (is_directory(folder)) {
         paths.push_back(folder.filename());
@@ -61,12 +66,13 @@ namespace chill {
 
   std::vector<fs::path> listFileInDir(const fs::path* _dir, const std::vector<const char*>* _filter)
   {
+    fs::path dir(_dir->generic_string());
     std::vector<fs::path> paths;
-    for (const auto& p : fs::directory_iterator(_dir)) {
+    for (const auto& p : fs::directory_iterator(dir)) {
       if (is_regular_file(p)) {
 
         for (auto filter : *_filter) {
-          if (p.path().extension() == std::string(filter).erase(0)) {
+          if (p.path().extension().generic_string() == std::string(filter).erase(0,1)) {
             paths.push_back(p);
           }
         }
@@ -115,5 +121,13 @@ namespace chill {
   {
     fs::path::string_type name = p.filename();
     return name[0] == '.';
+  }
+
+
+  std::string loadFileIntoString(const fs::path& _path) {
+    auto ss = std::ostringstream{};
+    std::ifstream file(_path);
+    ss << file.rdbuf();
+    return ss.str();
   }
 }

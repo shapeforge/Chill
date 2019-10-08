@@ -613,10 +613,10 @@ class PathInput : public ProcessorInput {
     //-------------------------------------------------------
 
     template <typename ...>
-    PathInput(std::string _value = "", bool _alt = false, /*std::vector<const char *> _filter = {""},*/ ...) : PathInput() {
+    PathInput(std::string _value = "", bool _alt = false, std::vector<const char *> _filter = {""}, ...) : PathInput() {
       m_value  = _value;
       m_alt    = _alt;
-      //m_filter = _filter;
+      m_filter = _filter;
     }
 
     //-------------------------------------------------------
@@ -690,7 +690,7 @@ class PathInput : public ProcessorInput {
     //-------------------------------------------------------
 
     std::string m_value;
-    //std::vector<const char*> m_filter;
+    std::vector<const char*> m_filter;
     bool m_alt;
 };
 

@@ -21,7 +21,7 @@ namespace chill {
     setName(_processor.name());
     setOwner(_processor.owner());
     setColor(_processor.color());
-    m_program = ""; // TODO loadFileIntoString((NodeEditor::NodesFolder() + m_nodepath).c_str());
+    m_program = loadFileIntoString((getUserDir() /= "chill-nodes") /= m_nodepath);
 
     for (auto input : _processor.inputs()) {
       addInput(input->clone());
@@ -32,13 +32,14 @@ namespace chill {
     }
   }
 
-  LuaProcessor::LuaProcessor(const std::string &_path) {
-    std::regex e("\\\\");
-    m_nodepath = regex_replace(_path, e, "/$2");
-    m_program = ""; //TODO  loadFileIntoString((NodeEditor::NodesFolder() + m_nodepath).c_str());
+  LuaProcessor::LuaProcessor(const fs::path& _path) {
+    // TODO still usefull?
+    //std::regex e("\\\\");
+    //m_nodepath = regex_replace(_path.generic_string(), e, "/$2");
+    m_nodepath = fs::path(_path.generic_string());
+    m_program = loadFileIntoString((getUserDir() /= "chill-nodes") /= m_nodepath);
 
-    // TODO setName(removeExtensionFromFileName(extractFileName(m_nodepath)));
-    setName("");
+    setName(m_nodepath.filename().replace_extension().generic_string());
     Parse();
   }
 

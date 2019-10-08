@@ -1,7 +1,7 @@
 #include "IOs.h"
 
+#include "FileManager.h"
 #include "NodeEditor.h"
-
 #include "Processor.h"
 
 namespace chill {

@@ -12,7 +12,7 @@ namespace chill
   class LuaProcessor : public Processor
   {
   private:
-    std::string m_nodepath;
+    fs::path    m_nodepath;
     std::string m_program;
     bool        m_program_edited = false;
 
@@ -20,7 +20,7 @@ namespace chill
 
     LuaProcessor(LuaProcessor &_processor);
   public:
-    LuaProcessor(const std::string &_path);
+    LuaProcessor(const fs::path &_path);
 
     std::shared_ptr<SelectableUI> clone() override {
       return std::shared_ptr<SelectableUI>(new LuaProcessor(*this));

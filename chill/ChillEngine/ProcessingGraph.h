@@ -95,7 +95,6 @@ class ProcessingGraph : public Processor
       m_processors.push_back(_processor);
     }
 
-
     /**
      *  Add an existing comment to the graph.
      *  @param _visualComment The std::shared_ptr related to the comment.
