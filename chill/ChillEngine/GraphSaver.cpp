@@ -280,7 +280,7 @@ class Lua_Node : public Lua_Processor {
 
     Lua_Node(const luabind::object& table) {
       std::string name = "Node";
-      std::string path = "";
+      fs::path path;
       ImColor     color = ui_cyan;
       ImVec2      pos(0, 0);
 
@@ -331,7 +331,7 @@ void print(const std::string& string) {
 //-------------------------------------------------------
 
 void GraphSaver::execute(const fs::path* path) {
-  luaL_dofile(m_LuaState, path->string().c_str());
+  luaL_dofile(m_LuaState, path->generic_string().c_str());
 }
 
 //-------------------------------------------------------

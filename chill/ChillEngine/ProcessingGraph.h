@@ -26,8 +26,8 @@ namespace chill {
   public:
     ImVec2 m_min;
     ImVec2 m_max;
-    ImVec2 center() { return ImVec2(0, 0); }
-    ImVec2 extent() { return ImVec2(0, 0); }
+    ImVec2 center() { return (m_min + m_max) / 2.0F;}
+    ImVec2 extent() { return (m_max - m_min); }
   };
 
 
@@ -240,8 +240,8 @@ class ProcessingGraph : public Processor
       BBox2D bbox;
       for (std::shared_ptr<SelectableUI> element : _elements) {
         bbox.m_min.x = std::min(bbox.m_min.x, element->getPosition().x);
-        bbox.m_min.x = std::min(bbox.m_min.y, element->getPosition().y);
-        bbox.m_max.y = std::max(bbox.m_max.x, element->getPosition().x + element->getSize().x);
+        bbox.m_min.y = std::min(bbox.m_min.y, element->getPosition().y);
+        bbox.m_max.x = std::max(bbox.m_max.x, element->getPosition().x + element->getSize().x);
         bbox.m_max.y = std::max(bbox.m_max.y, element->getPosition().y + element->getSize().y);
       }
       return bbox;

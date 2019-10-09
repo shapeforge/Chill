@@ -21,7 +21,7 @@ namespace chill {
     setName(_processor.name());
     setOwner(_processor.owner());
     setColor(_processor.color());
-    m_program = loadFileIntoString((getUserDir() /= "chill-nodes") /= m_nodepath);
+    m_program = loadFileIntoString(getUserDir() / "chill-nodes" / m_nodepath);
 
     for (auto input : _processor.inputs()) {
       addInput(input->clone());
@@ -33,24 +33,25 @@ namespace chill {
   }
 
   LuaProcessor::LuaProcessor(const fs::path& _path) {
-    // TODO still usefull?
-    //std::regex e("\\\\");
-    //m_nodepath = regex_replace(_path.generic_string(), e, "/$2");
     m_nodepath = fs::path(_path.generic_string());
-    m_program = loadFileIntoString((getUserDir() /= "chill-nodes") /= m_nodepath);
+    //fs::path usrDir = fs::path(getUserDir());
+    m_program = loadFileIntoString(getUserDir() / "chill-nodes" / m_nodepath);
 
     setName(m_nodepath.filename().replace_extension().generic_string());
     Parse();
   }
 
   void LuaProcessor::save(std::ofstream& _stream) {
+    std::regex e("\\\\");
+    std::string path = regex_replace(m_nodepath.generic_string(), e, "/$2");
+
     ImVec4 rgba = ImGui::ColorConvertU32ToFloat4(color());
     _stream << "p_" << getUniqueID() << " = Node({" <<
       "name = '" << name() << "'" <<
       ", x = " << getPosition().x <<
       ", y = " << getPosition().y <<
       ", color = {" << int(rgba.x * 255) << ", " << int(rgba.y * 255) << ", " << int(rgba.z * 255) << "}" <<
-      ", path = '" << m_nodepath << "'" <<
+      ", path = '" << path << "'" <<
       "})" << std::endl;
 
     /* Saving I/Os is not usefull in general case*/
@@ -109,7 +110,7 @@ setfenv(1, _Gcurrent)    --set it\n\
 setDirty(__currentNodeId)\n";
 
 
-    code += "";// TODO loadFileIntoString((NodeEditor::NodesFolder() + m_nodepath).c_str());
+    code += loadFileIntoString(getUserDir() / "chill-nodes" / m_nodepath);
 
     if (getState() == EMITING) {
       for (auto output : outputs()) {

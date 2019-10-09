@@ -51,8 +51,7 @@ namespace chill
       if (!nameDir.empty()) break;
 
       if (!isHidden(dir)) {
-        fs::path currdir(_current_dir->generic_string());
-        currdir /= dir;
+        fs::path currdir = *_current_dir / dir;
 
         if (!isMenu && ImGui::CollapsingHeader((dir.filename().generic_string() + "##" + _current_dir->generic_string()).c_str() )) {
           ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
@@ -86,7 +85,7 @@ namespace chill
   //-------------------------------------------------------
   bool addNodeMenu(ImVec2 _pos, bool isMenu = true) {
     NodeEditor* n_e = NodeEditor::Instance();
-    fs::path nodeFolder = (getUserDir() /= "chill-nodes");
+    fs::path nodeFolder = (getUserDir() / "chill-nodes");
     fs::path node = recursiveFileSelecter( &nodeFolder, &OFD_FILTER_NODES, isMenu);
     if (!node.empty()) {
       std::shared_ptr<LuaProcessor> proc = n_e->getCurrentGraph()->addProcessor<LuaProcessor>(relative(&node, &nodeFolder));
@@ -133,8 +132,6 @@ namespace chill
     if (_setAsAutoSavePath) {
       m_graphPath = fs::path(*_path);
     }
-
-
     // Recenter the view and adjust zoom
     auto bbox = getMainGraph()->getBoundingBox();
     ImVec2 center = bbox.center();
@@ -159,11 +156,6 @@ namespace chill
   NodeEditor* NodeEditor::Instance() {
     if (!s_instance) {
       s_instance = new NodeEditor();
-
-      fs::path filepath = (getUserDir() /= "chill-nodes") /= "init.graph";
-      if (fs::exists(filepath)) {
-        s_instance->loadGraph(&filepath);
-      }
     }
     return s_instance;
   }
@@ -247,7 +239,7 @@ namespace chill
         if (ImGui::MenuItem("Load example graph")) {
           std::string folderName = "chill-models";
 
-          fs::path modelsFolder = getUserDir() /= folderName;
+          fs::path modelsFolder = getUserDir() / folderName;
           if (fs::exists(modelsFolder)) {
             fullpath = openFileDialog(&modelsFolder, &OFD_FILTER_GRAPHS);
             if (!fullpath.empty()) {
@@ -1091,8 +1083,8 @@ namespace chill
   void NodeEditor::launchIcesl() {
 
     fs::path icesl_path = Instance()->m_iceslPath;
-    fs::path icesl_params = " ";
-    icesl_params += Instance()->m_iceSLTempExportPath;
+    std::string icesl_params = " ";
+    icesl_params += Instance()->m_iceSLTempExportPath.generic_string();
 
 #ifdef WIN32
     // CreateProcess init
@@ -1423,9 +1415,14 @@ namespace chill
       SDL_RenderClear(icesl_renderer);
       SDL_RenderPresent(icesl_renderer);
       
-
       // place apps in default pos
       nodeEditor->setDefaultAppsPos();
+    }
+
+    // load example file
+    fs::path filepath = getUserDir() / "chill-models" / "init.graph";
+    if (fs::exists(filepath)) {
+      s_instance->loadGraph(&filepath);
     }
 
     // Main loop
