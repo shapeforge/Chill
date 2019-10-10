@@ -314,7 +314,7 @@ bool chill::Processor::draw() {
     ImVec2 textSize = ImGui::CalcTextSize(name().c_str());
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (m_size[0]*w_scale - textSize[0])/2.0);
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (m_size[1] * w_scale - textSize[1]) / 2.0);
-	  ImGui::Text( "%s" ,name().c_str(), m_size );
+    ImGui::Text( "%s" , name().c_str());
     ImGui::SetCursorPos(cursor);
 	  ImGui::SetWindowFontScale(w_scale);
 	  ImGui::PopStyleColor(5);

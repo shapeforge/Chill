@@ -5,6 +5,8 @@
 #include <set>
 #include <unordered_set>
 #include <vector>
+#include <iostream>
+#include <memory>
 
 #include "IOs.h"
 #include "Processor.h"

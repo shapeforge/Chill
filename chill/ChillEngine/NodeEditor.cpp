@@ -299,8 +299,8 @@ namespace chill
 
         if (m_icesl_is_docked) {
           const char *items[sizeof(layouts) / sizeof(layouts[0])];
-          for (int i = 0; i < sizeof(layouts) / sizeof(layouts[0]); i++) {
-            items[i] = layouts[i].Name;
+          for (size_t i = 0; i < sizeof(layouts) / sizeof(layouts[0]); i++) {
+            items[i] = layouts[i].name.c_str();
           }
           static int item_current = 0;
           if (ImGui::Combo("##combo", &item_current, items, IM_ARRAYSIZE(items))) {
@@ -319,7 +319,7 @@ namespace chill
   }
 
   //-------------------------------------------------------
-  char leftMenuSearch[64] = "";
+  static char leftMenuSearch[64] = "\0";
   void NodeEditor::drawLeftMenu()
   {
     ImGui::Begin("GraphInfo", &m_visible,
@@ -1138,7 +1138,7 @@ namespace chill
 
       Instance()->m_icesl_hwnd = NULL;
     }
-#elif __linux__
+#else
     icesl_path += icesl_params;
     icesl_path += " &";
     std::system(icesl_path.string().c_str());
@@ -1572,12 +1572,12 @@ namespace chill
         m_iceslPath = "";
       }
 
-#elif __linux__
+#else
       // TODO Linux modal window
       //std::system( ("echo -e " + std::string(modalText) + " | xmessage -file -").c_str() );
       std::system( ("xmessage \""+ std::string(modalText) + "\" -title \"" + std::string(modalTitle) + "\"").c_str() );
-      m_iceslPath = openFileDialog(OFD_FILTER_ALL).c_str();
-      std::cerr << Console::yellow << "IceSL location specified: " << m_iceslPath << Console::gray << std::endl;
+      m_iceslPath = openFileDialog(&OFD_FILTER_ALL);
+      std::cerr << "IceSL location specified: " << m_iceslPath << std::endl;
 #endif
     }
   }

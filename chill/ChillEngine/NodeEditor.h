@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef WIN32
+#define NOMINMAX // disable windows min() max() macros
+#endif
+
 #include <vector>
 #include <stack>
 #include <algorithm>
@@ -10,21 +14,9 @@
 
 #include <cstdint>
 
-#define NOMINMAX // disable windows min() max() macros
 #include "SDL.h"
 #include "SDL_syswm.h"
 #include "SDL_video.h"
-
-#ifdef WIN32
-  
-  //#include <windows.h>
-  /*
-    if the Windows min() and max() macros are needed, 
-    use this syntax in code to bypass it:
-    (std::min)(a, b);
-    (std::max)(a, b);
-  */
-#endif
 
 #include "UI.h"
 #include "Processor.h"
@@ -46,10 +38,10 @@ namespace fs = std::filesystem;
 #endif
 
   struct Layout {
-    char*  Name;
-    ImVec2 offset_icesl;
-    ImVec2 ratio_icesl;
-    bool   resizable;
+    std::string name;
+    ImVec2      offset_icesl;
+    ImVec2      ratio_icesl;
+    bool        resizable;
   };
 
   class NodeEditor : public UI {
@@ -88,7 +80,7 @@ namespace fs = std::filesystem;
     int m_layout = 0;
     Layout layouts[1] = { 
       // {"name", pos, size, resizable },
-      {"preview",ImVec2(0.66, 0.66),ImVec2(0.33, 0.33),false},
+      {"preview", ImVec2(0.66, 0.66), ImVec2(0.33, 0.33), false},
       //{"side by side",ImVec2(2.0/3.0, 0.05),ImVec2(1.0/3.0, 0.95),false}
       
     };
@@ -105,7 +97,8 @@ namespace fs = std::filesystem;
     HWND m_icesl_hwnd = NULL;
     PROCESS_INFORMATION m_icesl_p_info;
 #else
-
+    void* m_chill_hwnd = nullptr;
+    void* m_icesl_hwnd = nullptr;
 #endif
 
     //-------------------------------------------------------

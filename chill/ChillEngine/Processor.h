@@ -3,6 +3,9 @@
 
 //-------------------------------------------------------
 
+#include <memory>
+#include <iostream>
+
 #include "IOs.h"
 #include "IOTypes.h"
 #include "UI.h"
