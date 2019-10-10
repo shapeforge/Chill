@@ -4,8 +4,6 @@ project(ChillEngine)
 
 include(UseCXX17)
 
-add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GL3W)
-
 add_library(ChillEngine STATIC
 	Processor.h
 	ProcessingGraph.h

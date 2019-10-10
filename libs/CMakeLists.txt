@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.0.0)
 ##########
 # openGL #
 ##########
+set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 
 ########
@@ -31,6 +32,8 @@ target_link_libraries(gl3w
 #####################
 # imgui integration #
 #####################
+add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GL3W)
+
 set(IMGUI_SOURCES
 	imgui/imgui.cpp
   	imgui/imgui_draw.cpp
