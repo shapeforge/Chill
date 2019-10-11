@@ -34,8 +34,7 @@ namespace chill {
 
   LuaProcessor::LuaProcessor(const fs::path& _path) {
     m_nodepath = fs::path(_path.generic_string());
-    //fs::path usrDir = fs::path(getUserDir());
-    m_program = loadFileIntoString(getUserDir() / "chill-nodes" / m_nodepath);
+    m_program = loadFileIntoString(getUserDir() / "chill-nodes" / _path);
 
     setName(m_nodepath.filename().replace_extension().generic_string());
     Parse();

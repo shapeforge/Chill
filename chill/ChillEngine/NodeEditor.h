@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef WIN32
-#define NOMINMAX // disable windows min() max() macros
-#endif
-
 #include <vector>
 #include <stack>
 #include <algorithm>
@@ -21,13 +17,7 @@
 #include "UI.h"
 #include "Processor.h"
 #include "ProcessingGraph.h"
-
-
-namespace chill {
-  typedef unsigned int uint;
-  typedef unsigned char uchar;
-}
-
+#include "WindowTools.h"
 
 namespace chill {
 
@@ -92,14 +82,9 @@ namespace fs = std::filesystem;
     SDL_Window* m_chill_window = nullptr;
     SDL_Window* m_icesl_window = nullptr;
 
-#ifdef WIN32
-    HWND m_chill_hwnd = NULL;
-    HWND m_icesl_hwnd = NULL;
-    PROCESS_INFORMATION m_icesl_p_info;
-#else
-    void* m_chill_hwnd = nullptr;
-    void* m_icesl_hwnd = nullptr;
-#endif
+    WindowHandle m_chill_hwnd = NULL;
+    WindowHandle m_icesl_hwnd = NULL;
+    ProcessInformation m_icesl_p_info;
 
     //-------------------------------------------------------
 
@@ -107,11 +92,13 @@ namespace fs = std::filesystem;
 
     static int launch();
 
+    void manageWindowEvent(const SDL_Event* event);
+
     void setDefaultAppsPos();
 
     void moveIceSLWindowAlongChill();
 
-    inline void SetIceslPath();
+    inline void setIceslPath();
 
     std::shared_ptr<ProcessingGraph> getCurrentGraph() {
       return m_graphs.top();

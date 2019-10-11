@@ -16,9 +16,10 @@ if(WIN32)
   # only on Windows boxes (must appear at beginning of CMakeLists.txt file)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
   add_definitions(-DWIN32)
-else(WIN32)
+elseif(UNIX)
   # only on Linux boxes (must appear at beginning of CMakeLists.txt file)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--copy-dt-needed-entries")
+   add_definitions(-DUNIX)
 endif(WIN32)
 
 ####################

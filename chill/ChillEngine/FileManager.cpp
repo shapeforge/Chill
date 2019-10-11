@@ -55,10 +55,14 @@ namespace chill {
   {
     fs::path dir(_dir->generic_string());
     std::vector<fs::path> paths;
-    for (fs::directory_iterator itr(dir); itr != fs::directory_iterator(); ++itr) {
-      fs::path folder = itr->path();
+
+    if(!fs::exists(dir))
+      return paths;
+
+    for (auto& p : fs::directory_iterator(dir)) {
+      fs::path folder = p;
       if (is_directory(folder)) {
-        paths.push_back(folder.filename());
+        paths.push_back(folder);
       }
     }
     return paths;
@@ -68,7 +72,11 @@ namespace chill {
   {
     fs::path dir(_dir->generic_string());
     std::vector<fs::path> paths;
-    for (const auto& p : fs::directory_iterator(dir)) {
+
+    if(!fs::exists(dir))
+      return paths;
+
+    for (auto& p : fs::directory_iterator(dir)) {
       if (is_regular_file(p)) {
 
         for (auto filter : *_filter) {
@@ -100,7 +108,7 @@ namespace chill {
 
 #ifdef WIN32
     paths.push_back(getenv("APPDATA") + std::string("/ChiLL/"));
-#elif __linux__
+#elif UNIX
     paths.push_back("/etc/chill/");
 #endif
     paths.push_back("../");

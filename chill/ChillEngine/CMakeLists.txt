@@ -38,7 +38,9 @@ add_library(ChillEngine STATIC
   SourcePath.h
 
   Input.h
-  )
+
+  WindowTools.h
+)
 
 target_link_libraries(ChillEngine
   #${SDL2_LIBRARIES}
