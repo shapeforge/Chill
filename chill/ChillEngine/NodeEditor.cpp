@@ -1,11 +1,13 @@
 ﻿#include "NodeEditor.h"
 
+#ifdef UNIX
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/wait.h>
+#endif // UNIX
 
 #include "SDL_pixels.h"
 
@@ -1040,6 +1042,32 @@ void NodeEditor::modify() {
   }
   m_undo.push_back(duplicate);
 }
+#ifdef  WIN32
+BOOL CALLBACK EnumWindowsFromPid(HWND hwnd, LPARAM lParam)
+{
+  DWORD pID;
+  GetWindowThreadProcessId(hwnd, &pID);
+  if (pID == lParam)
+  {
+    NodeEditor::Instance()->m_icesl_hwnd = hwnd;
+    return FALSE;
+  }
+  return TRUE;
+}
+
+BOOL CALLBACK TerminateAppEnum(HWND hwnd, LPARAM lParam)
+{
+  DWORD pID;
+  GetWindowThreadProcessId(hwnd, &pID);
+
+  if (pID == (DWORD)lParam)
+  {
+    PostMessage(hwnd, WM_CLOSE, 0, 0);
+  }
+
+  return TRUE;
+}
+#endif //  WIN32
 
 //-------------------------------------------------------
 void NodeEditor::launchIcesl() {
@@ -1076,25 +1104,13 @@ void NodeEditor::launchIcesl() {
     WaitForSingleObject(Instance()->m_icesl_p_info.hProcess, 1000);
     // getting the hwnd
     EnumWindows(EnumWindowsFromPid /*sets g_icesl_hwnd*/, Instance()->m_icesl_p_info.dwProcessId);
+
     assert(Instance()->m_icesl_hwnd != NULL);
     if (Instance()->m_auto_export) {
       Instance()->exportIceSL(&(Instance()->m_iceSLTempExportPath));
     }
-    // we give a default size, otherwise SetWindowLong gives unpredictable results (white window)
-    //MoveWindow(Instance()->m_icesl_hwnd, 0, 0, 800, 600, true);
 
-    //Instance()->m_icesl_window = SDL_CreateWindowFrom(Instance()->m_icesl_hwnd);
-
-    /* SDL_SysWMinfo info_before;
-      SDL_GetWindowWMInfo(Instance()->m_icesl_window, &info_before);
-      SDL_DestroyWindow(Instance()->m_icesl_window);*/
-
-    //SDL_DestroyWindow(Instance()->m_icesl_window);
-    //SDL_Renderer *renderer;
-    //SDL_CreateWindowAndRenderer(0,0, SDL_WINDOW_ALWAYS_ON_TOP, &Instance()->m_icesl_window, &renderer);
-    /*SDL_SysWMinfo info_after;
-      SDL_GetWindowWMInfo(Instance()->m_icesl_window, &info_after);
-      info_after = info_before;*/
+    Instance()->m_icesl_window = SDL_CreateWindowFrom(Instance()->m_icesl_hwnd);
 
   } else {
     // process creation failed
@@ -1230,6 +1246,9 @@ void NodeEditor::saveSettings()
 
   // remove space from icesl path for storage in txt file
   std::string cleanedIceslPath = m_iceslPath.string();
+  if (cleanedIceslPath.empty()) {
+    cleanedIceslPath += "_";
+  }
   std::replace(cleanedIceslPath.begin(), cleanedIceslPath.end(), ' ', '#');
 
   std::ofstream f(filename);
@@ -1516,7 +1535,7 @@ void NodeEditor::moveIceSLWindowAlongChill() {
 //-------------------------------------------------------
 
 void NodeEditor::setIceslPath() {
-  if (m_iceslPath.empty()) {
+  if (!fs::exists(m_iceslPath)) {
 #ifdef WIN32
     m_iceslPath = fs::path(std::string(getenv("PROGRAMFILES")) + std::string("/INRIA/IceSL/bin/IceSL-slicer.exe"));
 #elif __linux__
@@ -1552,7 +1571,7 @@ void NodeEditor::setIceslPath() {
       }
     };
     const SDL_MessageBoxData messageboxdata = {
-      SDL_MESSAGEBOX_WARNING, /* .flags */
+      SDL_MESSAGEBOX_INFORMATION, /* .flags */
       m_chill_window,         /* .window */
       modalTitle,             /* .title */
       modalText,              /* .message */
@@ -1586,13 +1605,13 @@ void NodeEditor::manageWindowEvent(const SDL_Event* event) {
     if (window.event == SDL_WINDOWEVENT_SIZE_CHANGED || window.event == SDL_WINDOWEVENT_MOVED) {
       int w, h;
       SDL_GetWindowSize(m_chill_window, &w, &h);
-      Instance()->m_size = ImVec2(static_cast<float>(w), static_cast<float>(h));
-      Instance()->moveIceSLWindowAlongChill();
+      m_size = ImVec2(static_cast<float>(w), static_cast<float>(h));
+      moveIceSLWindowAlongChill();
     }
 
     if (window.event == SDL_WINDOWEVENT_SHOWN) {
-      Instance()->m_size = ImVec2(static_cast<float>(default_width), static_cast<float>(default_height));
-      Instance()->moveIceSLWindowAlongChill();
+      m_size = ImVec2(static_cast<float>(default_width), static_cast<float>(default_height));
+      moveIceSLWindowAlongChill();
     }
 
     if (window.event == SDL_WINDOWEVENT_MAXIMIZED) {
@@ -1600,7 +1619,7 @@ void NodeEditor::manageWindowEvent(const SDL_Event* event) {
     }
 
     if (window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-      //raiseIceSL();
+      raiseIceSL();
     }
   }
 }

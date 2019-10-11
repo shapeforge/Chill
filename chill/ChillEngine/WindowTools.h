@@ -47,30 +47,6 @@ static void setIcon() {
   SendMessage(window, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
 }
 
-BOOL CALLBACK EnumWindowsFromPid(HWND hwnd, LPARAM lParam)
-{
-  DWORD pID;
-  GetWindowThreadProcessId(hwnd, &pID);
-  if (pID == lParam)
-  {
-    NodeEditor::Instance()->m_icesl_hwnd = hwnd;
-    return FALSE;
-  }
-  return TRUE;
-}
-
-BOOL CALLBACK TerminateAppEnum(HWND hwnd, LPARAM lParam)
-{
-  DWORD pID;
-  GetWindowThreadProcessId(hwnd, &pID);
-
-  if (pID == (DWORD)lParam)
-  {
-    PostMessage(hwnd, WM_CLOSE, 0, 0);
-  }
-
-  return TRUE;
-}
 #endif //WIN32
 
 
@@ -163,20 +139,5 @@ static void setChillIcon() {
 static WindowHandle getWindowHandle() {
   return 0;
 }
-
-
-static bool modalWindow(const char* _modalTitle = "",  const char* _modalText = "") {
-#ifdef WIN32
-      uint modalFlags = MB_OKCANCEL | MB_DEFBUTTON1 | MB_SYSTEMMODAL | MB_ICONINFORMATION;
-
-      int modal = MessageBox(m_chill_hwnd, modalText, modalTitle, modalFlags);
-
-      if (modal != 1) return false;
-#else
-      std::system( ("xmessage \""+ std::string(_modalText) + "\" -title \"" + std::string(_modalTitle) + "\"").c_str() );
-#endif
-      return true;
-}
-
 
 #endif //WINDOWTOOLS_H

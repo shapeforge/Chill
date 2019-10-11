@@ -1,5 +1,7 @@
 #pragma once
 
+#define NOMINMAX // disable windows min() max() macros
+
 #include <vector>
 #include <stack>
 #include <algorithm>
@@ -20,6 +22,8 @@
 #include "WindowTools.h"
 
 namespace chill {
+
+  typedef unsigned int uint;
 
 #ifdef WIN32
 namespace fs = std::experimental::filesystem;
