@@ -160,14 +160,67 @@ bool NodeEditor::draw()
   /*if (m_docking_icesl && m_icesl_hwnd) {
       SetWindowLongPtr(m_icesl_hwnd, GWL_STYLE, WS_VISIBLE | WS_CHILD);
     }*/
-  drawMenuBar();
-  ImGui::SetNextWindowPos(ImVec2(0, 20));
-  ImGui::SetNextWindowSize(ImVec2(200, m_size.y - 20));
-  drawLeftMenu();
 
-  ImGui::SetNextWindowPos(ImVec2(200, 20));
+  static bool active = true;
+  ImGui::SetNextWindowPos(ImVec2(0, 20));
   ImGui::SetNextWindowSize(m_size);
-  drawGraph();
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0F);
+  //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
+  ImGui::Begin("Main", &active,
+               ImGuiWindowFlags_NoTitleBar |
+               ImGuiWindowFlags_NoCollapse |
+
+               ImGuiWindowFlags_NoMove |
+               ImGuiWindowFlags_NoResize |
+               ImGuiWindowFlags_NoScrollbar |
+               ImGuiWindowFlags_NoScrollWithMouse |
+
+               ImGuiWindowFlags_NoBringToFrontOnFocus
+               );
+
+
+  // Draw Menu bar
+  drawMenuBar();
+
+  // Define Main DockSpace
+  static uint dockspaceID = ImGui::GetID("Main_DockSpace");
+  ImGui::DockSpace(dockspaceID , ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None|ImGuiDockNodeFlags_PassthruCentralNode/*|ImGuiDockNodeFlags_NoResize*/);
+
+
+  // Left Menu
+  ImGui::SetNextWindowPos(ImVec2(0, 20), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2(200, m_size.y - 20), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowDockID(dockspaceID , ImGuiCond_FirstUseEver);
+  ImGui::Begin("NodeMenu"/*, &m_visible,
+               ImGuiWindowFlags_NoTitleBar |
+               ImGuiWindowFlags_NoCollapse |
+
+               ImGuiWindowFlags_NoMove |
+               ImGuiWindowFlags_NoResize |
+
+               ImGuiWindowFlags_NoBringToFrontOnFocus*/
+               );
+  drawLeftMenu();
+  ImGui::End();
+
+  // Main Graph
+  ImGui::SetNextWindowPos(ImVec2(200, 20), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize(m_size), ImGuiCond_FirstUseEver;
+  ImGui::SetNextWindowDockID(dockspaceID , ImGuiCond_FirstUseEver);
+
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, style.graph_bg_color);
+  if (ImGui::Begin("Graph")) {
+    drawGraph();
+  }
+  ImGui::PopStyleColor();
+  ImGui::End(); // Graph
+
+  ImGui::End();
+
+  //ImGui::PopStyleVar();
+  ImGui::PopStyleVar();
 
   return true;
 }
@@ -286,16 +339,6 @@ void NodeEditor::drawMenuBar()
 static char leftMenuSearch[64] = "\0";
 void NodeEditor::drawLeftMenu()
 {
-  ImGui::Begin("GraphInfo", &m_visible,
-               ImGuiWindowFlags_NoTitleBar |
-               ImGuiWindowFlags_NoCollapse |
-
-               ImGuiWindowFlags_NoMove |
-               ImGuiWindowFlags_NoResize |
-
-               ImGuiWindowFlags_NoBringToFrontOnFocus
-               );
-
   ImVec2 s2g = ImVec2(-100, -50) - Instance()->m_offset;
 
   ImGui::InputTextWithHint("##", "search", leftMenuSearch,  64);
@@ -304,8 +347,6 @@ void NodeEditor::drawLeftMenu()
   for( auto& elem: leftMenuSearch)
     elem = std::tolower(elem, loc);
   addNodeMenu(s2g, false);
-
-  ImGui::End();
 }
 
 //-------------------------------------------------------
@@ -313,24 +354,6 @@ void NodeEditor::drawGraph()
 {
 
   linking = m_selected_input || m_selected_output;
-
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, style.graph_bg_color);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0F);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-
-  ImGui::Begin("Graph", &m_visible,
-               ImGuiWindowFlags_NoTitleBar |
-               ImGuiWindowFlags_NoCollapse |
-
-               ImGuiWindowFlags_NoMove |
-               ImGuiWindowFlags_NoResize |
-               ImGuiWindowFlags_NoScrollbar |
-               ImGuiWindowFlags_NoScrollWithMouse |
-
-               ImGuiWindowFlags_NoBringToFrontOnFocus
-               );
-
-
 
   zoom();
 
@@ -636,17 +659,6 @@ void NodeEditor::drawGraph()
     ImGui::GetWindowDrawList()->AddCircleFilled(B, pipe_width / 2.0F, style.pipe_selected_color);
   }
 
-
-
-
-
-  ImGui::PopStyleVar();
-  ImGui::PopStyleVar();
-  ImGui::PopStyleColor();
-
-  
-
-
   bool wasDirty = false;
   for (std::shared_ptr<Processor> processor : *m_graphs.top()->processors()) {
     if (processor->isDirty()) {
@@ -674,8 +686,6 @@ void NodeEditor::drawGraph()
   shortcutsAction();
   menus();
   window->FontWindowScale = m_zoom;
-
-  ImGui::End(); // Graph
 }
 
 //-------------------------------------------------------
@@ -1376,6 +1386,7 @@ int NodeEditor::launch()
   ImGuiIO& io = ImGui::GetIO(); (void)io;
   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
   //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
