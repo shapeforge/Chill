@@ -165,8 +165,8 @@ bool NodeEditor::draw()
   ImGui::SetNextWindowPos(ImVec2(0, 20));
   ImGui::SetNextWindowSize(m_size);
 
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0F);
-  //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.F);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1.F, 1.F));
 
   ImGui::Begin("Main", &active,
                ImGuiWindowFlags_NoTitleBar |
@@ -219,7 +219,7 @@ bool NodeEditor::draw()
 
   ImGui::End();
 
-  //ImGui::PopStyleVar();
+  ImGui::PopStyleVar();
   ImGui::PopStyleVar();
 
   return true;
@@ -315,12 +315,13 @@ void NodeEditor::drawMenuBar()
       }
 
       if (m_icesl_is_docked) {
-        const char *items[sizeof(layouts) / sizeof(layouts[0])];
+        const int nb_items = sizeof(layouts) / sizeof(layouts[0]);
+        const char *items[nb_items];
         for (size_t i = 0; i < sizeof(layouts) / sizeof(layouts[0]); i++) {
           items[i] = layouts[i].name.c_str();
         }
         static int item_current = 0;
-        if (ImGui::Combo("##combo", &item_current, items, IM_ARRAYSIZE(items))) {
+        if (ImGui::Combo("##combo", &item_current, items, nb_items)) {
           setLayout(item_current);
         }
       }
@@ -1693,9 +1694,12 @@ void NodeEditor::maximize()
   int top, left, bottom, right;
   SDL_GetWindowBordersSize(m_chill_window, &top, &left, &bottom, &right);
 
+
   if (m_icesl_is_docked || m_icesl_window == nullptr) {
     SDL_SetWindowPosition(m_chill_window, 0, top);
-    SDL_SetWindowSize(m_chill_window, desktop_width, desktop_height - top);
+
+    SDL_Surface* srf = SDL_GetWindowSurface(m_chill_window);
+    SDL_SetWindowSize(m_chill_window, srf->w, srf->h);
 
     moveIceSLWindowAlongChill();
   } else {
@@ -1705,6 +1709,7 @@ void NodeEditor::maximize()
     SDL_SetWindowPosition(m_icesl_window, desktop_width / 2, top);
     SDL_SetWindowSize(m_icesl_window, desktop_width / 2, desktop_height - top);
   }
+
   SDL_SetWindowInputFocus(m_chill_window); // only for X11 :(
 }
 }
