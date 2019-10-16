@@ -111,11 +111,11 @@ namespace chill {
 #elif UNIX
     paths.push_back("/etc/chill/");
 #endif
-    paths.push_back("../");
-    paths.push_back("../../");
-    paths.push_back("../../../");
-    paths.push_back("../../../../");
     paths.push_back(SRC_PATH); // dev path
+    paths.push_back("../ChiLL");
+    paths.push_back("../../ChiLL");
+    paths.push_back("../../../ChiLL");
+    paths.push_back("../../../../ChiLL");
 
     for (auto p : paths) {
       if (fs::exists(p)) {

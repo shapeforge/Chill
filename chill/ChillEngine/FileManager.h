@@ -6,11 +6,7 @@
 #include <vector>
 
 namespace chill {
-#ifdef WIN32
-  namespace fs = std::experimental::filesystem;
-#else
-  namespace fs = std::filesystem;
-#endif
+namespace fs = std::filesystem;
 
 static const std::vector<const char*> OFD_FILTER_GRAPHS = std::vector<const char*>({ "*.graph", "*.lua" });
 static const std::vector<const char*> OFD_FILTER_NODES  = std::vector<const char*>({ "*.node" , "*.lua" });

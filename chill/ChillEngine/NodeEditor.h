@@ -22,14 +22,9 @@
 #include "WindowTools.h"
 
 namespace chill {
+namespace fs = std::filesystem;
 
   typedef unsigned int uint;
-
-#ifdef WIN32
-namespace fs = std::experimental::filesystem;
-#else
-namespace fs = std::filesystem;
-#endif
 
   struct Layout {
     std::string name;

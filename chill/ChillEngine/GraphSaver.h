@@ -11,12 +11,7 @@ extern "C" {
 #include <luabind/object.hpp>
 
 namespace chill {
-
-#ifdef WIN32
-namespace fs = std::experimental::filesystem;
-#else
 namespace fs = std::filesystem;
-#endif
 
 class GraphSaver {
   public:

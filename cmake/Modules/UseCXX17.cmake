@@ -20,11 +20,7 @@ if(COMPILER_SUPPORTS_CXX17)
   endif(WIN32)
 
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    if(WIN32)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /stdlib=libstdc++")
-    else(WIN32)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
-    endif(WIN32)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
   endif()
 
 else(COMPILER_SUPPORTS_CXX17)

@@ -43,3 +43,6 @@ SourcePath.h
 
 #SDL2 dll exception
 !**/lib/**/SDL2*
+
+#cChiLL settings
+*chill-settings.txt
