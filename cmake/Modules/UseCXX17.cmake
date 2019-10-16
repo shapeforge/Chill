@@ -14,7 +14,7 @@ if(COMPILER_SUPPORTS_CXX17)
   message(STATUS "Setting C++17 compiler flags (${CMAKE_CXX_COMPILER})")
   
   if(WIN32)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std=c++17")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
   else(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
   endif(WIN32)
