@@ -8,12 +8,6 @@
 	url = https://github.com/shapeforge/chill-models
 	branch = master
 
-[submodule "LibSL"]
-	path = libs/LibSL
-	url = https://github.com/sylefeb/LibSL
-	branch = imgui_latest
-	ignore = dirty
-
 [submodule "tinyfiledialogs"]
 	path = libs/tinyfiledialogs
 	url = https://github.com/native-toolkit/tinyfiledialogs
