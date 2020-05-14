@@ -6,22 +6,21 @@
 #include <queue>
 
 namespace chill {
+  ProcessorInputPtr Processor::addInput(ProcessorInputPtr _input) {
+    _input->setOwner(this);
 
-std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInput> _input) {
-  _input->setOwner(this);
+    // rename the input if the name already exists (should only appears in GroupProcessors)
+    std::string base = _input->name();
+    std::string name = base;
+    int nb = 1;
+    while (input(name)) {
+      name = base + "_" + std::to_string(nb++);
+    }
+    _input->setName(name);
 
-  // rename the input if the name already exists (should only appears in GroupProcessors)
-  std::string base = _input->name();
-  std::string name = base;
-  int nb = 1;
-  while (input(name)) {
-    name = base + "_" + std::to_string(nb++);
+    m_inputs.push_back(_input);
+    return _input;
   }
-  _input->setName(name);
-
-  m_inputs.push_back(_input);
-  return _input;
-}
 
   Processor::Processor(Processor &copy) {
     m_name  = copy.m_name;
@@ -29,21 +28,21 @@ std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInp
     m_owner = copy.m_owner;
     
 
-    for (std::shared_ptr<ProcessorInput> input : copy.m_inputs) {
+    for (ProcessorInputPtr input : copy.m_inputs) {
       addInput(input->clone());
     }
 
-    for (std::shared_ptr<ProcessorOutput> output : copy.m_outputs) {
+    for (ProcessorOutputPtr output : copy.m_outputs) {
       addOutput(output->clone());
     }
   }
 
   Processor::~Processor() {
     std::cout << "~" << name() << std::endl;
-    for (std::shared_ptr<ProcessorInput> input : m_inputs) {
+    for (ProcessorInputPtr input : m_inputs) {
       m_owner->disconnect(input);
     }
-    for (std::shared_ptr<ProcessorOutput> output : m_outputs) {
+    for (ProcessorOutputPtr output : m_outputs) {
       m_owner->disconnect(output);
     }
     m_owner = nullptr;
@@ -51,25 +50,25 @@ std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInp
     m_outputs.clear();
   }
 
-  std::shared_ptr<ProcessorInput> Processor::input(std::string name_) {
-    for (std::shared_ptr<ProcessorInput> input : m_inputs) {
+  ProcessorInputPtr Processor::input(std::string name_) {
+    for (ProcessorInputPtr input : m_inputs) {
       if (input->name() == name_) {
         return input;
       }
     }
-    return std::shared_ptr<ProcessorInput>(nullptr);
+    return ProcessorInputPtr(nullptr);
   }
 
-  std::shared_ptr<ProcessorOutput> Processor::output(std::string name_) {
-    for (std::shared_ptr<ProcessorOutput> output : m_outputs) {
+  ProcessorOutputPtr Processor::output(std::string name_) {
+    for (ProcessorOutputPtr output : m_outputs) {
       if (output->name() == name_) {
         return output;
       }
     }
-    return std::shared_ptr<ProcessorOutput>(nullptr);
+    return ProcessorOutputPtr(nullptr);
   }
 
-  std::shared_ptr<ProcessorOutput> Processor::addOutput(std::shared_ptr<ProcessorOutput> output_) {
+  ProcessorOutputPtr Processor::addOutput(ProcessorOutputPtr output_) {
     output_->setOwner(this);
 
     // rename the output if the name already exists (should only appears in GroupProcessors)
@@ -85,36 +84,36 @@ std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInp
     return output_;
   }
 
-  std::shared_ptr<ProcessorOutput> Processor::addOutput(std::string _name, IOType::IOType _type, bool _emitable) {
+  ProcessorOutputPtr Processor::addOutput(std::string _name, IOType::IOType _type, bool _emitable) {
     return addOutput(ProcessorOutput::create(_name, _type, _emitable));
   }
 
-  void Processor::removeInput(std::shared_ptr<ProcessorInput>& input) {
+  void Processor::removeInput(ProcessorInputPtr& input) {
     m_owner->disconnect(input);
     m_inputs.erase(remove(m_inputs.begin(), m_inputs.end(), input), m_inputs.end());
   }
 
-  void Processor::removeOutput(std::shared_ptr<ProcessorOutput>& output) {
+  void Processor::removeOutput(ProcessorOutputPtr& output) {
     m_owner->disconnect(output);
     m_outputs.erase(remove(m_outputs.begin(), m_outputs.end(), output), m_outputs.end());
   }
 
 
-  bool Processor::connect(std::shared_ptr<Processor> from, const std::string output_name,
-    std::shared_ptr<Processor> to, const std::string input_name)
+  bool Processor::connect(ProcessorPtr from, const std::string output_name,
+    ProcessorPtr to, const std::string input_name)
   {
     // check if the processors exists
     if (!from || !to) {
       return false;
     }
 
-    std::shared_ptr<ProcessorOutput> output = from->output(output_name);
-    std::shared_ptr<ProcessorInput>  input  = to->input(input_name);
+    ProcessorOutputPtr output = from->output(output_name);
+    ProcessorInputPtr  input  = to->input(input_name);
 
     return connect(output, input);
   }
 
-  bool Processor::connect(std::shared_ptr<ProcessorOutput> from, std::shared_ptr<ProcessorInput> to)
+  bool Processor::connect(ProcessorOutputPtr from, ProcessorInputPtr to)
   {
     // check if the processors i/o exists
     if (!from || !to) {
@@ -142,25 +141,25 @@ std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInp
     return true;
   }
 
-  void Processor::disconnect(std::shared_ptr<ProcessorInput> to) {
+  void Processor::disconnect(ProcessorInputPtr to) {
     if (!to) return;
 
-    std::shared_ptr<ProcessorOutput> from = to->m_link;
+    ProcessorOutputPtr from = to->m_link;
     if (from) {
       from->m_links.erase(std::remove(from->m_links.begin(), from->m_links.end(), to), from->m_links.end());
       from->owner()->setDirty();
     }
 
-    to->m_link = std::shared_ptr<ProcessorOutput>(nullptr);
+    to->m_link = ProcessorOutputPtr(nullptr);
     to->owner()->setDirty();
   }
 
-  void Processor::disconnect(std::shared_ptr<ProcessorOutput> from) {
+  void Processor::disconnect(ProcessorOutputPtr from) {
     if (!from) return;
 
-    for (std::shared_ptr<ProcessorInput> to : from->m_links) {
+    for (ProcessorInputPtr to : from->m_links) {
       if (to) {
-        to->m_link = std::shared_ptr<ProcessorOutput>(nullptr);
+        to->m_link = ProcessorOutputPtr(nullptr);
         to->owner()->setDirty();
       }
     }
@@ -181,9 +180,9 @@ std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInp
       if (current == from) {
         return true;
       }
-      for (std::shared_ptr<ProcessorInput> input : current->inputs()) {
+      for (ProcessorInputPtr input : current->inputs()) {
         if (input->m_link) {
-          std::shared_ptr<ProcessorOutput> output = input->m_link;
+          ProcessorOutputPtr output = input->m_link;
           toCheck.push(output->owner());
         }
       }
@@ -202,12 +201,12 @@ std::shared_ptr<ProcessorInput> Processor::addInput(std::shared_ptr<ProcessorInp
     
     /* Saving I/Os is not usefull in general case*/
     // Save inputs
-    for (std::shared_ptr<ProcessorInput> input : m_inputs) {
+    for (ProcessorInputPtr input : m_inputs) {
       input->save(stream);
       stream << "p_" << getUniqueID() << ":add(i_" << input->getUniqueID() << ")" << std::endl;
     }
     // Save outputs
-    for (std::shared_ptr<ProcessorOutput> output : m_outputs) {
+    for (ProcessorOutputPtr output : m_outputs) {
       output->save(stream);
       stream << "p_" << getUniqueID() << ":add(o_" << output->getUniqueID() << ")" << std::endl;
     }
@@ -394,7 +393,7 @@ bool chill::Processor::draw() {
 
   // draw inputs
   ImGui::BeginGroup();
-  for (std::shared_ptr<ProcessorInput> input : m_inputs) {
+  for (ProcessorInputPtr input : m_inputs) {
     m_dirty |= input->draw();
   }
   ImGui::EndGroup();
@@ -402,7 +401,7 @@ bool chill::Processor::draw() {
   // draw outputs
   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + size.x);
   ImGui::BeginGroup();
-  for (std::shared_ptr<ProcessorOutput> output : m_outputs) {
+  for (ProcessorOutputPtr output : m_outputs) {
     m_dirty |= output->draw();
   }
   ImGui::EndGroup();
@@ -484,7 +483,7 @@ bool chill::Multiplexer::draw() {
   ImGui::SetCursorPosY(y);
   
   ImGui::BeginGroup();
-  for (std::shared_ptr<ProcessorInput> input : inputs()) {
+  for (ProcessorInputPtr input : inputs()) {
     input->draw();
     if (input->m_link) {
       setColor(input->m_link->owner()->color());
@@ -496,7 +495,7 @@ bool chill::Multiplexer::draw() {
   ImGui::SetCursorPosX(x + size.x);
   // draw ouputs
   ImGui::BeginGroup();
-  for (std::shared_ptr<ProcessorOutput> output : outputs()) {
+  for (ProcessorOutputPtr output : outputs()) {
     output->draw();
   }
   ImGui::EndGroup();

@@ -373,7 +373,7 @@ void NodeEditor::drawGraph()
     selected.clear();
     text_editing = false;
 
-    for (std::shared_ptr<Processor> processor : *m_graphs.top()->processors()) {
+    for (ProcessorPtr processor : *m_graphs.top()->processors()) {
       ImVec2 socket_size = ImVec2(1, 1) * (style.socket_radius + style.socket_border_width) * m_zoom;
 
       ImVec2 size = processor->m_size * m_zoom;
@@ -420,8 +420,8 @@ void NodeEditor::drawGraph()
 
       if (io.MouseDown[0] && (hovered.empty() || io.MouseDown[1])) {
         linking = false;
-        m_selected_input = std::shared_ptr<ProcessorInput>(nullptr);
-        m_selected_output = std::shared_ptr<ProcessorOutput>(nullptr);
+        m_selected_input = ProcessorInputPtr(nullptr);
+        m_selected_output = ProcessorOutputPtr(nullptr);
       }
     }
     else {
@@ -575,9 +575,9 @@ void NodeEditor::drawGraph()
   // Draw the pipes
   float pipe_width = style.pipe_line_width * m_zoom;
   int pipe_res = static_cast<int>(20 * m_zoom);
-  for (std::shared_ptr<Processor> processor : *currentGraph->processors()) {
-    for (std::shared_ptr<ProcessorOutput> output : processor->outputs()) {
-      for (std::shared_ptr<ProcessorInput> input : output->m_links) {
+  for (ProcessorPtr processor : *currentGraph->processors()) {
+    for (ProcessorOutputPtr output : processor->outputs()) {
+      for (ProcessorInputPtr input : output->m_links) {
         ImVec2 A = input->getPosition()  + w_pos - ImVec2(pipe_width / 4.F, 0.F);
         ImVec2 B = output->getPosition() + w_pos + ImVec2(pipe_width / 4.F, 0.F);
 
@@ -618,12 +618,12 @@ void NodeEditor::drawGraph()
   if (selected.size() == 1) { // ToDo : """this is a QUICK FIX""" Make this work for N nodes
     std::sort(
           currentGraph->processors()->begin(), currentGraph->processors()->end(),
-          [](std::shared_ptr<Processor> /*p1*/, std::shared_ptr<Processor> p2) { return p2->m_selected; }
+          [](ProcessorPtr /*p1*/, ProcessorPtr p2) { return p2->m_selected; }
     );
   }
 
   // Draw the nodes
-  for (std::shared_ptr<Processor> processor : *currentGraph->processors()) {
+  for (ProcessorPtr processor : *currentGraph->processors()) {
     ImVec2 position = offset + processor->m_position * m_zoom;
     ImGui::SetCursorPos(position);
     processor->draw();
@@ -661,7 +661,7 @@ void NodeEditor::drawGraph()
   }
 
   bool wasDirty = false;
-  for (std::shared_ptr<Processor> processor : *m_graphs.top()->processors()) {
+  for (ProcessorPtr processor : *m_graphs.top()->processors()) {
     if (processor->isDirty()) {
       wasDirty = true;
       processor->setDirty(false);
@@ -857,13 +857,13 @@ void NodeEditor::menus() {
     }
     if (ImGui::MenuItem("Unlink")) {
       for (std::shared_ptr<SelectableUI> select : selected) {
-        std::shared_ptr<Processor> proc = std::static_pointer_cast<Processor>(select);
+        ProcessorPtr proc = std::static_pointer_cast<Processor>(select);
         if (proc) {
-          for (std::shared_ptr<ProcessorInput> input : proc->inputs())
+          for (ProcessorInputPtr input : proc->inputs())
           {
             Processor::disconnect(input);
           }
-          for (std::shared_ptr<ProcessorOutput> output : proc->outputs()) {
+          for (ProcessorOutputPtr output : proc->outputs()) {
             Processor::disconnect(output);
           }
         }
@@ -912,7 +912,7 @@ void NodeEditor::selectProcessors() {
       return !(min.x < A.x || B.x < max.x || min.y < A.y || B.y < max.y);
     };
 
-    for (std::shared_ptr<Processor> procui : *n_e->getCurrentGraph()->processors()) {
+    for (ProcessorPtr procui : *n_e->getCurrentGraph()->processors()) {
       ImVec2 pos_min = procui->getPosition();
       ImVec2 pos_max = pos_min + procui->m_size;
       procui->m_selected = isInside(pos_min, pos_max, A, B);
@@ -1046,7 +1046,7 @@ void NodeEditor::modify() {
   m_redo.clear();
   // duplication du graph
   std::shared_ptr<ProcessingGraph> duplicate = std::static_pointer_cast<ProcessingGraph> (getMainGraph()->clone());
-  for (std::shared_ptr<Processor> processor : *duplicate->processors()) {
+  for (ProcessorPtr processor : *duplicate->processors()) {
     if (processor->isDirty()) {
       processor->setDirty(false);
     }

@@ -95,17 +95,20 @@ class IO : public UI {
 
 //-------------------------------------------------------
 
+using ProcessorOutputPtr = std::shared_ptr<ProcessorOutput>;
+using ProcessorInputPtr  = std::shared_ptr<ProcessorInput>;
+
 /**
 *  OutputProcessor class.
 *  Represents a node's output socket.
 */
 class ProcessorOutput : public IO {
   public:
-    static std::shared_ptr<ProcessorOutput> create(const std::string& name, IOType::IOType type, bool emitable);
+    static ProcessorOutputPtr create(const std::string& name, IOType::IOType type, bool emitable);
 
     //-------------------------------------------------------
 
-    virtual std::shared_ptr<ProcessorOutput> clone() = 0;
+    virtual ProcessorOutputPtr clone() = 0;
 
     //-------------------------------------------------------
 
@@ -139,7 +142,7 @@ class ProcessorOutput : public IO {
     //-------------------------------------------------------
 
     /** List of all linked inputs. */
-    std::vector<std::shared_ptr<ProcessorInput>> m_links;
+    std::vector<ProcessorInputPtr> m_links;
     /** contains emitable data */
     bool m_emitable = false;
 }; // class ProcessorOutput
@@ -153,11 +156,11 @@ class ProcessorOutput : public IO {
 class ProcessorInput : public IO {
   public:
     template <typename ... Args>
-    static std::shared_ptr<ProcessorInput> create(const std::string& _name, IOType::IOType _type, Args&& ... _args);
+    static ProcessorInputPtr create(const std::string& _name, IOType::IOType _type, Args&& ... _args);
 
     //-------------------------------------------------------
 
-    virtual std::shared_ptr<ProcessorInput> clone() = 0;
+    virtual ProcessorInputPtr clone() = 0;
 
     //-------------------------------------------------------
 
@@ -187,7 +190,7 @@ class ProcessorInput : public IO {
     //-------------------------------------------------------
 
     /** Linked output. */
-    std::shared_ptr<ProcessorOutput> m_link;
+    ProcessorOutputPtr m_link;
 
     /** Is not linkable */
     bool m_isDataOnly = false;
@@ -207,8 +210,8 @@ class UndefInput : public ProcessorInput
 
     //-------------------------------------------------------
 
-    std::shared_ptr<ProcessorInput> clone() {
-      std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new UndefInput());
+    ProcessorInputPtr clone() {
+      ProcessorInputPtr input = ProcessorInputPtr(new UndefInput());
       input->setName (name());
       input->setColor(color());
       input->m_isDataOnly = m_isDataOnly;
@@ -231,8 +234,8 @@ class UndefInput : public ProcessorInput
 class UndefOutput : public ProcessorOutput
 {
   public:
-    std::shared_ptr<ProcessorOutput> clone() {
-      std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new UndefOutput());
+    ProcessorOutputPtr clone() {
+      ProcessorOutputPtr output = ProcessorOutputPtr(new UndefOutput());
       output->setName (name());
       output->setColor(color());
       return output;
@@ -259,8 +262,8 @@ public:
 
   //-------------------------------------------------------
 
-  std::shared_ptr<ProcessorInput> clone() {
-    std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new ImplicitInput());
+  ProcessorInputPtr clone() {
+    ProcessorInputPtr input = ProcessorInputPtr(new ImplicitInput());
     input->setName(name());
     input->setColor(color());
     input->m_isDataOnly = m_isDataOnly;
@@ -287,8 +290,8 @@ public:
 class ImplicitOutput : public ProcessorOutput
 {
 public:
-  std::shared_ptr<ProcessorOutput> clone() {
-    std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new ImplicitOutput());
+  ProcessorOutputPtr clone() {
+    ProcessorOutputPtr output = ProcessorOutputPtr(new ImplicitOutput());
     output->setName(name());
     output->setColor(color());
     return output;
@@ -333,8 +336,8 @@ class BoolInput : public ProcessorInput
       assert(false);
     }
 
-    std::shared_ptr<ProcessorInput> clone() {
-      std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new BoolInput(m_value));
+    ProcessorInputPtr clone() {
+      ProcessorInputPtr input = ProcessorInputPtr(new BoolInput(m_value));
       input->setName (name());
       input->setColor(color());
       input->m_isDataOnly = m_isDataOnly;
@@ -371,8 +374,8 @@ class BoolOutput : public ProcessorOutput {
 
     //-------------------------------------------------------
 
-    std::shared_ptr<ProcessorOutput> clone() {
-      std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new BoolOutput());
+    ProcessorOutputPtr clone() {
+      ProcessorOutputPtr output = ProcessorOutputPtr(new BoolOutput());
       output->setName (name());
       output->setColor(color());
       return output;
@@ -436,8 +439,8 @@ class IntInput : public ProcessorInput {
 
     //-------------------------------------------------------
 
-    std::shared_ptr<ProcessorInput> clone() {
-      std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new IntInput(m_value, m_min, m_max, m_alt, m_step));
+    ProcessorInputPtr clone() {
+      ProcessorInputPtr input = ProcessorInputPtr(new IntInput(m_value, m_min, m_max, m_alt, m_step));
       input->setName (name());
       input->setColor(color());
       input->m_isDataOnly = m_isDataOnly;
@@ -495,8 +498,8 @@ class IntOutput : public ProcessorOutput
 
     //-------------------------------------------------------
 
-    std::shared_ptr<ProcessorOutput> clone() {
-      std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new IntOutput());
+    ProcessorOutputPtr clone() {
+      ProcessorOutputPtr output = ProcessorOutputPtr(new IntOutput());
       output->setName (name());
       output->setColor(color());
       return output;
@@ -550,8 +553,8 @@ class ListInput : public ProcessorInput {
 
     //-------------------------------------------------------
 
-    std::shared_ptr<ProcessorInput> clone() {
-      std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new ListInput(m_value, m_values));
+    ProcessorInputPtr clone() {
+      ProcessorInputPtr input = ProcessorInputPtr(new ListInput(m_value, m_values));
       input->setName(name());
       input->setColor(color());
       input->m_isDataOnly = m_isDataOnly;
@@ -655,8 +658,8 @@ class PathInput : public ProcessorInput {
 
     //-------------------------------------------------------
 
-    std::shared_ptr<ProcessorInput> clone() {
-      std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new PathInput(m_value));
+    ProcessorInputPtr clone() {
+      ProcessorInputPtr input = ProcessorInputPtr(new PathInput(m_value));
       input->setName(name());
       input->setColor(color());
       input->m_isDataOnly = m_isDataOnly;
@@ -705,8 +708,8 @@ class PathOutput : public ProcessorOutput {
 
     // -----------------------------------------------------
 
-    std::shared_ptr<ProcessorOutput> clone() {
-      std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new PathOutput());
+    ProcessorOutputPtr clone() {
+      ProcessorOutputPtr output = ProcessorOutputPtr(new PathOutput());
       output->setName(name());
       output->setColor(color());
       return output;
@@ -762,8 +765,8 @@ class RealInput : public ProcessorInput {
 
     // -----------------------------------------------------
 
-    std::shared_ptr<ProcessorInput> clone() {
-      std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new RealInput(m_value, m_min, m_max, m_alt, m_step));
+    ProcessorInputPtr clone() {
+      ProcessorInputPtr input = ProcessorInputPtr(new RealInput(m_value, m_min, m_max, m_alt, m_step));
       input->setName (name());
       input->setColor(color());
       input->m_isDataOnly = m_isDataOnly;
@@ -831,8 +834,8 @@ class RealOutput : public ProcessorOutput
 
     // -----------------------------------------------------
 
-    std::shared_ptr<ProcessorOutput> clone() {
-      std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new RealOutput());
+    ProcessorOutputPtr clone() {
+      ProcessorOutputPtr output = ProcessorOutputPtr(new RealOutput());
       output->setName (name());
       output->setColor(color());
       return output;
@@ -886,8 +889,8 @@ class StringInput : public ProcessorInput
 
     // -----------------------------------------------------
 
-    std::shared_ptr<ProcessorInput> clone() {
-      std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new StringInput(m_value));
+    ProcessorInputPtr clone() {
+      ProcessorInputPtr input = ProcessorInputPtr(new StringInput(m_value));
       input->setName (name());
       input->setColor(color());
       input->m_isDataOnly = m_isDataOnly;
@@ -936,8 +939,8 @@ class StringOutput : public ProcessorOutput
 
     // -----------------------------------------------------
 
-    std::shared_ptr<ProcessorOutput> clone() {
-      std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new StringOutput());
+    ProcessorOutputPtr clone() {
+      ProcessorOutputPtr output = ProcessorOutputPtr(new StringOutput());
       output->setName (name());
       output->setColor(color());
       return output;
@@ -972,8 +975,8 @@ class ShapeInput : public ProcessorInput {
 
     // -----------------------------------------------------
 
-    std::shared_ptr<ProcessorInput> clone() {
-      std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new ShapeInput());
+    ProcessorInputPtr clone() {
+      ProcessorInputPtr input = ProcessorInputPtr(new ShapeInput());
       input->setName (name());
       input->setColor(color());
       input->m_isDataOnly = m_isDataOnly;
@@ -1007,8 +1010,8 @@ class ShapeOutput : public ProcessorOutput {
 
     // -----------------------------------------------------
 
-    std::shared_ptr<ProcessorOutput> clone() {
-      std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new ShapeOutput());
+    ProcessorOutputPtr clone() {
+      ProcessorOutputPtr output = ProcessorOutputPtr(new ShapeOutput());
       output->setName (name());
       output->setColor(color());
       return output;
@@ -1082,8 +1085,8 @@ class Vec4Input : public ProcessorInput {
 
     // -----------------------------------------------------
 
-    std::shared_ptr<ProcessorInput> clone() {
-      std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new Vec4Input(m_value, m_min, m_max, m_alt, m_step));
+    ProcessorInputPtr clone() {
+      ProcessorInputPtr input = ProcessorInputPtr(new Vec4Input(m_value, m_min, m_max, m_alt, m_step));
       input->setName (name());
       input->setColor(color());
       input->m_isDataOnly = m_isDataOnly;
@@ -1146,8 +1149,8 @@ class Vec4Output : public ProcessorOutput
 
     // -----------------------------------------------------
 
-    std::shared_ptr<ProcessorOutput> clone() {
-      std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new Vec4Output());
+    ProcessorOutputPtr clone() {
+      ProcessorOutputPtr output = ProcessorOutputPtr(new Vec4Output());
       output->setName (name());
       output->setColor(color());
       return output;
@@ -1216,8 +1219,8 @@ class Vec3Input : public ProcessorInput
 
     // -----------------------------------------------------
 
-    std::shared_ptr<ProcessorInput> clone() {
-      std::shared_ptr<ProcessorInput> input = std::shared_ptr<ProcessorInput>(new Vec3Input(m_value, m_min, m_max, m_step));
+    ProcessorInputPtr clone() {
+      ProcessorInputPtr input = ProcessorInputPtr(new Vec3Input(m_value, m_min, m_max, m_step));
       input->setName (name());
       input->setColor(color());
       input->m_isDataOnly = m_isDataOnly;
@@ -1275,8 +1278,8 @@ class Vec3Output : public ProcessorOutput
 
     // -----------------------------------------------------
 
-    std::shared_ptr<ProcessorOutput> clone() {
-      std::shared_ptr<ProcessorOutput> output = std::shared_ptr<ProcessorOutput>(new Vec3Output());
+    ProcessorOutputPtr clone() {
+      ProcessorOutputPtr output = ProcessorOutputPtr(new Vec3Output());
       output->setName (name());
       output->setColor(color());
       return output;
@@ -1286,42 +1289,42 @@ class Vec3Output : public ProcessorOutput
 // -----------------------------------------------------
 
 template <typename ... Args>
-std::shared_ptr<ProcessorInput> ProcessorInput::create(const std::string& _name, IOType::IOType _type, Args&& ... _args) {
-  std::shared_ptr<ProcessorInput> input;
+ProcessorInputPtr ProcessorInput::create(const std::string& _name, IOType::IOType _type, Args&& ... _args) {
+  ProcessorInputPtr input;
   switch (_type) {
   case IOType::BOOLEAN:
-    input = std::shared_ptr<ProcessorInput>(new BoolInput(_args...));
+    input = ProcessorInputPtr(new BoolInput(_args...));
     break;
   case IOType::INTEGER:
-    input = std::shared_ptr<ProcessorInput>(new IntInput(_args...));
+    input = ProcessorInputPtr(new IntInput(_args...));
     break;
   case IOType::IMPLICIT:
-    input = std::shared_ptr<ProcessorInput>(new ImplicitInput(_args...));
+    input = ProcessorInputPtr(new ImplicitInput(_args...));
     break;
   case IOType::LIST:
-    input = std::shared_ptr<ProcessorInput>(new ListInput(_args...));
+    input = ProcessorInputPtr(new ListInput(_args...));
     break;
   case IOType::PATH:
-    input = std::shared_ptr<ProcessorInput>(new PathInput(_args...));
+    input = ProcessorInputPtr(new PathInput(_args...));
     break;
   case IOType::REAL:
-    input = std::shared_ptr<ProcessorInput>(new RealInput(_args...));
+    input = ProcessorInputPtr(new RealInput(_args...));
     break;
   case IOType::SHAPE:
-    input = std::shared_ptr<ProcessorInput>(new ShapeInput(_args...));
+    input = ProcessorInputPtr(new ShapeInput(_args...));
     break;
   case IOType::STRING:
-    input = std::shared_ptr<ProcessorInput>(new StringInput(_args...));
+    input = ProcessorInputPtr(new StringInput(_args...));
     break;
   case IOType::VEC3:
-    input = std::shared_ptr<ProcessorInput>(new Vec3Input(_args...));
+    input = ProcessorInputPtr(new Vec3Input(_args...));
     break;
   case IOType::VEC4:
-    input = std::shared_ptr<ProcessorInput>(new Vec4Input(_args...));
+    input = ProcessorInputPtr(new Vec4Input(_args...));
     break;
   case IOType::UNDEF:
   default:
-    input = std::shared_ptr<ProcessorInput>(new UndefInput());
+    input = ProcessorInputPtr(new UndefInput());
     break;
   }
   input->setName(_name);

@@ -55,12 +55,12 @@ namespace chill {
 
     /* Saving I/Os is not usefull in general case*/
     // Save inputs
-    for (std::shared_ptr<ProcessorInput> input : inputs()) {
+    for (ProcessorInputPtr input : inputs()) {
       input->save(_stream);
       _stream << "p_" << getUniqueID() << ":add(i_" << input->getUniqueID() << ")" << std::endl;
     }
     // Save outputs
-    for (std::shared_ptr<ProcessorOutput> output : outputs()) {
+    for (ProcessorOutputPtr output : outputs()) {
       output->save(_stream);
       _stream << "p_" << getUniqueID() << ":add(o_" << output->getUniqueID() << ")" << std::endl;
     }
@@ -215,7 +215,7 @@ setDirty(__currentNodeId)\n";
     }
   }
 
-  std::shared_ptr<ProcessorInput> LuaProcessor::addInput(std::shared_ptr<ProcessorInput> _input) {
+  ProcessorInputPtr LuaProcessor::addInput(ProcessorInputPtr _input) {
     _input->setOwner(this);
     if (!input(_input->name())) {
       Processor::addInput(_input);
@@ -226,7 +226,7 @@ setDirty(__currentNodeId)\n";
     return _input;
   }
 
-  std::shared_ptr<ProcessorOutput> LuaProcessor::addOutput(std::shared_ptr<ProcessorOutput> _output) {
+  ProcessorOutputPtr LuaProcessor::addOutput(ProcessorOutputPtr _output) {
     _output->setOwner(this);
     if (!output(_output->name())) {
       Processor::addOutput(_output);

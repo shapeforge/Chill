@@ -56,14 +56,14 @@ namespace chill
     *  @param _input The input.
     *  @return A pointer to the new input.
     */
-    std::shared_ptr<ProcessorInput> addInput(std::shared_ptr<ProcessorInput> _input) override;
+    ProcessorInputPtr addInput(ProcessorInputPtr _input) override;
 
     /**
     *  Add a new output to the processor.
     *  @param _output The output.
     *  @return A pointer to the new output.
     **/
-    std::shared_ptr<ProcessorOutput> addOutput(std::shared_ptr<ProcessorOutput> _output)  override;
+    ProcessorOutputPtr addOutput(ProcessorOutputPtr _output)  override;
 
     /**
     *  Add a new output to the processor.
@@ -71,7 +71,7 @@ namespace chill
     *  @param _type The output type.
     *  @return A pointer to the new output.
     **/
-    std::shared_ptr<ProcessorOutput> addOutput(std::string _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false)
+    ProcessorOutputPtr addOutput(std::string _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false)
     {
       return addOutput(ProcessorOutput::create(_name, _type, _emitable));
     }
@@ -84,7 +84,7 @@ namespace chill
     *  @return A pointer to the new input.
     */
     template <typename ... Args>
-    std::shared_ptr<ProcessorInput> addInput(std::string _name, IOType::IOType _type, Args&& ... _args)
+    ProcessorInputPtr addInput(std::string _name, IOType::IOType _type, Args&& ... _args)
     {
       return addInput(ProcessorInput::create(_name, _type, _args...));
     }

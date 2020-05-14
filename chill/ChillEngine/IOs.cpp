@@ -7,7 +7,7 @@
 namespace chill {
 
 ProcessorOutput::~ProcessorOutput() {
-  for (std::shared_ptr<ProcessorInput> input : m_links)
+  for (ProcessorInputPtr input : m_links)
     Processor::disconnect(input);
   m_links.clear();
 }
@@ -73,41 +73,41 @@ bool ProcessorOutput::draw() {
 
 //-------------------------------------------------------
 
-std::shared_ptr<ProcessorOutput> ProcessorOutput::create(const std::string& _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false) {
-  std::shared_ptr<ProcessorOutput> output;
+ProcessorOutputPtr ProcessorOutput::create(const std::string& _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false) {
+  ProcessorOutputPtr output;
   switch (_type) {
   case IOType::BOOLEAN:
-    output = std::shared_ptr<ProcessorOutput>(new BoolOutput());
+    output = ProcessorOutputPtr(new BoolOutput());
     break;
   case IOType::INTEGER:
-    output = std::shared_ptr<ProcessorOutput>(new IntOutput());
+    output = ProcessorOutputPtr(new IntOutput());
     break;
   case IOType::IMPLICIT:
-    output = std::shared_ptr<ProcessorOutput>(new ImplicitOutput());
+    output = ProcessorOutputPtr(new ImplicitOutput());
     break;
   case IOType::PATH:
-    output = std::shared_ptr<ProcessorOutput>(new PathOutput());
+    output = ProcessorOutputPtr(new PathOutput());
     break;
   case IOType::REAL:
-    output = std::shared_ptr<ProcessorOutput>(new RealOutput());
+    output = ProcessorOutputPtr(new RealOutput());
     break;
   case IOType::SHAPE:
-    output = std::shared_ptr<ProcessorOutput>(new ShapeOutput());
+    output = ProcessorOutputPtr(new ShapeOutput());
     break;
   case IOType::STRING:
-    output = std::shared_ptr<ProcessorOutput>(new StringOutput());
+    output = ProcessorOutputPtr(new StringOutput());
     break;
   case IOType::VEC3:
-    output = std::shared_ptr<ProcessorOutput>(new Vec3Output());
+    output = ProcessorOutputPtr(new Vec3Output());
     break;
   case IOType::VEC4:
-    output = std::shared_ptr<ProcessorOutput>(new Vec4Output());
+    output = ProcessorOutputPtr(new Vec4Output());
     break;
   case IOType::UNDEF:
-    output = std::shared_ptr<ProcessorOutput>(new UndefOutput());
+    output = ProcessorOutputPtr(new UndefOutput());
     break;
   default:
-    output = std::shared_ptr<ProcessorOutput>(new UndefOutput());
+    output = ProcessorOutputPtr(new UndefOutput());
     break;
   }
   output->setName(_name);

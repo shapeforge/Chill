@@ -9,7 +9,7 @@ namespace chill {
 
 class Lua_Input {
   protected:
-    std::shared_ptr<ProcessorInput> m_Ptr;
+    ProcessorInputPtr m_Ptr;
   public:
 
     //-------------------------------------------------------
@@ -101,7 +101,7 @@ class Lua_Input {
 
     //-------------------------------------------------------
 
-    std::shared_ptr<ProcessorInput>& ptr() {
+    ProcessorInputPtr& ptr() {
       return m_Ptr;
     }
 
@@ -109,7 +109,7 @@ class Lua_Input {
 
 class Lua_Output {
   protected:
-    std::shared_ptr<ProcessorOutput> m_Ptr;
+    ProcessorOutputPtr m_Ptr;
 
   public:
 
@@ -137,7 +137,7 @@ class Lua_Output {
 
     //-------------------------------------------------------
 
-    std::shared_ptr<ProcessorOutput>& ptr() {
+    ProcessorOutputPtr& ptr() {
       return m_Ptr;
     }
 
@@ -150,13 +150,13 @@ class Lua_Processor {
     //-------------------------------------------------------
 
     Lua_Processor() {
-      m_Ptr = std::shared_ptr<Processor>(new Processor());
+      m_Ptr = ProcessorPtr(new Processor());
     }
 
     //-------------------------------------------------------
 
     Lua_Processor(const std::string& name_) {
-      m_Ptr = std::shared_ptr<Processor>(new Processor(name_));
+      m_Ptr = ProcessorPtr(new Processor(name_));
     }
 
     //-------------------------------------------------------
@@ -182,14 +182,14 @@ class Lua_Processor {
         }
       }
 
-      m_Ptr = std::shared_ptr<Processor>(new Processor(name));
+      m_Ptr = ProcessorPtr(new Processor(name));
       m_Ptr->setPosition(pos);
       m_Ptr->setColor(color);
     }
 
     //-------------------------------------------------------
 
-    std::shared_ptr<Processor>& ptr() {
+    ProcessorPtr& ptr() {
       return m_Ptr;
     }
 
@@ -206,7 +206,7 @@ class Lua_Processor {
     }
 
   protected:
-    std::shared_ptr<Processor> m_Ptr;
+    ProcessorPtr m_Ptr;
 }; // class Lua_Processor
 
 class Lua_Graph : public Lua_Processor {
@@ -215,13 +215,13 @@ class Lua_Graph : public Lua_Processor {
     //-------------------------------------------------------
 
     Lua_Graph() {
-      m_Ptr = std::shared_ptr<Processor>(new ProcessingGraph());
+      m_Ptr = ProcessorPtr(new ProcessingGraph());
     }
 
     //-------------------------------------------------------
 
     Lua_Graph(const std::string& _name) {
-      m_Ptr = std::shared_ptr<Processor>(new ProcessingGraph(_name));
+      m_Ptr = ProcessorPtr(new ProcessingGraph(_name));
     }
 
     //-------------------------------------------------------
@@ -246,7 +246,7 @@ class Lua_Graph : public Lua_Processor {
         }
       }
 
-      m_Ptr = std::shared_ptr<Processor>(std::shared_ptr<ProcessingGraph>(new ProcessingGraph(name)));
+      m_Ptr = ProcessorPtr(std::shared_ptr<ProcessingGraph>(new ProcessingGraph(name)));
       m_Ptr->setPosition(pos);
       m_Ptr->setColor(color);
     }
@@ -267,13 +267,13 @@ class Lua_Node : public Lua_Processor {
     //-------------------------------------------------------
 
     Lua_Node() {
-      m_Ptr = std::shared_ptr<Processor>(std::shared_ptr<ProcessingGraph>(new ProcessingGraph()));
+      m_Ptr = ProcessorPtr(std::shared_ptr<ProcessingGraph>(new ProcessingGraph()));
     }
 
     //-------------------------------------------------------
 
     Lua_Node(const std::string& name_) {
-      m_Ptr = std::shared_ptr<Processor>(std::shared_ptr<ProcessingGraph>(new ProcessingGraph(name_)));
+      m_Ptr = ProcessorPtr(std::shared_ptr<ProcessingGraph>(new ProcessingGraph(name_)));
     }
 
     //-------------------------------------------------------
@@ -301,7 +301,7 @@ class Lua_Node : public Lua_Processor {
       }
 
       std::shared_ptr<LuaProcessor> lua = std::shared_ptr<LuaProcessor>(new LuaProcessor(path));
-      m_Ptr = static_cast<std::shared_ptr<Processor>>(lua);
+      m_Ptr = static_cast<ProcessorPtr>(lua);
       m_Ptr->setName(name);
       m_Ptr->setPosition(pos);
       m_Ptr->setColor(color);

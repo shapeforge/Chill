@@ -110,12 +110,12 @@ bool GroupProcessor::draw() {
   if (ImGui::BeginDragDropTarget()) {
     if (m_is_output) {
       if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_pipe_output")) {
-        std::shared_ptr<ProcessorOutput> output = NodeEditor::Instance()->getSelectedOutput();
+        ProcessorOutputPtr output = NodeEditor::Instance()->getSelectedOutput();
         if (output->owner() != this) {
-          std::shared_ptr<ProcessorInput> input = addInput(output->name(), output->type());
+          ProcessorInputPtr input = addInput(output->name(), output->type());
           NodeEditor::Instance()->setSelectedInput(input);
 
-          std::shared_ptr<ProcessorOutput> owner_output = output->clone();
+          ProcessorOutputPtr owner_output = output->clone();
           owner_output->setName(input->name());
           owner()->addOutput(owner_output);
         }
@@ -124,12 +124,12 @@ bool GroupProcessor::draw() {
 
     if (m_is_input) {
       if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("_pipe_input")) {
-        std::shared_ptr<ProcessorInput> input = NodeEditor::Instance()->getSelectedInput();
+        ProcessorInputPtr input = NodeEditor::Instance()->getSelectedInput();
         if (input->owner() != this) {
-          std::shared_ptr<ProcessorOutput> output = addOutput(input->name(), input->type());
+          ProcessorOutputPtr output = addOutput(input->name(), input->type());
           NodeEditor::Instance()->setSelectedOutput(output);
 
-          std::shared_ptr<ProcessorInput> owner_input = input->clone();
+          ProcessorInputPtr owner_input = input->clone();
           owner_input->setName(output->name());
           owner()->addInput(owner_input);
         }

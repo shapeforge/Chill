@@ -40,13 +40,13 @@ class ProcessingGraph : public Processor
 {
   private:
     // inner_input -> visible_output
-    typedef std::pair<std::shared_ptr<ProcessorInput>, std::shared_ptr<ProcessorOutput>> GroupInput;
+    typedef std::pair<ProcessorInputPtr, ProcessorOutputPtr> GroupInput;
     // inner_output -> visible_input
-    typedef std::pair<std::shared_ptr<ProcessorOutput>, std::shared_ptr<ProcessorInput>> GroupOutput;
+    typedef std::pair<ProcessorOutputPtr, ProcessorInputPtr> GroupOutput;
 
   protected:
     /** List of all processors within this graph. */
-    std::vector<std::shared_ptr<Processor>> m_processors;
+    std::vector<ProcessorPtr> m_processors;
     /** List of all entry points */
     std::vector<GroupInput>         m_group_inputs;
     /** List of all exit points */
@@ -80,7 +80,7 @@ class ProcessingGraph : public Processor
     {
       std::shared_ptr<T_Processor> processor(new T_Processor(args...));
       processor->setOwner(this);
-      m_processors.push_back(static_cast<std::shared_ptr<Processor>>(processor));
+      m_processors.push_back(static_cast<ProcessorPtr>(processor));
       return processor;
     }
 
@@ -88,7 +88,7 @@ class ProcessingGraph : public Processor
      *  Add an existing processor to the graph.
      *  @param _processor The std::shared_ptr related to the processor.
      **/
-    void addProcessor(std::shared_ptr<Processor>& _processor)
+    void addProcessor(ProcessorPtr& _processor)
     {
       assert(&_processor);
       assert(_processor->owner() != this);
@@ -114,7 +114,7 @@ class ProcessingGraph : public Processor
      *  @param _object The std::shared_ptr related to the object.
      **/
     void add(std::shared_ptr<SelectableUI>& _object) {
-      std::shared_ptr<Processor> proc = std::static_pointer_cast<Processor>(_object);
+      ProcessorPtr proc = std::static_pointer_cast<Processor>(_object);
       if (proc) {
         addProcessor(proc);
       }
@@ -129,7 +129,7 @@ class ProcessingGraph : public Processor
      *  Remove an existing processor from the graph.
      *  @param _processor The std::shared_ptr related to the processor.
      **/
-    void remove(std::shared_ptr<Processor> _processor);
+    void remove(ProcessorPtr _processor);
 
     /**
      *  Remove an existing comment from the graph.
@@ -166,12 +166,12 @@ class ProcessingGraph : public Processor
      **/
     void expandGraph(std::shared_ptr<ProcessingGraph> _graph, ImVec2 _position);
     
-    void addProxy(std::shared_ptr<ProcessorOutput> _proxy_o, std::shared_ptr<ProcessorInput> _proxy_i)
+    void addProxy(ProcessorOutputPtr _proxy_o, ProcessorInputPtr _proxy_i)
     {
       m_group_outputs.emplace_back(_proxy_o, _proxy_i);
     }
 
-    void addProxy(std::shared_ptr<ProcessorInput> _proxy_i, std::shared_ptr<ProcessorOutput> _proxy_o)
+    void addProxy(ProcessorInputPtr _proxy_i, ProcessorOutputPtr _proxy_o)
     {
       m_group_inputs.emplace_back(_proxy_i, _proxy_o);
     }
@@ -180,7 +180,7 @@ class ProcessingGraph : public Processor
      *  Get the list of processors in the graph.
      *  @return The list of processors within the graph.
      */
-    std::vector<std::shared_ptr<Processor>>* processors()
+    std::vector<ProcessorPtr>* processors()
     {
       return &m_processors;
     }
@@ -206,7 +206,7 @@ class ProcessingGraph : public Processor
     void iceSL(std::ofstream& _stream);
 
     bool isDirty() {
-      for (std::shared_ptr<Processor> processor : m_processors) {
+      for (ProcessorPtr processor : m_processors) {
         if (processor->isDirty()) {
           return true;
         }
@@ -225,7 +225,7 @@ class ProcessingGraph : public Processor
     ImVec2 getBarycenter() {
 
       std::vector<std::shared_ptr<SelectableUI>> list;
-      for (std::shared_ptr<Processor> proc : m_processors) {
+      for (ProcessorPtr proc : m_processors) {
         list.push_back(proc);
       }
       /*
@@ -252,7 +252,7 @@ class ProcessingGraph : public Processor
 
     BBox2D getBoundingBox() {
       std::vector<std::shared_ptr<SelectableUI>> list;
-      for (std::shared_ptr<Processor> proc : m_processors) {
+      for (ProcessorPtr proc : m_processors) {
         list.push_back(proc);
       }
       return getBoundingBox(list);

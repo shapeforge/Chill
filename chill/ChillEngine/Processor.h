@@ -32,7 +32,8 @@ namespace chill {
     DISABLED,
     EMITING
   };
-  
+
+  using ProcessorPtr       = std::shared_ptr<Processor>;
 
   /**
    *  Processor class.
@@ -83,7 +84,7 @@ namespace chill {
      *  Get the list of inputs.
      *  @return The list of inputs.
      **/
-    const std::vector<std::shared_ptr<ProcessorInput>> inputs() {
+    const std::vector<ProcessorInputPtr> inputs() {
       return m_inputs;
     }
 
@@ -91,7 +92,7 @@ namespace chill {
      *  Get the list of outputs.
      *  @return The list of outputs.
      **/
-    std::vector<std::shared_ptr<ProcessorOutput>> outputs() {
+    std::vector<ProcessorOutputPtr> outputs() {
       return m_outputs;
     }
 
@@ -107,14 +108,14 @@ namespace chill {
      *  @param _name The output name.
      *  @return The output pointer if exists else a null pointer.
      **/
-    std::shared_ptr<ProcessorOutput> output(std::string _name);
+    ProcessorOutputPtr output(std::string _name);
 
     /**
     *  Add a new input to the processor.
     *  @param _input The input.
     *  @return A pointer to the new input.
     **/
-    virtual std::shared_ptr<ProcessorInput> addInput(std::shared_ptr<ProcessorInput> _input);
+    virtual std::shared_ptr<ProcessorInput> addInput(ProcessorInputPtr _input);
 
     /**
      *  Add a new input to the processor.
@@ -124,7 +125,7 @@ namespace chill {
      *  @return A pointer to the new input.
      **/
     template <typename ... Args>
-    std::shared_ptr<ProcessorInput> addInput(std::string _name, IOType::IOType _type, Args&& ... _args) {
+    ProcessorInputPtr addInput(std::string _name, IOType::IOType _type, Args&& ... _args) {
       return addInput(ProcessorInput::create(_name, _type, _args...));
     }
 
@@ -133,7 +134,7 @@ namespace chill {
      *  @param _output The output.
      *  @return A pointer to the new output.
      **/
-    virtual std::shared_ptr<ProcessorOutput> addOutput(std::shared_ptr<ProcessorOutput> _output);
+    virtual ProcessorOutputPtr addOutput(ProcessorOutputPtr _output);
 
     /**
      *  Add a new output to the processor.
@@ -141,26 +142,26 @@ namespace chill {
      *  @param _type The output type.
      *  @return A pointer to the new output.
      **/
-    std::shared_ptr<ProcessorOutput> addOutput(std::string _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false);
+    ProcessorOutputPtr addOutput(std::string _name, IOType::IOType _type = IOType::UNDEF, bool _emitable = false);
 
     /**
      *  Remove an input.
      *  @param _input The pointer that refers to the input
      **/
-    void removeInput(std::shared_ptr<ProcessorInput>& _input);
+    void removeInput(ProcessorInputPtr& _input);
 
     /**
      *  Remove an output.
      *  @param _output The pointer that refers to the output
      **/
-    void removeOutput(std::shared_ptr<ProcessorOutput>& _output);
+    void removeOutput(ProcessorOutputPtr& _output);
 
 
-    void replaceInput(std::string _inputName, std::shared_ptr<ProcessorInput> _input) {
+    void replaceInput(std::string _inputName, ProcessorInputPtr _input) {
       std::replace(m_inputs.begin(), m_inputs.end(), input(_inputName), _input);
     }
 
-    void replaceOutput(std::string _outputName, std::shared_ptr<ProcessorOutput> _output) {
+    void replaceOutput(std::string _outputName, ProcessorOutputPtr _output) {
       std::replace(m_outputs.begin(), m_outputs.end(), output(_outputName), _output);
     }
 
@@ -171,27 +172,27 @@ namespace chill {
      *  @param _to The destination processor.
      *  @param _input_name The name of the input.
      **/
-    static bool connect(std::shared_ptr<Processor> _from, const std::string _output_name,
-      std::shared_ptr<Processor> _to, const std::string _input_name);
+    static bool connect(ProcessorPtr _from, const std::string _output_name,
+      ProcessorPtr _to, const std::string _input_name);
 
     /**
      *  Add a new connection to the graph if, and only if, there is no cycle created.
      *  @param _from The processor's output.
      *  @param _to The processor's input.
      **/
-    static bool connect(std::shared_ptr<ProcessorOutput> _from, std::shared_ptr<ProcessorInput> _to);
+    static bool connect(ProcessorOutputPtr _from, ProcessorInputPtr _to);
 
     /**
      *  Remove a connection in the graph.
      *  @param _to The processor's input.
      **/
-    static void disconnect(std::shared_ptr<ProcessorInput> _to);
+    static void disconnect(ProcessorInputPtr _to);
 
     /**
      *  Remove a connection in the graph.
      *  @param _from The processor's output.
      **/
-    static void disconnect(std::shared_ptr<ProcessorOutput> _from);
+    static void disconnect(ProcessorOutputPtr _from);
 
     /**
      *  Check if two processors are connected.
@@ -258,9 +259,9 @@ namespace chill {
 
     ProcessorState                        m_state = DEFAULT;
     /** List of all inputs. */
-    std::vector<std::shared_ptr<ProcessorInput>>  m_inputs;
+    std::vector<ProcessorInputPtr>  m_inputs;
     /** List of all outputs. */
-    std::vector<std::shared_ptr<ProcessorOutput>> m_outputs;
+    std::vector<ProcessorOutputPtr> m_outputs;
     /** Next nodes have to update themselves. */
     bool                                  m_dirty = true;
 

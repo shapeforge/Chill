@@ -122,7 +122,7 @@ namespace fs = std::filesystem;
       m_graphs.emplace(_graph);
     }
 
-    void setSelectedInput(std::shared_ptr<ProcessorInput> _input) {
+    void setSelectedInput(ProcessorInputPtr _input) {
       m_selected_input = _input;
 
       if (m_selected_output) {
@@ -130,16 +130,16 @@ namespace fs = std::filesystem;
           return;
         }
         getCurrentGraph()->connect(m_selected_output, _input);
-        m_selected_input = std::shared_ptr<ProcessorInput>(nullptr);
-        m_selected_output = std::shared_ptr<ProcessorOutput>(nullptr);
+        m_selected_input = ProcessorInputPtr(nullptr);
+        m_selected_output = ProcessorOutputPtr(nullptr);
       }
     }
 
-    std::shared_ptr<ProcessorInput> getSelectedInput() {
+    ProcessorInputPtr getSelectedInput() {
       return m_selected_input;
     }
 
-    void setSelectedOutput(std::shared_ptr<ProcessorOutput> _output) {
+    void setSelectedOutput(ProcessorOutputPtr _output) {
       m_selected_output = _output;
 
       if (m_selected_input) {
@@ -147,12 +147,12 @@ namespace fs = std::filesystem;
           return;
         }
         getCurrentGraph()->connect(_output, m_selected_input);
-        m_selected_input = std::shared_ptr<ProcessorInput>(nullptr);
-        m_selected_output = std::shared_ptr<ProcessorOutput>(nullptr);
+        m_selected_input = ProcessorInputPtr(nullptr);
+        m_selected_output = ProcessorOutputPtr(nullptr);
       }
     }
 
-    std::shared_ptr<ProcessorOutput> getSelectedOutput() {
+    ProcessorOutputPtr getSelectedOutput() {
       return m_selected_output;
     }
 
@@ -215,8 +215,8 @@ namespace fs = std::filesystem;
       std::deque <std::shared_ptr<ProcessingGraph>> m_undo;
       std::deque <std::shared_ptr<ProcessingGraph>> m_redo;
 
-      std::shared_ptr<ProcessorInput>  m_selected_input;
-      std::shared_ptr<ProcessorOutput> m_selected_output;
+      ProcessorInputPtr  m_selected_input;
+      ProcessorOutputPtr m_selected_output;
 
       std::vector<std::shared_ptr<SelectableUI>>     hovered;
       std::vector<std::shared_ptr<SelectableUI>>     selected;
