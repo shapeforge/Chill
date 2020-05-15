@@ -271,7 +271,7 @@ bool chill::IntInput::drawTweak() {
   ImGui::SameLine();
   std::string name_str = std::string(name());
   std::string label = "##" + name_str;
-  std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".0f";
+  std::string format = name_str + ": %" + std::to_string(24 - name_str.size()) + ".1d";
 
   int before = m_value;
   bool value_changed = false;
